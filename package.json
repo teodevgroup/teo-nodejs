@@ -1,5 +1,5 @@
 {
-  "name": "teo-js",
+  "name": "@teo/teo",
   "version": "0.0.1",
   "description": "",
   "main": "index.node",

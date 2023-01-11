@@ -1,6 +1,6 @@
-const { createAppBuilder, appBuilderLoad, appBuilderBuild, appRun } = require("./index.node");
+const { createAppBuilder, appBuilderLoad, appBuilderBuild } = require("./index.node");
 
-class AppBuilder {
+class App {
 
   constructor() {
     this.internal = createAppBuilder();
@@ -10,21 +10,9 @@ class AppBuilder {
     appBuilderLoad.call(this.internal, filename);
   }
 
-  async build() {
-    const appInternal = await appBuilderBuild.call(this.internal);
-    return new App(appInternal);
-  }
-}
-
-class App {
-
-  constructor(internal) {
-    this.internal = internal;
-  }
-
   async run() {
-    await appRun.call(this.internal);
+    await appBuilderBuild.call(this.internal);
   }
 }
 
-module.exports = { AppBuilder, App };
+module.exports = { App };

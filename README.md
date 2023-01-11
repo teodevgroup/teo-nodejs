@@ -12,12 +12,11 @@ npm install @teocloud/teo
 ## Example
 
 ```javascript
-const { AppBuilder } = require("./index.js")
+const { App } = require("./index.js")
 
 async function main() {
-  const appBuilder = new AppBuilder();
-  appBuilder.load();
-  const app = await appBuilder.build();
+  const app = new App();
+  app.load();
   await app.run();
 }
 

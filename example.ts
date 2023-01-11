@@ -1,4 +1,4 @@
-const { App } = require("./index.js")
+import { App } from '.'
 
 async function main() {
   const app = new App();

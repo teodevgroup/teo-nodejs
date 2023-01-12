@@ -26,14 +26,6 @@ impl AppBuilder {
         Ok(cx.boxed(app_builder))
     }
 
-    fn load(mut cx: FunctionContext) -> JsResult<JsUndefined> {
-        let this = cx.this().downcast_or_throw::<JsBox<AppBuilder>, _>(&mut cx)?;
-        let inner_builder = this.app_builder.as_ref();
-        let inner_builder_mut = inner_builder.to_mut();
-        inner_builder_mut.load(None);
-        Ok(cx.undefined())
-    }
-
     fn build(mut cx: FunctionContext) -> JsResult<JsPromise> {
         let runtime = get_runtime(&mut cx)?;
         let channel = cx.channel();

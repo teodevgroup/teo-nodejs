@@ -1,9 +1,13 @@
 const { createAppBuilder, appBuilderBuild } = require("./index.node");
 
+process.on('SIGINT', function() {
+  process.exit(0);
+});
+
 class App {
 
-  constructor() {
-    this.internal = createAppBuilder();
+  constructor(cli) {
+    this.internal = createAppBuilder(cli);
   }
 
   async run() {

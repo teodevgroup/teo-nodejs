@@ -1,8 +1,7 @@
-import { App } from '.'
+import { App } from './index.js'
 
 async function main() {
   const app = new App();
-  app.load();
   await app.run();
 }
 

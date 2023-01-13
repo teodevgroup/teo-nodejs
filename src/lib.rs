@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use neon::prelude::*;
 use teo::core::app::builder::AppBuilder as TeoAppBuilder;
+use teo::core::app::entrance::Entrance;
 use teo::core::app::environment::EnvironmentVersion;
 use to_mut::ToMut;
 use tokio::runtime::Runtime;
@@ -20,8 +21,19 @@ impl AppBuilder {
         let process: Handle<JsObject> = cx.global().get(&mut cx, "process")?;
         let version: Handle<JsString> = process.get(&mut cx, "version")?;
         let version_str = version.value(&mut cx);
+        let cli_mode = cx.argument_opt(0);
+
         let app_builder = AppBuilder {
-            app_builder: Arc::new(TeoAppBuilder::new_with_environment_version(EnvironmentVersion::NodeJS(version_str)))
+            app_builder: Arc::new(if let Some(cli_mode) = cli_mode {
+                let cli_mode_bool: Handle<JsBoolean> = cli_mode.downcast(&mut cx).unwrap_or(cx.boolean(false));
+                if cli_mode_bool.value(&mut cx) {
+                    TeoAppBuilder::new_with_environment_version_and_entrance(EnvironmentVersion::NodeJS(version_str), Entrance::CLI)
+                } else {
+                    TeoAppBuilder::new_with_environment_version(EnvironmentVersion::NodeJS(version_str))
+                }
+            } else {
+                TeoAppBuilder::new_with_environment_version(EnvironmentVersion::NodeJS(version_str))
+            })
         };
         Ok(cx.boxed(app_builder))
     }
@@ -33,7 +45,9 @@ impl AppBuilder {
         let app_builder = this.app_builder.clone();
         let (deferred, promise) = cx.promise();
         runtime.spawn(async move {
-            let app = app_builder.build().await;
+            let app_builder_ref = app_builder.as_ref();
+            let app_builder_ref_mut = app_builder_ref.to_mut();
+            let app = app_builder_ref_mut.build().await;
             app.run().await;
             deferred.settle_with(&channel, move |mut cx| {
                 Ok(cx.undefined())
@@ -48,7 +62,6 @@ impl Finalize for AppBuilder { }
 #[neon::main]
 fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("createAppBuilder", AppBuilder::js_new)?;
-    cx.export_function("appBuilderLoad", AppBuilder::load)?;
     cx.export_function("appBuilderBuild", AppBuilder::build)?;
     Ok(())
 }

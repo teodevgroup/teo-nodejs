@@ -1,0 +1,37 @@
+connector {
+  /// We use MongoDB
+  provider .mysql
+  /// Use environment variable or a default one
+  url "mysql://localhost:3306/nodejs"
+}
+
+server {
+  /// Listening on port 5100
+  bind ("0.0.0.0", 5100)
+  /// Since we have signing in, Read JWT secret from ENV
+  jwtSecret ENV["JWT_SECRET"] ?? "top"
+}
+
+/// @name Auth Code
+/// @description The auth code is used for authentication.
+model AuthCode {
+
+  @id @readonly @autoIncrement
+  id: Int
+
+  /// @name Email
+  /// @description User's email address.
+  @unique @onSet($isEmail)
+  email: String
+
+  /// @name Code
+  /// @description Code is a 4 digits number.
+  @internal @onSave($randomDigits(4))
+  code: String
+
+  @readonly @onSave($when(.create, $now))
+  createdAt: DateTime
+
+  @readonly @onSave($now)
+  updatedAt: DateTime
+}

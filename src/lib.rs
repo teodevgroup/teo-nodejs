@@ -3,7 +3,7 @@
 #[macro_use]
 extern crate napi_derive;
 
-use napi::{Env, JsObject, JsString};
+use napi::{Env, JsObject, JsString, JsUnknown};
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
 use to_mut::ToMut;
 
@@ -14,6 +14,7 @@ pub struct App {
 
 #[napi]
 impl App {
+
     #[napi(constructor)]
     pub fn new(env: Env) -> Self {
         Self::with_cli(env, false)
@@ -34,5 +35,10 @@ impl App {
         let mut_builder = self.builder.to_mut();
         let teo_app = mut_builder.build().await;
         let _ = teo_app.run().await;
+    }
+
+    #[napi]
+    pub fn transform(&self, arg0: JsUnknown) {
+
     }
 }

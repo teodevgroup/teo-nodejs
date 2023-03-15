@@ -19,7 +19,7 @@
     "test": "cargo test"
   },
   "author": "Victor Teo <victor.teo@fillmula.com>",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "devDependencies": {
     "cargo-cp-artifact": "^0.1"
   }

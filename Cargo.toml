@@ -1,19 +1,17 @@
 [package]
 name = "teojs"
 version = "0.1.0"
-license = "ISC"
+license = "Apache-2.0"
 edition = "2021"
 exclude = ["index.node"]
 
 [lib]
 crate-type = ["cdylib"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 teo = { path = "../teo", features = ["data-source-mysql", "data-source-postgres", "data-source-sqlite", "data-source-mongodb"] }
 to-mut = { version = "0.1.0" }
-tokio = { version = "1.24.1" }
+tokio = { version = "1.0" }
 once_cell = { version = "1.17.0" }
 
 [dependencies.neon]

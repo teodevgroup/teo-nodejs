@@ -1,0 +1,15 @@
+{
+  "name": "@teocloud/teo-darwin-universal",
+  "version": "0.0.0",
+  "os": [
+    "darwin"
+  ],
+  "main": "teo.darwin-universal.node",
+  "files": [
+    "teo.darwin-universal.node"
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">= 10"
+  }
+}

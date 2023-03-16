@@ -21,7 +21,7 @@ model AuthCode {
 
   /// @name Email
   /// @description User's email address.
-  @unique @onSet($transform("t1"))
+  @unique @onSet($transform("replaceComWithIo"))
   email: String
 
   /// @name Code

@@ -1,13 +1,11 @@
 const { App } = require("./index.js")
 
 async function main() {
-  const app = new App();
-  app.transform("t1", function (arg0, arg1) {
-    console.log("See args: ", arg0, arg1);
-    arg1 = arg1 + "suffix"
-    return arg1
+  const app = new App()
+  app.transform("replaceComWithIo", function (input) {
+    return input.replace(/com$/, 'io')
   })
-  await app.run();
+  await app.run()
 }
 
-main();
+main()

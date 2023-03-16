@@ -7,7 +7,7 @@ export class App {
   constructor()
   static withCli(cli: boolean): App
   run(): Promise<void>
-  transform(name: string, function: (...args: any[]) => any): void
+  transform(callback: (input: any) => any): void
   validate(name: string, function: (...args: any[]) => any): void
   callback(name: string, function: (...args: any[]) => any): void
   compare(name: string, function: (...args: any[]) => any): void

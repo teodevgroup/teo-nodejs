@@ -5,8 +5,8 @@ extern crate napi_derive;
 
 pub mod value;
 
-use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadsafeFunctionCallMode, ThreadSafeCallContext};
-use napi::{Env, JsUnknown, JsObject, JsString, JsFunction, Result};
+use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy};
+use napi::{Env, JsObject, JsString, JsFunction, Result};
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
 use teo::core::teon::Value as TeoValue;
 use to_mut::ToMut;
@@ -42,33 +42,33 @@ impl App {
         let _ = teo_app.run().await;
     }
 
-    #[napi]
-    pub fn transform(&self, env: Env, name: String, function: JsFunction) -> Result<()> {
+    #[napi(ts_args_type = "callback: (input: any) => any")]
+    pub fn transform(&self, name: String, callback: JsFunction) -> Result<()> {
         let mut_builder = self.builder.to_mut();
-        let tsfn = env.create_threadsafe_function(&function, 0, |ctx: ThreadSafeCallContext<TeoValue>| {
+        let tsfn: ThreadsafeFunction<TeoValue, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
             let js_value = teo_value_to_js_unknown(&ctx.value, &ctx);
             Ok(vec![js_value])
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));
         mut_builder.transform(name, |value: TeoValue| async {
-            let result: WrappedTeoValue = tsfn_cloned.call_async(Ok(value)).await.unwrap();
+            let result: WrappedTeoValue = tsfn_cloned.call_async(value).await.unwrap();
             result.to_teo_value()
         });
         Ok(())
     }
 
     #[napi]
-    pub fn validate(&self, name: String, function: JsFunction) {
+    pub fn validate(&self, name: String, callback: JsFunction) {
 
     }
 
     #[napi]
-    pub fn callback(&self, name: String, function: JsFunction) {
+    pub fn callback(&self, name: String, callback: JsFunction) {
 
     }
 
     #[napi]
-    pub fn compare(&self, name: String, function: JsFunction) {
+    pub fn compare(&self, name: String, callback: JsFunction) {
 
     }
 }

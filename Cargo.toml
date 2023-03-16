@@ -1,9 +1,7 @@
 [package]
-name = "teojs"
-version = "0.1.0"
-license = "Apache-2.0"
 edition = "2021"
-exclude = ["index.node"]
+name = "teocloud_teo"
+version = "0.0.0"
 
 [lib]
 crate-type = ["cdylib"]
@@ -11,10 +9,13 @@ crate-type = ["cdylib"]
 [dependencies]
 teo = { path = "../teo", features = ["data-source-mysql", "data-source-postgres", "data-source-sqlite", "data-source-mongodb"] }
 to-mut = { version = "0.1.0" }
-tokio = { version = "1.0" }
-once_cell = { version = "1.17.0" }
+napi = { version = "2.11.1", default-features = false, features = ["napi5", "async", "chrono_date"] }
+napi-derive = "2.11.0"
+chrono = { version = "0.4.24" }
+bigdecimal = "0.3.0"
 
-[dependencies.neon]
-version = "0.10"
-default-features = false
-features = ["napi-6", "promise-api", "channel-api"]
+[build-dependencies]
+napi-build = "2.0.1"
+
+[profile.release]
+lto = true

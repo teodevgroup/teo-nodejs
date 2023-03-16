@@ -1,67 +1,74 @@
-use std::sync::Arc;
-use neon::prelude::*;
-use teo::core::app::builder::AppBuilder as TeoAppBuilder;
-use teo::core::app::entrance::Entrance;
-use teo::core::app::environment::EnvironmentVersion;
+#![deny(clippy::all)]
+
+#[macro_use]
+extern crate napi_derive;
+
+pub mod value;
+
+use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy};
+use napi::{Env, JsObject, JsString, JsFunction, Result};
+use teo::core::app::{builder::AppBuilder, entrance::Entrance};
+use teo::core::teon::Value as TeoValue;
 use to_mut::ToMut;
-use tokio::runtime::Runtime;
-use once_cell::sync::OnceCell;
+use value::{teo_value_to_js_unknown, WrappedTeoValue};
 
-fn get_runtime<'a, C: Context<'a>>(cx: &mut C) -> NeonResult<&'static Runtime> {
-    static RUNTIME: OnceCell<Runtime> = OnceCell::new();
-    RUNTIME.get_or_try_init(|| Runtime::new().or_else(|err| cx.throw_error(err.to_string())))
+#[napi(js_name = "App")]
+pub struct App {
+    builder: AppBuilder
 }
 
-pub struct AppBuilder {
-    app_builder: Arc<TeoAppBuilder>,
-}
+#[napi]
+impl App {
 
-impl AppBuilder {
-    fn js_new(mut cx: FunctionContext) -> JsResult<JsBox<AppBuilder>> {
-        let process: Handle<JsObject> = cx.global().get(&mut cx, "process")?;
-        let version: Handle<JsString> = process.get(&mut cx, "version")?;
-        let version_str = version.value(&mut cx);
-        let cli_mode = cx.argument_opt(0);
-
-        let app_builder = AppBuilder {
-            app_builder: Arc::new(if let Some(cli_mode) = cli_mode {
-                let cli_mode_bool: Handle<JsBoolean> = cli_mode.downcast(&mut cx).unwrap_or(cx.boolean(false));
-                if cli_mode_bool.value(&mut cx) {
-                    TeoAppBuilder::new_with_environment_version_and_entrance(EnvironmentVersion::NodeJS(version_str), Entrance::CLI)
-                } else {
-                    TeoAppBuilder::new_with_environment_version(EnvironmentVersion::NodeJS(version_str))
-                }
-            } else {
-                TeoAppBuilder::new_with_environment_version(EnvironmentVersion::NodeJS(version_str))
-            })
-        };
-        Ok(cx.boxed(app_builder))
+    #[napi(constructor)]
+    pub fn new(env: Env) -> Self {
+        Self::with_cli(env, false)
     }
 
-    fn build(mut cx: FunctionContext) -> JsResult<JsPromise> {
-        let runtime = get_runtime(&mut cx)?;
-        let channel = cx.channel();
-        let this = cx.this().downcast_or_throw::<JsBox<AppBuilder>, _>(&mut cx)?;
-        let app_builder = this.app_builder.clone();
-        let (deferred, promise) = cx.promise();
-        runtime.spawn(async move {
-            let app_builder_ref = app_builder.as_ref();
-            let app_builder_ref_mut = app_builder_ref.to_mut();
-            let app = app_builder_ref_mut.build().await;
-            app.run().await;
-            deferred.settle_with(&channel, move |mut cx| {
-                Ok(cx.undefined())
-            });
+    #[napi(factory)]
+    pub fn with_cli(env: Env, cli: bool) -> Self {
+        let entrance = if cli { Entrance::CLI } else { Entrance::APP };
+        let global = env.get_global().unwrap();
+        let process: JsObject = global.get_named_property("process").unwrap();
+        let version: JsString = process.get_named_property("version").unwrap();
+        let version_str: String = version.into_utf8().unwrap().as_str().unwrap().to_owned();
+        App { builder: AppBuilder::new_with_environment_version_and_entrance(teo::core::app::environment::EnvironmentVersion::NodeJS(version_str), entrance) }
+    }
+
+    #[napi]
+    pub async fn run(&self) {
+        let mut_builder = self.builder.to_mut();
+        let teo_app = mut_builder.build().await;
+        let _ = teo_app.run().await;
+    }
+
+    #[napi(ts_args_type = "callback: (input: any) => any")]
+    pub fn transform(&self, name: String, callback: JsFunction) -> Result<()> {
+        let mut_builder = self.builder.to_mut();
+        let tsfn: ThreadsafeFunction<TeoValue, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
+            let js_value = teo_value_to_js_unknown(&ctx.value, &ctx);
+            Ok(vec![js_value])
+        })?;
+        let tsfn_cloned = Box::leak(Box::new(tsfn));
+        mut_builder.transform(name, |value: TeoValue| async {
+            let result: WrappedTeoValue = tsfn_cloned.call_async(value).await.unwrap();
+            result.to_teo_value()
         });
-        Ok(promise)
+        Ok(())
     }
-}
 
-impl Finalize for AppBuilder { }
+    #[napi]
+    pub fn validate(&self, name: String, callback: JsFunction) {
 
-#[neon::main]
-fn main(mut cx: ModuleContext) -> NeonResult<()> {
-    cx.export_function("createAppBuilder", AppBuilder::js_new)?;
-    cx.export_function("appBuilderBuild", AppBuilder::build)?;
-    Ok(())
+    }
+
+    #[napi]
+    pub fn callback(&self, name: String, callback: JsFunction) {
+
+    }
+
+    #[napi]
+    pub fn compare(&self, name: String, callback: JsFunction) {
+
+    }
 }

@@ -1,0 +1,18 @@
+{
+  "name": "@teocloud/teo-android-arm-eabi",
+  "version": "0.0.0",
+  "os": [
+    "android"
+  ],
+  "cpu": [
+    "arm"
+  ],
+  "main": "teo.android-arm-eabi.node",
+  "files": [
+    "teo.android-arm-eabi.node"
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">= 10"
+  }
+}

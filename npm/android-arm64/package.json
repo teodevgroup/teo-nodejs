@@ -1,0 +1,18 @@
+{
+  "name": "@teocloud/teo-android-arm64",
+  "version": "0.0.0",
+  "os": [
+    "android"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "teo.android-arm64.node",
+  "files": [
+    "teo.android-arm64.node"
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">= 10"
+  }
+}

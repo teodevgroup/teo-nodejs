@@ -1,27 +1,27 @@
 connector {
   /// We use MongoDB
-  provider .mongo
+  provider .mysql
   /// Use environment variable or a default one
-  url ENV["MONGO_URL"] ?? "mongodb://127.0.0.1:27017/teoapi"
+  url "mysql://localhost:3306/nodejs"
 }
 
-config {
+server {
   /// Listening on port 5100
   bind ("0.0.0.0", 5100)
   /// Since we have signing in, Read JWT secret from ENV
-  jwtSecret ENV["JWT_SECRET"]
+  jwtSecret ENV["JWT_SECRET"] ?? "top"
 }
 
 /// @name Auth Code
 /// @description The auth code is used for authentication.
 model AuthCode {
 
-  @id @readonly @map("_id") @auto
-  id: ObjectId
+  @id @readonly @autoIncrement
+  id: Int
 
   /// @name Email
   /// @description User's email address.
-  @unique @onSet($isEmail)
+  @unique @onSet($transform("replaceComWithIo"))
   email: String
 
   /// @name Code

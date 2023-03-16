@@ -1,0 +1,18 @@
+{
+  "name": "@teocloud/teo-linux-arm-gnueabihf",
+  "version": "0.0.0",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm"
+  ],
+  "main": "teo.linux-arm-gnueabihf.node",
+  "files": [
+    "teo.linux-arm-gnueabihf.node"
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">= 10"
+  }
+}

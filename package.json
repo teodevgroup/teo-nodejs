@@ -1,26 +1,48 @@
 {
-  "name": "teojs",
+  "name": "@teocloud/teo",
   "version": "0.0.43",
-  "description": "",
   "main": "index.js",
-  "typings": "index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/victorteokw/teo-js.git"
+  "types": "index.d.ts",
+  "napi": {
+    "name": "teo",
+    "triples": {
+      "additional": [
+        "aarch64-apple-darwin",
+        "aarch64-linux-android",
+        "aarch64-unknown-linux-gnu",
+        "aarch64-unknown-linux-musl",
+        "aarch64-pc-windows-msvc",
+        "armv7-unknown-linux-gnueabihf",
+        "x86_64-unknown-linux-musl",
+        "x86_64-unknown-freebsd",
+        "i686-pc-windows-msvc",
+        "armv7-linux-androideabi",
+        "universal-apple-darwin"
+      ]
+    }
   },
-  "bin": {
-    "teo": "teo.js"
+  "license": "Apache-2.0",
+  "dependencies": {
+    "decimal.js": "^10.4.3"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.14.8",
+    "ava": "^5.1.1"
+  },
+  "ava": {
+    "timeout": "3m"
+  },
+  "engines": {
+    "node": ">= 10"
   },
   "scripts": {
-    "build": "cargo-cp-artifact -nc index.node -- cargo build --message-format=json-render-diagnostics",
-    "build-debug": "npm run build --",
-    "build-release": "npm run build -- --release",
-    "install": "npm run build-release",
-    "test": "cargo test"
+    "artifacts": "napi artifacts",
+    "build": "napi build --platform --release",
+    "build:debug": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "test": "ava",
+    "universal": "napi universal",
+    "version": "napi version"
   },
-  "author": "Victor Teo <victor.teo@fillmula.com>",
-  "license": "Apache-2.0",
-  "devDependencies": {
-    "cargo-cp-artifact": "^0.1"
-  }
+  "packageManager": "yarn@3.4.1"
 }

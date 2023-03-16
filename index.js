@@ -1,18 +1,251 @@
-const { createAppBuilder, appBuilderBuild } = require("./index.node");
+const { existsSync, readFileSync } = require('fs')
+const { join } = require('path')
 
-process.on('SIGINT', function() {
-  process.exit(0);
-});
+const { platform, arch } = process
 
-class App {
+let nativeBinding = null
+let localFileExisted = false
+let loadError = null
 
-  constructor(cli) {
-    this.internal = createAppBuilder(cli);
-  }
-
-  async run() {
-    await appBuilderBuild.call(this.internal);
+function isMusl() {
+  // For Node 10
+  if (!process.report || typeof process.report.getReport !== 'function') {
+    try {
+      const lddPath = require('child_process').execSync('which ldd').toString().trim();
+      return readFileSync(lddPath, 'utf8').includes('musl')
+    } catch (e) {
+      return true
+    }
+  } else {
+    const { glibcVersionRuntime } = process.report.getReport().header
+    return !glibcVersionRuntime
   }
 }
 
-module.exports = { App };
+switch (platform) {
+  case 'android':
+    switch (arch) {
+      case 'arm64':
+        localFileExisted = existsSync(join(__dirname, 'teo.android-arm64.node'))
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./teo.android-arm64.node')
+          } else {
+            nativeBinding = require('@teocloud/teo-android-arm64')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      case 'arm':
+        localFileExisted = existsSync(join(__dirname, 'teo.android-arm-eabi.node'))
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./teo.android-arm-eabi.node')
+          } else {
+            nativeBinding = require('@teocloud/teo-android-arm-eabi')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      default:
+        throw new Error(`Unsupported architecture on Android ${arch}`)
+    }
+    break
+  case 'win32':
+    switch (arch) {
+      case 'x64':
+        localFileExisted = existsSync(
+          join(__dirname, 'teo.win32-x64-msvc.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./teo.win32-x64-msvc.node')
+          } else {
+            nativeBinding = require('@teocloud/teo-win32-x64-msvc')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      case 'ia32':
+        localFileExisted = existsSync(
+          join(__dirname, 'teo.win32-ia32-msvc.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./teo.win32-ia32-msvc.node')
+          } else {
+            nativeBinding = require('@teocloud/teo-win32-ia32-msvc')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      case 'arm64':
+        localFileExisted = existsSync(
+          join(__dirname, 'teo.win32-arm64-msvc.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./teo.win32-arm64-msvc.node')
+          } else {
+            nativeBinding = require('@teocloud/teo-win32-arm64-msvc')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      default:
+        throw new Error(`Unsupported architecture on Windows: ${arch}`)
+    }
+    break
+  case 'darwin':
+    localFileExisted = existsSync(join(__dirname, 'teo.darwin-universal.node'))
+    try {
+      if (localFileExisted) {
+        nativeBinding = require('./teo.darwin-universal.node')
+      } else {
+        nativeBinding = require('@teocloud/teo-darwin-universal')
+      }
+      break
+    } catch {}
+    switch (arch) {
+      case 'x64':
+        localFileExisted = existsSync(join(__dirname, 'teo.darwin-x64.node'))
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./teo.darwin-x64.node')
+          } else {
+            nativeBinding = require('@teocloud/teo-darwin-x64')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      case 'arm64':
+        localFileExisted = existsSync(
+          join(__dirname, 'teo.darwin-arm64.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./teo.darwin-arm64.node')
+          } else {
+            nativeBinding = require('@teocloud/teo-darwin-arm64')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      default:
+        throw new Error(`Unsupported architecture on macOS: ${arch}`)
+    }
+    break
+  case 'freebsd':
+    if (arch !== 'x64') {
+      throw new Error(`Unsupported architecture on FreeBSD: ${arch}`)
+    }
+    localFileExisted = existsSync(join(__dirname, 'teo.freebsd-x64.node'))
+    try {
+      if (localFileExisted) {
+        nativeBinding = require('./teo.freebsd-x64.node')
+      } else {
+        nativeBinding = require('@teocloud/teo-freebsd-x64')
+      }
+    } catch (e) {
+      loadError = e
+    }
+    break
+  case 'linux':
+    switch (arch) {
+      case 'x64':
+        if (isMusl()) {
+          localFileExisted = existsSync(
+            join(__dirname, 'teo.linux-x64-musl.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./teo.linux-x64-musl.node')
+            } else {
+              nativeBinding = require('@teocloud/teo-linux-x64-musl')
+            }
+          } catch (e) {
+            loadError = e
+          }
+        } else {
+          localFileExisted = existsSync(
+            join(__dirname, 'teo.linux-x64-gnu.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./teo.linux-x64-gnu.node')
+            } else {
+              nativeBinding = require('@teocloud/teo-linux-x64-gnu')
+            }
+          } catch (e) {
+            loadError = e
+          }
+        }
+        break
+      case 'arm64':
+        if (isMusl()) {
+          localFileExisted = existsSync(
+            join(__dirname, 'teo.linux-arm64-musl.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./teo.linux-arm64-musl.node')
+            } else {
+              nativeBinding = require('@teocloud/teo-linux-arm64-musl')
+            }
+          } catch (e) {
+            loadError = e
+          }
+        } else {
+          localFileExisted = existsSync(
+            join(__dirname, 'teo.linux-arm64-gnu.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./teo.linux-arm64-gnu.node')
+            } else {
+              nativeBinding = require('@teocloud/teo-linux-arm64-gnu')
+            }
+          } catch (e) {
+            loadError = e
+          }
+        }
+        break
+      case 'arm':
+        localFileExisted = existsSync(
+          join(__dirname, 'teo.linux-arm-gnueabihf.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./teo.linux-arm-gnueabihf.node')
+          } else {
+            nativeBinding = require('@teocloud/teo-linux-arm-gnueabihf')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      default:
+        throw new Error(`Unsupported architecture on Linux: ${arch}`)
+    }
+    break
+  default:
+    throw new Error(`Unsupported OS: ${platform}, architecture: ${arch}`)
+}
+
+if (!nativeBinding) {
+  if (loadError) {
+    throw loadError
+  }
+  throw new Error(`Failed to load native binding`)
+}
+
+const { App } = nativeBinding
+
+module.exports.App = App

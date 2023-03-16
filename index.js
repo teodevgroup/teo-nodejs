@@ -249,7 +249,3 @@ if (!nativeBinding) {
 const { App } = nativeBinding
 
 module.exports.App = App
-
-process.on('SIGINT', function() {
-  process.exit(0);
-});

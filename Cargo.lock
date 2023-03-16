@@ -2184,6 +2184,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1e46a2274a0b01c5d80576b193ae573ddd1c10bf9739c80cf50029d69438eed8"
 dependencies = [
  "bitflags",
+ "chrono",
  "ctor",
  "napi-sys",
  "once_cell",

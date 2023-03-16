@@ -21,7 +21,7 @@ model AuthCode {
 
   /// @name Email
   /// @description User's email address.
-  @unique @onSet($isEmail)
+  @unique @onSet($transform("t1"))
   email: String
 
   /// @name Code

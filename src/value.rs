@@ -1,5 +1,9 @@
+use std::str::FromStr;
+
+use bigdecimal::BigDecimal;
+use napi::{Env, JsDate};
 use teo::core::teon::Value as TeoValue;
-use chrono::{NaiveDateTime, NaiveTime};
+use chrono::{NaiveDateTime, NaiveTime, DateTime, Utc};
 use napi::{JsUnknown, threadsafe_function::ThreadSafeCallContext, JsFunction, Result, ValueType};
 use napi::bindgen_prelude::FromNapiValue;
 use napi::sys::{napi_env, napi_value};
@@ -66,13 +70,14 @@ impl WrappedTeoValue {
 }
 
 impl FromNapiValue for WrappedTeoValue {
-    unsafe fn from_napi_value(env: napi_env, napi_val: napi_value) -> napi::Result<Self> {
-        let unknown = JsUnknown::from_napi_value(env, napi_val).unwrap();
-        Ok(WrappedTeoValue { value: js_unknown_to_teo_value(unknown) })
+    unsafe fn from_napi_value(raw_env: napi_env, napi_val: napi_value) -> Result<Self> {
+        let env = Env::from_raw(raw_env);
+        let unknown = JsUnknown::from_napi_value(raw_env, napi_val).unwrap();
+        Ok(WrappedTeoValue { value: js_unknown_to_teo_value(unknown, &env) })
     }
 }
 
-fn js_unknown_to_teo_value(unknown: JsUnknown) -> TeoValue {
+fn js_unknown_to_teo_value(unknown: JsUnknown, env: &Env) -> TeoValue {
     let value_type = unknown.get_type().unwrap();
     match value_type {
         ValueType::Null => TeoValue::Null,
@@ -95,7 +100,40 @@ fn js_unknown_to_teo_value(unknown: JsUnknown) -> TeoValue {
             TeoValue::String(js_string.into_utf8().unwrap().as_str().unwrap().to_owned())
         }
         ValueType::Object => {
-            panic!("Unhandled Node.js object type.")
+            if unknown.is_array().unwrap() {
+                let object = unknown.coerce_to_object().unwrap();
+                let len = object.get_array_length().unwrap();
+                let mut result = vec![];
+                for n in 0..len {
+                    let item: JsUnknown = object.get_element(n).unwrap();
+                    result.push(js_unknown_to_teo_value(item, env));
+                }
+                TeoValue::Vec(result)
+            } else if unknown.is_date().unwrap() {
+                let js_date = JsDate::try_from(unknown).unwrap();
+                let milliseconds_since_epoch_utc = js_date.value_of().unwrap();
+                let milliseconds_since_epoch_utc = milliseconds_since_epoch_utc as i64;
+                let timestamp_seconds = milliseconds_since_epoch_utc / 1_000;
+                let naive = NaiveDateTime::from_timestamp_opt(
+                timestamp_seconds,
+                (milliseconds_since_epoch_utc % 1_000 * 1_000_000) as u32,
+                ).unwrap();
+                TeoValue::DateTime(DateTime::<Utc>::from_utc(naive, Utc))
+            } else {
+                let object = unknown.coerce_to_object().unwrap();
+                // test for decimal
+                let global = env.get_global().unwrap();
+                let require: JsFunction = global.get_named_property("require").unwrap();
+                let decimal_js: JsFunction = unsafe { require.call(None, &[env.create_string("decimal.js").unwrap()]).unwrap().cast() };
+                if object.instanceof(decimal_js).unwrap() {
+                    let js_string = object.coerce_to_string().unwrap();
+                    let js_string_utf8 = js_string.into_utf8().unwrap();
+                    let s = js_string_utf8.as_str().unwrap();
+                    return TeoValue::Decimal(BigDecimal::from_str(s).unwrap());
+                } else {
+                    panic!("Unhandled Node.js object type.")
+                }
+            }
         }
         ValueType::Unknown => {
             panic!("Unhandled Node.js unknown type.")

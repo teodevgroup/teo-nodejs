@@ -3549,6 +3549,7 @@ dependencies = [
 name = "teocloud_teo"
 version = "0.0.0"
 dependencies = [
+ "bigdecimal",
  "chrono",
  "napi",
  "napi-build",

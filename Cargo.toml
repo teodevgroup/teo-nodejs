@@ -9,10 +9,10 @@ crate-type = ["cdylib"]
 [dependencies]
 teo = { path = "../teo", features = ["data-source-mysql", "data-source-postgres", "data-source-sqlite", "data-source-mongodb"] }
 to-mut = { version = "0.1.0" }
-# Default enable napi4 feature, see https://nodejs.org/api/n-api.html#node-api-version-matrix
 napi = { version = "2.11.1", default-features = false, features = ["napi5", "async", "chrono_date"] }
 napi-derive = "2.11.0"
 chrono = { version = "0.4.24" }
+bigdecimal = "0.3.0"
 
 [build-dependencies]
 napi-build = "2.0.1"

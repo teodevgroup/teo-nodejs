@@ -9,6 +9,7 @@ async function main() {
   app.transform("10times", async function (input) {
     return Decimal((input || Decimal(5)) * 10)
   })
+  app.validate("oddLength", (s) => s.length % 2 == 0)
   await app.run()
 }
 

@@ -72,7 +72,7 @@ impl WrappedTeoValue {
     pub async fn to_teo_value(self) -> TeoValue {
         match self {
             WrappedTeoValue::Promise(promise) => match promise.await.unwrap() {
-                WrappedTeoValue::Promise(p) => WrappedTeoValue::Promise(p).to_teo_value().await,
+                WrappedTeoValue::Promise(_) => unreachable!(),
                 WrappedTeoValue::TeoValue(v) => v,
             },
             WrappedTeoValue::TeoValue(v) => v,

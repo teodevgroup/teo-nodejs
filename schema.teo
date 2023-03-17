@@ -22,7 +22,7 @@ model AuthCode {
 
   /// @name Email
   /// @description User's email address.
-  @unique @onSet($transform("replaceComWithIo"))
+  @unique @onSet($validate("oddLength").transform("replaceComWithIo"))
   email: String
 
   /// @name Code

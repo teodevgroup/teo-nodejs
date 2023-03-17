@@ -27,7 +27,7 @@ model AuthCode {
 
   /// @name Code
   /// @description Code is a 4 digits number.
-  @internal @onSave($randomDigits(4))
+  @internal @onSave($randomDigits(4).callback("print"))
   code: String
 
   @onSet($transform("10times"))

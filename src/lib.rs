@@ -8,6 +8,7 @@ pub mod value;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy};
 use napi::{Env, JsObject, JsString, JsFunction, Result};
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
+use teo::core::pipeline::items::function::validate::{ValidateResult, Validity};
 use teo::core::teon::Value as TeoValue;
 use to_mut::ToMut;
 use value::{teo_value_to_js_unknown, WrappedTeoValue};
@@ -57,18 +58,39 @@ impl App {
         Ok(())
     }
 
-    #[napi]
-    pub fn validate(&self, name: String, callback: JsFunction) {
-
+    #[napi(ts_args_type = "callback: (input: any) => bool | string | undefined | null")]
+    pub fn validate(&self, name: String, callback: JsFunction) -> Result<()> {
+        let mut_builder = self.builder.to_mut();
+        let tsfn: ThreadsafeFunction<TeoValue, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
+            let js_value = teo_value_to_js_unknown(&ctx.value, &ctx);
+            Ok(vec![js_value])
+        })?;
+        let tsfn_cloned = Box::leak(Box::new(tsfn));
+        mut_builder.validate(name, |value: TeoValue| async {
+            let result: WrappedTeoValue = tsfn_cloned.call_async(value).await.unwrap();
+            let teo_value = result.to_teo_value().await;
+            match teo_value {
+                TeoValue::String(s) => {
+                    ValidateResult::Validity(Validity::Invalid(s.to_owned()))
+                },
+                TeoValue::Bool(b) => if b {
+                    ValidateResult::Validity(Validity::Valid)
+                } else {
+                    ValidateResult::Validity(Validity::Invalid("value is invalid".to_owned()))
+                },
+                _ => ValidateResult::Validity(Validity::Valid)
+            }
+        });
+        Ok(())
     }
 
     #[napi]
-    pub fn callback(&self, name: String, callback: JsFunction) {
-
+    pub fn callback(&self, name: String, callback: JsFunction) -> Result<()> {
+        Ok(())
     }
 
     #[napi]
-    pub fn compare(&self, name: String, callback: JsFunction) {
-
+    pub fn compare(&self, name: String, callback: JsFunction) -> Result<()> {
+        Ok(())
     }
 }

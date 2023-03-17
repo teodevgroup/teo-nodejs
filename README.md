@@ -25,7 +25,7 @@ app.run()
 Write with TypeScript:
 
 ```typescript
-import { App } = from "@teocloud/teo"
+import { App } from "@teocloud/teo"
 
 const app = new App()
 app.validate("oddLength", (s: string) => s.length % 2 == 0)

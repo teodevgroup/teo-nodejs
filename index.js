@@ -251,3 +251,4 @@ const { App } = nativeBinding
 module.exports.App = App
 
 globalThis.require = require
+process.on('SIGINT', function() { process.exit(0) })

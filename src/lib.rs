@@ -52,7 +52,7 @@ impl App {
         let tsfn_cloned = Box::leak(Box::new(tsfn));
         mut_builder.transform(name, |value: TeoValue| async {
             let result: WrappedTeoValue = tsfn_cloned.call_async(value).await.unwrap();
-            result.to_teo_value()
+            result.to_teo_value().await
         });
         Ok(())
     }

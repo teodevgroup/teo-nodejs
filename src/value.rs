@@ -1,11 +1,11 @@
 use std::str::FromStr;
 
 use bigdecimal::BigDecimal;
-use napi::{Env, JsDate, JsObject};
+use napi::{Env, JsDate};
 use teo::core::teon::Value as TeoValue;
 use chrono::{NaiveDateTime, NaiveTime, DateTime, Utc};
 use napi::{JsUnknown, threadsafe_function::ThreadSafeCallContext, JsFunction, Result, ValueType};
-use napi::bindgen_prelude::FromNapiValue;
+use napi::bindgen_prelude::{FromNapiValue, Promise};
 use napi::sys::{napi_env, napi_value};
 
 pub fn teo_value_to_js_unknown(value: &TeoValue, ctx: &ThreadSafeCallContext<TeoValue>) -> JsUnknown {
@@ -61,11 +61,20 @@ pub fn teo_value_to_js_unknown(value: &TeoValue, ctx: &ThreadSafeCallContext<Teo
     }
 }
 
-pub struct WrappedTeoValue { value: TeoValue }
+pub enum WrappedTeoValue {
+    //Promise(Promise<JsUnknown>, Env),
+    TeoValue(TeoValue),
+}
+
+unsafe impl Send for WrappedTeoValue {}
+unsafe impl Sync for WrappedTeoValue {}
 
 impl WrappedTeoValue {
-    pub fn to_teo_value(self) -> TeoValue {
-        self.value
+    pub async fn to_teo_value(self) -> TeoValue {
+        match self {
+            //WrappedTeoValue::Promise(promise, env) => js_unknown_to_teo_value(promise.await.unwrap(), env),
+            WrappedTeoValue::TeoValue(v) => v,
+        }
     }
 }
 
@@ -73,11 +82,17 @@ impl FromNapiValue for WrappedTeoValue {
     unsafe fn from_napi_value(raw_env: napi_env, napi_val: napi_value) -> Result<Self> {
         let env = Env::from_raw(raw_env);
         let unknown = JsUnknown::from_napi_value(raw_env, napi_val).unwrap();
-        Ok(WrappedTeoValue { value: js_unknown_to_teo_value(unknown, &env) })
+        if unknown.is_promise().unwrap() {
+            todo!()
+            //let promise: Promise<JsUnknown> = Promise::from_napi_value(raw_env, napi_val).unwrap();
+            //Ok(WrappedTeoValue::Promise(promise, env.clone()))
+        } else {
+            Ok(WrappedTeoValue::TeoValue(js_unknown_to_teo_value(unknown, env)))
+        }
     }
 }
 
-fn js_unknown_to_teo_value(unknown: JsUnknown, env: &Env) -> TeoValue {
+fn js_unknown_to_teo_value(unknown: JsUnknown, env: Env) -> TeoValue {
     let value_type = unknown.get_type().unwrap();
     match value_type {
         ValueType::Null => TeoValue::Null,

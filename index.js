@@ -249,3 +249,5 @@ if (!nativeBinding) {
 const { App } = nativeBinding
 
 module.exports.App = App
+
+globalThis.require = require

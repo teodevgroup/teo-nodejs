@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use bigdecimal::BigDecimal;
-use napi::{Env, JsDate};
+use napi::{Env, JsDate, JsObject};
 use teo::core::teon::Value as TeoValue;
 use chrono::{NaiveDateTime, NaiveTime, DateTime, Utc};
 use napi::{JsUnknown, threadsafe_function::ThreadSafeCallContext, JsFunction, Result, ValueType};
@@ -21,7 +21,7 @@ pub fn teo_value_to_js_unknown(value: &TeoValue, ctx: &ThreadSafeCallContext<Teo
         TeoValue::Decimal(d) => {
             let global = ctx.env.get_global().unwrap();
             let require: JsFunction = global.get_named_property("require").unwrap();
-            let decimal_js: JsFunction = unsafe { require.call(None, &[ctx.env.create_string("decimal.js").unwrap()]).unwrap().cast() };
+            let decimal_js: JsFunction = unsafe { require.call(None, &[ctx.env.create_string("decimal.js").unwrap().into_unknown()]).unwrap().cast() };
             let decimal_string = d.normalized().to_string();
             decimal_js.call(None, &[ctx.env.create_string(&decimal_string).unwrap()]).unwrap()
         },

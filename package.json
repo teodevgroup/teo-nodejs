@@ -37,8 +37,8 @@
   },
   "scripts": {
     "artifacts": "napi artifacts",
-    "build": "napi build --platform --release",
-    "build:debug": "napi build --platform",
+    "build": "napi build --platform --release --pipe 'node ./scripts/passRequire.js'",
+    "build:debug": "napi build --platform --pipe 'node ./scripts/passRequire.js'",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "ava",
     "universal": "napi universal",

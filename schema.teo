@@ -14,6 +14,7 @@ server {
 
 /// @name Auth Code
 /// @description The auth code is used for authentication.
+@migration(drop: true)
 model AuthCode {
 
   @id @readonly @autoIncrement
@@ -28,6 +29,9 @@ model AuthCode {
   /// @description Code is a 4 digits number.
   @internal @onSave($randomDigits(4))
   code: String
+
+  @onSet($transform("10times"))
+  price: Decimal
 
   @readonly @onSave($when(.create, $now))
   createdAt: DateTime

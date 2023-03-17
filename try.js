@@ -10,6 +10,7 @@ async function main() {
     return Decimal((input || Decimal(5)) * 10)
   })
   app.validate("oddLength", (s) => s.length % 2 == 0)
+  app.callback("print", (v) => console.log(v))
   await app.run()
 }
 

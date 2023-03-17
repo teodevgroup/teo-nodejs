@@ -7,7 +7,7 @@ use napi::{JsUnknown, threadsafe_function::ThreadSafeCallContext, JsFunction, Re
 use napi::bindgen_prelude::{FromNapiValue, Promise};
 use napi::sys::{napi_env, napi_value};
 
-pub fn teo_value_to_js_unknown(value: &TeoValue, ctx: &ThreadSafeCallContext<TeoValue>) -> JsUnknown {
+pub fn teo_value_to_js_unknown<T>(value: &TeoValue, ctx: &ThreadSafeCallContext<T>) -> JsUnknown {
     match value {
         TeoValue::String(s) => ctx.env.create_string(s).unwrap().into_unknown(),
         TeoValue::Bool(b) => ctx.env.get_boolean(*b).unwrap().into_unknown(),

@@ -1,7 +1,7 @@
 Teo Node.js
 ==========
 
-Run Teo server and write custom callbacks with Node.js.
+Run Teo server and write custom callbacks and entities with Node.js.
 
 ## Installation
 

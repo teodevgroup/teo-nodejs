@@ -1,5 +1,4 @@
 use std::str::FromStr;
-
 use bigdecimal::BigDecimal;
 use napi::{Env, JsDate};
 use teo::core::teon::Value as TeoValue;
@@ -62,7 +61,7 @@ pub fn teo_value_to_js_unknown(value: &TeoValue, ctx: &ThreadSafeCallContext<Teo
 }
 
 pub enum WrappedTeoValue {
-    //Promise(Promise<JsUnknown>, Env),
+    Promise(Promise<WrappedTeoValue>),
     TeoValue(TeoValue),
 }
 
@@ -72,7 +71,10 @@ unsafe impl Sync for WrappedTeoValue {}
 impl WrappedTeoValue {
     pub async fn to_teo_value(self) -> TeoValue {
         match self {
-            //WrappedTeoValue::Promise(promise, env) => js_unknown_to_teo_value(promise.await.unwrap(), env),
+            WrappedTeoValue::Promise(promise) => match promise.await.unwrap() {
+                WrappedTeoValue::Promise(p) => WrappedTeoValue::Promise(p).to_teo_value().await,
+                WrappedTeoValue::TeoValue(v) => v,
+            },
             WrappedTeoValue::TeoValue(v) => v,
         }
     }
@@ -83,9 +85,8 @@ impl FromNapiValue for WrappedTeoValue {
         let env = Env::from_raw(raw_env);
         let unknown = JsUnknown::from_napi_value(raw_env, napi_val).unwrap();
         if unknown.is_promise().unwrap() {
-            todo!()
-            //let promise: Promise<JsUnknown> = Promise::from_napi_value(raw_env, napi_val).unwrap();
-            //Ok(WrappedTeoValue::Promise(promise, env.clone()))
+            let promise: Promise<WrappedTeoValue> = Promise::from_napi_value(raw_env, napi_val).unwrap();
+            Ok(WrappedTeoValue::Promise(promise))
         } else {
             Ok(WrappedTeoValue::TeoValue(js_unknown_to_teo_value(unknown, env)))
         }

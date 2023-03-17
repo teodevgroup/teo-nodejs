@@ -11,13 +11,24 @@ npm install @teocloud/teo
 
 ## Example
 
+Write with JavaScript:
+
 ```javascript
-const { App } = require("./index.js")
+const { App } = require("@teocloud/teo")
 
-async function main() {
-  const app = new App();
-  await app.run();
-}
+const app = new App()
+app.validate("oddLength", (s) => s.length % 2 == 0)
+app.run()
 
-main();
+```
+
+Write with TypeScript:
+
+```typescript
+import { App } = from "@teocloud/teo"
+
+const app = new App()
+app.validate("oddLength", (s: string) => s.length % 2 == 0)
+app.run()
+
 ```

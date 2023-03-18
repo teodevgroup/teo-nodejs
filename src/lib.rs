@@ -124,8 +124,12 @@ impl App {
 
             // create
             let create = env.create_function_from_closure("create", |ctx| {
-                let unknown: JsUnknown = ctx.get(0)?;
-                let teo_value = js_unknown_to_teo_value(unknown, ctx.env.clone());
+                let teo_value = if ctx.length == 0 {
+                    TeoValue::HashMap(HashMap::new())
+                } else {
+                    let unknown: JsUnknown = ctx.get(0)?;
+                    js_unknown_to_teo_value(unknown, ctx.env.clone())
+                };
                 let promise = ctx.env.execute_tokio_future((|| async {
                     Ok(Graph::current().create_object(leaked_model_name, teo_value).await.unwrap())
                 })(), |&mut env, object: TeoObject| {
@@ -137,11 +141,6 @@ impl App {
                 Ok(promise)
             })?;
             ctor_object.set_named_property("create", create)?;
-
-            // default
-
-            let mut prototype: JsObject = ctor_object.get_named_property("prototype")?;
-
 
             // for field in model.fields() {
 

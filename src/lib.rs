@@ -6,35 +6,60 @@ extern crate napi_derive;
 pub mod value;
 
 use std::collections::HashMap;
-use std::sync::Mutex;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
-use napi::{Env, JsObject, JsString, JsFunction, Result, JsUndefined, CallContext, Property};
+use napi::{Env, JsObject, JsString, JsFunction, Result, JsUndefined, CallContext, Property, JsUnknown};
+use napi::ValueType::Object;
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
+use teo::core::object::{Object as TeoObject};
+use teo::core::graph::Graph;
 use teo::core::pipeline::items::function::validate::{ValidateResult, Validity};
 use teo::core::teon::Value as TeoValue;
 use to_mut::ToMut;
 use value::{teo_value_to_js_unknown, WrappedTeoValue};
+use crate::value::js_unknown_to_teo_value;
 
-static mut CLASSES: Option<&'static HashMap<String, JsObject>> = None;
+static mut CLASSES: Option<&'static HashMap<String, napi::Ref<()>>> = None;
 
-fn classes_mut() -> &'static mut HashMap<String, JsObject> {
+fn classes_mut() -> &'static mut HashMap<String, napi::Ref<()>> {
     unsafe {
-        let const_ptr = CLASSES.unwrap() as *const HashMap<String, JsObject>;
-        let mut_ptr = const_ptr as *mut HashMap<String, JsObject>;
+        let const_ptr = CLASSES.unwrap() as *const HashMap<String, napi::Ref<()>>;
+        let mut_ptr = const_ptr as *mut HashMap<String, napi::Ref<()>>;
         &mut *mut_ptr
     }
 }
 
-#[js_function(1)]
-fn model_class_constructor(ctx: CallContext) -> Result<JsUndefined> {
-    ctx.env.get_undefined()
+fn model_constructor_function(env: Env, name: String) -> Result<JsFunction> {
+    let ctor = env.create_function_from_closure(&name, |ctx| {
+        // let this = ctx.this_unchecked();
+        ctx.env.get_undefined()
+    })?;
+    let prototype = env.create_object()?;
+    let mut ctor_object = ctor.coerce_to_object()?;
+    ctor_object.set_named_property("prototype", prototype)?;
+    let r = env.create_reference(ctor_object)?;
+    classes_mut().insert(name.clone(), r);
+    let ref_get = unsafe { CLASSES.unwrap().get(name.as_str()).unwrap() };
+    let object: JsFunction = env.get_reference_value(ref_get)?;
+    Ok(object)
 }
 
-//env.create_function_from_closure(name, callback)
-
 #[napi]
-fn get_model_class(name: String) -> &'static JsObject {
-    unsafe { CLASSES.unwrap().get(name.as_str()).unwrap() }
+pub fn get_model_class(env: Env, name: String) -> JsFunction {
+    unsafe {
+        if let Some(object_ref) = CLASSES.unwrap().get(name.as_str()) {
+            let object: JsFunction = env.get_reference_value(object_ref).unwrap();
+            object
+        } else {
+            model_constructor_function(env, name).unwrap()
+        }
+    }
+}
+
+fn get_model_prototype(env: Env, name: String) -> JsObject {
+    let js_function = get_model_class(env, name);
+    let js_object = js_function.coerce_to_object().unwrap();
+    let prototype: JsObject = js_object.get_named_property("prototype").unwrap();
+    prototype
 }
 
 #[napi(js_name = "App")]
@@ -63,40 +88,64 @@ impl App {
         App { builder: AppBuilder::new_with_environment_version_and_entrance(teo::core::app::environment::EnvironmentVersion::NodeJS(version_str), entrance) }
     }
 
+    // /// Run this app.
+    // #[napi]
+    // pub async fn run(&self) {
+    //     let mut_builder = self.builder.to_mut();
+    //     let teo_app = mut_builder.build().await;
+    //     // self.generate_classes(&teo_app);
+    //     let _ = teo_app.run().await;
+    // }
+
     /// Run this app.
     #[napi]
-    pub async fn run(&self) {
+    pub fn run(&self, env: Env) {
         let mut_builder = self.builder.to_mut();
-        let teo_app = mut_builder.build().await;
-        // self.generate_classes(&teo_app);
-        let _ = teo_app.run().await;
+        let teo_app = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(mut_builder.build());
+        self.generate_classes(&teo_app, env).unwrap();
+        let _ = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(teo_app.run());
     }
 
     fn generate_classes(&self, teo_app: &teo::core::app::App, env: Env) -> Result<()> {
-        unsafe { CLASSES = Some(Box::leak(Box::new(HashMap::new()))) };
         let graph = teo_app.graph();
         for model in graph.models() {
-            let model_name = Box::leak(Box::new(model.name().to_owned()));
-            // constructor
-            let ctor = env.create_function_from_closure(model.name(), |ctx| {
-                // let this = ctx.this_unchecked();
-                ctx.env.get_undefined()
-            })?;
+            let leaked_model_name = Box::leak(Box::new(model.name().to_owned()));
+            let model_name = model.name();
+            let ctor = get_model_class(env, model_name.to_owned());
+            let mut ctor_object = ctor.coerce_to_object()?;
 
-            let mut prototype = env.create_object()?;
             // create
             let create = env.create_function_from_closure("create", |ctx| {
-                let mut object = ctx.env.create_object()?;
-                let _ = object.set_named_property("__proto__", unsafe { CLASSES.unwrap().get(model_name).unwrap() });
-                Ok(object)
+                let unknown: JsUnknown = ctx.get(0)?;
+                let teo_value = js_unknown_to_teo_value(unknown, ctx.env.clone());
+                let promise = ctx.env.execute_tokio_future((|| async {
+                    Ok(Graph::current().create_object(leaked_model_name, teo_value).await.unwrap())
+                })(), |&mut env, object: TeoObject| {
+                    let mut js_object = env.create_object()?;
+                    js_object.set_named_property("__proto__", get_model_prototype(env.clone(), leaked_model_name.clone()))?;
+                    env.wrap(&mut js_object, object)?;
+                    Ok(js_object)
+                })?;
+                Ok(promise)
             })?;
-            prototype.set_named_property("create", create)?;
-            let mut ctor_obj = ctor.coerce_to_object().unwrap();
-            ctor_obj.set_named_property("prototype", prototype)?;
-            for field in model.fields() {
+            ctor_object.set_named_property("create", create)?;
 
-            }
-            classes_mut().insert(model.name().to_owned(), ctor_obj);
+            // default
+
+            let mut prototype: JsObject = ctor_object.get_named_property("prototype")?;
+
+
+            // for field in model.fields() {
+
+            // }
         }
         Ok(())
     }
@@ -189,15 +238,7 @@ impl App {
 }
 
 #[module_exports]
-pub fn init(mut exports: JsObject, env: Env) -> Result<()> {
-    let _ = exports.set_named_property("WTF", env.create_int32(45).unwrap());
-    let ctor = env.create_function_from_closure("User", |ctx| {
-        Ok(ctx.env.get_undefined().unwrap())
-    }).unwrap();
-    let mut prototype = env.create_object().unwrap();
-    let _ = prototype.set_named_property("a", env.create_int32(5).unwrap());
-    let mut ctor_obj = ctor.coerce_to_object().unwrap();
-    let _ = ctor_obj.set_named_property("prototype", prototype);
-    let _ = exports.set_named_property("User", ctor_obj);
+pub fn init(mut _exports: JsObject, _env: Env) -> Result<()> {
+    unsafe { CLASSES = Some(Box::leak(Box::new(HashMap::new()))) };
     Ok(())
 }

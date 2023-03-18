@@ -93,7 +93,7 @@ impl FromNapiValue for WrappedTeoValue {
     }
 }
 
-fn js_unknown_to_teo_value(unknown: JsUnknown, env: Env) -> TeoValue {
+pub fn js_unknown_to_teo_value(unknown: JsUnknown, env: Env) -> TeoValue {
     let value_type = unknown.get_type().unwrap();
     match value_type {
         ValueType::Null => TeoValue::Null,

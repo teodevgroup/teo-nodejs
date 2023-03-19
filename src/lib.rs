@@ -198,19 +198,19 @@ impl App {
             })?;
             ctor_object.set_named_property("create", create)?;
             // isNew
-            let is_new = env.create_function_from_closure("isNew", |ctx| {
+            let is_new = Property::new("isNew")?.with_getter_closure(|ctx| {
                 let this: JsObject = ctx.this()?;
                 let object: &mut TeoObject = ctx.env.unwrap(&this)?;
                 ctx.env.get_boolean(object.is_new())
-            })?;
-            prototype.set_named_property("isNew", is_new)?;
+            });
+            prototype.define_properties(&[is_new])?;
             // isModified
-            let is_modified = env.create_function_from_closure("isModified", |ctx| {
+            let is_modified = Property::new("isModified")?.with_getter_closure(|ctx| {
                 let this: JsObject = ctx.this()?;
                 let object: &mut TeoObject = ctx.env.unwrap(&this)?;
                 ctx.env.get_boolean(object.is_modified())
-            })?;
-            prototype.set_named_property("isModified", is_modified)?;
+            });
+            prototype.define_properties(&[is_modified])?;
             // set
             let set = env.create_function_from_closure("set", |ctx| {
                 let unknown: JsUnknown = ctx.get(0)?;

@@ -6,11 +6,9 @@ extern crate napi_derive;
 pub mod value;
 
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::fmt::Debug;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
-use napi::{Env, JsObject, JsString, JsFunction, Result, JsUndefined, CallContext, Property, JsUnknown, Error};
-use napi::bindgen_prelude::Promise;
-use napi::ValueType::Object;
+use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error};
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
 use teo::core::object::{Object as TeoObject};
 use teo::core::graph::Graph;
@@ -35,7 +33,8 @@ fn model_constructor_function(env: Env, name: String) -> Result<JsFunction> {
         // let this = ctx.this_unchecked();
         ctx.env.get_undefined()
     })?;
-    let prototype = env.create_object()?;
+    let mut prototype = env.create_object()?;
+    prototype.set_named_property("__teo_object__", env.get_boolean(true)?)?;
     let mut ctor_object = ctor.coerce_to_object()?;
     ctor_object.set_named_property("prototype", prototype)?;
     let r = env.create_reference(ctor_object)?;
@@ -97,21 +96,6 @@ impl App {
         App { builder: AppBuilder::new_with_environment_version_and_entrance(teo::core::app::environment::EnvironmentVersion::NodeJS(version_str), entrance) }
     }
 
-    // /// Run this app.
-    // #[napi]
-    // pub fn run(&self, env: Env) {
-    //     let
-    //     let promise: Promise<JsUndefined> = ctx.env.execute_tokio_future((|| async {
-    //         let mut_builder = self.builder.to_mut();
-    //         mut_builder.build().await
-    //     })(), |env, app: App| {
-    //         env.get_undefined()
-    //     })?;
-    //     let teo_app = mut_builder.build().await;
-    //     // self.generate_classes(&teo_app);
-    //     let _ = teo_app.run().await;
-    // }
-
     /// Run this app.
     #[napi]
     pub fn run(&self, env: Env) {
@@ -122,7 +106,6 @@ impl App {
             .unwrap()
             .block_on(mut_builder.build())));
         self.generate_classes(teo_app, env).unwrap();
-
         let _ = tokio::spawn(teo_app.run());
     }
 
@@ -298,6 +281,15 @@ impl App {
                 Ok(promise)
             })?;
             prototype.set_named_property("delete", delete)?;
+            let inspect = env.create_function_from_closure("inspect", |ctx| {
+                let this: JsObject = ctx.this()?;
+                let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                let result = format!("{:?}", object);
+                ctx.env.create_string(&result)
+            })?;
+            let inspect_string: JsString = env.create_string("nodejs.util.inspect.custom")?;
+            let inspect_symbol = env.create_symbol_from_js_string(inspect_string)?;
+            prototype.set_property(inspect_symbol, inspect)?;
             // for field in model.fields() {
 
             // }

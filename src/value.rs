@@ -1,11 +1,13 @@
+use std::collections::HashMap;
 use std::str::FromStr;
 use bigdecimal::BigDecimal;
-use napi::{Env, JsDate};
+use napi::{Env, JsDate, JsString};
 use teo::core::teon::Value as TeoValue;
 use chrono::{NaiveDateTime, NaiveTime, DateTime, Utc};
 use napi::{JsUnknown, threadsafe_function::ThreadSafeCallContext, JsFunction, Result, ValueType};
 use napi::bindgen_prelude::{FromNapiValue, Promise};
 use napi::sys::{napi_env, napi_value};
+use teo::core::object::Object as TeoObject;
 
 pub fn teo_value_to_js_unknown<T>(value: &TeoValue, ctx: &ThreadSafeCallContext<T>) -> JsUnknown {
     match value {
@@ -146,8 +148,19 @@ pub fn js_unknown_to_teo_value(unknown: JsUnknown, env: Env) -> TeoValue {
                     let js_string_utf8 = js_string.into_utf8().unwrap();
                     let s = js_string_utf8.as_str().unwrap();
                     return TeoValue::Decimal(BigDecimal::from_str(s).unwrap());
+                } else if object.has_named_property("__teo_object__").unwrap() {
+                    let teo_object: &mut TeoObject = env.unwrap(&object).unwrap();
+                    return TeoValue::Object(teo_object.clone());
                 } else {
-                    panic!("Unhandled Node.js object type.")
+                    let mut map = HashMap::new();
+                    let names = object.get_property_names().unwrap();
+                    let len = names.get_array_length().unwrap();
+                    for i in 0..len {
+                        let name: JsString = names.get_element(i).unwrap();
+                        let v: JsUnknown = object.get_property(name).unwrap();
+                        map.insert(name.into_utf8().unwrap().as_str().unwrap().to_owned(), js_unknown_to_teo_value(v, env));
+                    }
+                    return TeoValue::HashMap(map);
                 }
             }
         }

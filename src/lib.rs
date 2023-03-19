@@ -7,7 +7,7 @@ pub mod value;
 
 use std::collections::HashMap;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
-use napi::{Env, JsObject, JsString, JsFunction, Result, JsUndefined, CallContext, Property, JsUnknown};
+use napi::{Env, JsObject, JsString, JsFunction, Result, JsUndefined, CallContext, Property, JsUnknown, Error};
 use napi::ValueType::Object;
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
 use teo::core::object::{Object as TeoObject};
@@ -60,6 +60,13 @@ fn get_model_prototype(env: Env, name: String) -> JsObject {
     let js_object = js_function.coerce_to_object().unwrap();
     let prototype: JsObject = js_object.get_named_property("prototype").unwrap();
     prototype
+}
+
+pub(crate) fn js_object_from_teo_object(env: &mut Env, teo_object: &TeoObject) -> JsObject {
+    let mut js_object = env.create_object()?;
+    js_object.set_named_property("__proto__", get_model_prototype(env.clone(), teo_object.model().name().to_owned()))?;
+    env.wrap(&mut js_object, teo_object)?;
+    js_object
 }
 
 #[napi(js_name = "App")]
@@ -121,7 +128,68 @@ impl App {
             let model_name = model.name();
             let ctor = get_model_class(env, model_name.to_owned());
             let mut ctor_object = ctor.coerce_to_object()?;
-
+            let mut prototype: JsObject = ctor_object.get_named_property("prototype")?;
+            // find unique
+            let find_unique = env.create_function_from_closure("findUnique", |ctx| {
+                let teo_value = if ctx.length == 0 {
+                    TeoValue::HashMap(HashMap::new())
+                } else {
+                    let unknown: JsUnknown = ctx.get(0)?;
+                    js_unknown_to_teo_value(unknown, ctx.env.clone())
+                };
+                let promise = ctx.env.execute_tokio_future((|| async {
+                    match Graph::current().find_unique(leaked_model_name, &teo_value).await {
+                        Ok(obj) => Ok(obj),
+                        Err(err) => Error::from_reason(err.message()),
+                    }
+                })(), |env, object: TeoObject| {
+                    Ok(js_object_from_teo_object(env, &object))
+                })?;
+                Ok(promise)
+            });
+            ctor_object.set_named_property("findUnique", find_unique)?;
+            // find first
+            let find_unique = env.create_function_from_closure("findFirst", |ctx| {
+                let teo_value = if ctx.length == 0 {
+                    TeoValue::HashMap(HashMap::new())
+                } else {
+                    let unknown: JsUnknown = ctx.get(0)?;
+                    js_unknown_to_teo_value(unknown, ctx.env.clone())
+                };
+                let promise = ctx.env.execute_tokio_future((|| async {
+                    match Graph::current().find_first(leaked_model_name, &teo_value).await {
+                        Ok(obj) => Ok(obj),
+                        Err(err) => Error::from_reason(err.message()),
+                    }
+                })(), |env, object: TeoObject| {
+                    Ok(js_object_from_teo_object(env, &object))
+                })?;
+                Ok(promise)
+            });
+            ctor_object.set_named_property("findFirst", find_unique)?;
+            // find many
+            let find_many = env.create_function_from_closure("findMany", |ctx| {
+                let teo_value = if ctx.length == 0 {
+                    TeoValue::HashMap(HashMap::new())
+                } else {
+                    let unknown: JsUnknown = ctx.get(0)?;
+                    js_unknown_to_teo_value(unknown, ctx.env.clone())
+                };
+                let promise = ctx.env.execute_tokio_future((|| async {
+                    match Graph::current().find_many(leaked_model_name, &teo_value).await {
+                        Ok(objects) => Ok(objects),
+                        Err(err) => Error::from_reason(err.message()),
+                    }
+                })(), |env, objects: Vec<TeoObject>| {
+                    let mut array = env.create_array_with_length(objects.len())?;
+                    for (index, object) in objects.iter().enumerate() {
+                        array.set_element(index as u32, js_object_from_teo_object(env, object))?;
+                    }
+                    Ok(array)
+                })?;
+                Ok(promise)
+            });
+            ctor_object.set_named_property("findMany", find_many)?;
             // create
             let create = env.create_function_from_closure("create", |ctx| {
                 let teo_value = if ctx.length == 0 {
@@ -132,16 +200,90 @@ impl App {
                 };
                 let promise = ctx.env.execute_tokio_future((|| async {
                     Ok(Graph::current().create_object(leaked_model_name, teo_value).await.unwrap())
-                })(), |&mut env, object: TeoObject| {
-                    let mut js_object = env.create_object()?;
-                    js_object.set_named_property("__proto__", get_model_prototype(env.clone(), leaked_model_name.clone()))?;
-                    env.wrap(&mut js_object, object)?;
-                    Ok(js_object)
+                })(), |env, object: TeoObject| {
+                    Ok(js_object_from_teo_object(env, &object))
                 })?;
                 Ok(promise)
             })?;
             ctor_object.set_named_property("create", create)?;
-
+            // isNew
+            let is_new = env.create_function_from_closure("isNew", |ctx| {
+                let this: JsObject = ctx.this()?;
+                let object: &mut TeoObject = env.unwrap(&this)?;
+                ctx.env.get_boolean(object.is_new())
+            })?;
+            prototype.set_named_property("isNew", is_new)?;
+            // isModified
+            let is_new = env.create_function_from_closure("isModified", |ctx| {
+                let this: JsObject = ctx.this()?;
+                let object: &mut TeoObject = env.unwrap(&this)?;
+                ctx.env.get_boolean(object.is_modified())
+            })?;
+            prototype.set_named_property("isModified", is_new)?;
+            // set
+            let set = env.create_function_from_closure("set", |ctx| {
+                let unknown: JsUnknown = ctx.get(0)?;
+                let input = js_unknown_to_teo_value(unknown, ctx.env.clone());
+                let this: JsObject = ctx.this()?;
+                let object: &mut TeoObject = env.unwrap(&this)?;
+                let promise = ctx.env.execute_tokio_future((|| async {
+                    match object.set_teon(&input).await {
+                        Ok(()) => Ok(()),
+                        Err(err) => Error::from_reason(err.message()),
+                    }
+                })(), |&mut env, result: ()| {
+                    env.get_undefined()
+                })?;
+                Ok(promise)
+            })?;
+            prototype.set_named_property("set", set)?;
+            // update
+            let update = env.create_function_from_closure("update", |ctx| {
+                let unknown: JsUnknown = ctx.get(0)?;
+                let input = js_unknown_to_teo_value(unknown, ctx.env.clone());
+                let this: JsObject = ctx.this()?;
+                let object: &mut TeoObject = env.unwrap(&this)?;
+                let promise = ctx.env.execute_tokio_future((|| async {
+                    match object.update_teon(&input).await {
+                        Ok(()) => Ok(()),
+                        Err(err) => Error::from_reason(err.message()),
+                    }
+                })(), |&mut env, result: ()| {
+                    env.get_undefined()
+                })?;
+                Ok(promise)
+            })?;
+            prototype.set_named_property("update", update)?;
+            // save
+            let save = env.create_function_from_closure("save", |ctx| {
+                let this: JsObject = ctx.this()?;
+                let object: &mut TeoObject = env.unwrap(&this)?;
+                let promise = ctx.env.execute_tokio_future((|| async {
+                    match object.save().await {
+                        Ok(()) => Ok(()),
+                        Err(err) => Error::from_reason(err.message()),
+                    }
+                })(), |&mut env, result: ()| {
+                    env.get_undefined()
+                })?;
+                Ok(promise)
+            })?;
+            prototype.set_named_property("save", save)?;
+            // delete
+            let delete = env.create_function_from_closure("delete", |ctx| {
+                let this: JsObject = ctx.this()?;
+                let object: &mut TeoObject = env.unwrap(&this)?;
+                let promise = ctx.env.execute_tokio_future((|| async {
+                    match object.delete().await {
+                        Ok(()) => Ok(()),
+                        Err(err) => Error::from_reason(err.message()),
+                    }
+                })(), |&mut env, result: ()| {
+                    env.get_undefined()
+                })?;
+                Ok(promise)
+            })?;
+            prototype.set_named_property("delete", delete)?;
             // for field in model.fields() {
 
             // }

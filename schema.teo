@@ -39,3 +39,10 @@ model AuthCode {
   @readonly @onSave($now)
   updatedAt: DateTime
 }
+
+model User {
+  @id @readonly @autoIncrement
+  id: Int
+  @unique
+  email: String
+}

@@ -1,5 +1,6 @@
-const { App } = require("./index.js")
+const { App, getModelClass } = require("./index.js")
 const Decimal = require('decimal.js')
+const User = getModelClass('User')
 
 const app = new App()
 
@@ -13,6 +14,10 @@ app.transform("10times", async function (input) {
 
 app.validate("oddLength", (s) => s.length % 2 == 0)
 
-app.callback("print", (v) => console.log(v))
+app.callback("print", async (v) => {
+  let user = await User.create({ email: "yeannylam@gmail.com" });
+  await user.save()
+  console.log(user)
+})
 
 app.run()

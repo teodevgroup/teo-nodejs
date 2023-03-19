@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUndefined, CallContext, Property, JsUnknown, Error};
+use napi::bindgen_prelude::Promise;
 use napi::ValueType::Object;
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
 use teo::core::object::{Object as TeoObject};
@@ -98,8 +99,14 @@ impl App {
 
     // /// Run this app.
     // #[napi]
-    // pub async fn run(&self) {
-    //     let mut_builder = self.builder.to_mut();
+    // pub fn run(&self, env: Env) {
+    //     let
+    //     let promise: Promise<JsUndefined> = ctx.env.execute_tokio_future((|| async {
+    //         let mut_builder = self.builder.to_mut();
+    //         mut_builder.build().await
+    //     })(), |env, app: App| {
+    //         env.get_undefined()
+    //     })?;
     //     let teo_app = mut_builder.build().await;
     //     // self.generate_classes(&teo_app);
     //     let _ = teo_app.run().await;
@@ -109,17 +116,14 @@ impl App {
     #[napi]
     pub fn run(&self, env: Env) {
         let mut_builder = self.builder.to_mut();
-        let teo_app = tokio::runtime::Builder::new_current_thread()
+        let teo_app = Box::leak(Box::new(tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
             .unwrap()
-            .block_on(mut_builder.build());
-        self.generate_classes(&teo_app, env).unwrap();
-        let _ = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(teo_app.run());
+            .block_on(mut_builder.build())));
+        self.generate_classes(teo_app, env).unwrap();
+
+        let _ = tokio::spawn(teo_app.run());
     }
 
     fn generate_classes(&self, teo_app: &teo::core::app::App, env: Env) -> Result<()> {

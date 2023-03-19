@@ -8,7 +8,7 @@ pub mod value;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
-use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error};
+use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol};
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
 use teo::core::object::{Object as TeoObject};
 use teo::core::graph::Graph;
@@ -281,15 +281,24 @@ impl App {
                 Ok(promise)
             })?;
             prototype.set_named_property("delete", delete)?;
-            let inspect = env.create_function_from_closure("inspect", |ctx| {
+            let inspect_func = env.create_function_from_closure("toString", |ctx| {
                 let this: JsObject = ctx.this()?;
                 let object: &mut TeoObject = ctx.env.unwrap(&this)?;
                 let result = format!("{:?}", object);
                 ctx.env.create_string(&result)
             })?;
-            let inspect_string: JsString = env.create_string("nodejs.util.inspect.custom")?;
-            let inspect_symbol = env.create_symbol_from_js_string(inspect_string)?;
-            prototype.set_property(inspect_symbol, inspect)?;
+            let require: JsFunction = env.get_global()?.get_named_property("require")?;
+            let util = require.call(None, &[env.create_string("node:util").unwrap().into_unknown()])?.coerce_to_object()?;
+            let inspect: JsObject = util.get_named_property("inspect")?;
+            let custom: JsSymbol = inspect.get_named_property("custom")?;
+            prototype.set_property(custom, inspect_func)?;
+            let to_string = env.create_function_from_closure("toString", |ctx| {
+                let this: JsObject = ctx.this()?;
+                let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                let result = format!("{:?}", object);
+                ctx.env.create_string(&result)
+            })?;
+            prototype.set_named_property("toString", to_string)?;
             // for field in model.fields() {
 
             // }

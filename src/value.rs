@@ -73,9 +73,12 @@ unsafe impl Sync for WrappedTeoValue {}
 impl WrappedTeoValue {
     pub async fn to_teo_value(self) -> TeoValue {
         match self {
-            WrappedTeoValue::Promise(promise) => match promise.await.unwrap() {
-                WrappedTeoValue::Promise(_) => unreachable!(),
-                WrappedTeoValue::TeoValue(v) => v,
+            WrappedTeoValue::Promise(promise) => match promise.await {
+                Ok(p) => match p {
+                    WrappedTeoValue::Promise(_) => TeoValue::String("Nested promise".to_string()),
+                    WrappedTeoValue::TeoValue(v) => v,
+                },
+                Err(e) => TeoValue::String(e.reason.clone()),
             },
             WrappedTeoValue::TeoValue(v) => v,
         }

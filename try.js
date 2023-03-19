@@ -17,9 +17,7 @@ app.validate("oddLength", (s) => s.length % 2 == 0)
 app.callback("print", async (v) => {
   let user = await User.create({ email: `${v}@gmail.com` });
   await user.save()
-  let symbol = Symbol.for("nodejs.util.inspect.custom");
-  console.log(user.__proto__[symbol]())
-  console.log(user instanceof User, user.isNew(), user, user.__proto__, user.__teo_object__)
+  console.log(user)
 })
 
 app.run()

@@ -231,7 +231,7 @@ impl App {
                 let this: JsObject = ctx.this()?;
                 let object: &mut TeoObject = ctx.env.unwrap(&this)?;
                 let object = object.clone();
-                let promise = ctx.env.execute_tokio_future((|| async {
+                let promise = ctx.env.execute_tokio_future((|| async move {
                     let i = input;
                     match object.set_teon(&i).await {
                         Ok(()) => Ok(()),
@@ -250,7 +250,7 @@ impl App {
                 let this: JsObject = ctx.this()?;
                 let object: &mut TeoObject = ctx.env.unwrap(&this)?;
                 let object = object.clone();
-                let promise = ctx.env.execute_tokio_future((|| async {
+                let promise = ctx.env.execute_tokio_future((|| async move {
                     let i = input;
                     match object.update_teon(&i).await {
                         Ok(()) => Ok(()),
@@ -267,7 +267,7 @@ impl App {
                 let this: JsObject = ctx.this()?;
                 let object: &mut TeoObject = ctx.env.unwrap(&this)?;
                 let object = object.clone();
-                let promise = ctx.env.execute_tokio_future((|| async {
+                let promise = ctx.env.execute_tokio_future((|| async move {
                     match object.save().await {
                         Ok(()) => Ok(()),
                         Err(err) => Err(Error::from_reason(err.message())),
@@ -283,7 +283,7 @@ impl App {
                 let this: JsObject = ctx.this()?;
                 let object: &mut TeoObject = ctx.env.unwrap(&this)?;
                 let object = object.clone();
-                let promise = ctx.env.execute_tokio_future((|| async {
+                let promise = ctx.env.execute_tokio_future((|| async move {
                     match object.delete().await {
                         Ok(()) => Ok(()),
                         Err(err) => Err(Error::from_reason(err.message())),

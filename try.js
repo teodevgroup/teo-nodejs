@@ -17,7 +17,8 @@ app.validate("oddLength", (s) => s.length % 2 == 0)
 app.callback("print", async (v) => {
   let user = await User.create({ email: `${v}@gmail.com` });
   await user.save()
-  console.log(user)
+  user.email = user.email.replace("gmail.com", "outlook.com");
+  console.log(user.id, user, user.email)
 })
 
 app.run()

@@ -9,51 +9,51 @@ use napi::bindgen_prelude::{FromNapiValue, Promise};
 use napi::sys::{napi_env, napi_value};
 use teo::core::object::Object as TeoObject;
 
-pub fn teo_value_to_js_unknown<T>(value: &TeoValue, ctx: &ThreadSafeCallContext<T>) -> JsUnknown {
+pub fn teo_value_to_js_unknown(value: &TeoValue, env: &Env) -> JsUnknown {
     match value {
-        TeoValue::String(s) => ctx.env.create_string(s).unwrap().into_unknown(),
-        TeoValue::Bool(b) => ctx.env.get_boolean(*b).unwrap().into_unknown(),
-        TeoValue::I64(i) => ctx.env.create_int64(*i).unwrap().into_unknown(),
-        TeoValue::I32(i) => ctx.env.create_int32(*i).unwrap().into_unknown(),
-        TeoValue::F32(f) => ctx.env.create_double(*f as f64).unwrap().into_unknown(),
-        TeoValue::F64(f) => ctx.env.create_double(*f).unwrap().into_unknown(),
-        TeoValue::Date(d) => ctx.env.create_date(NaiveDateTime::new(*d, NaiveTime::default()).timestamp() as f64).unwrap().into_unknown(),
-        TeoValue::DateTime(d) => ctx.env.create_date(d.timestamp() as f64).unwrap().into_unknown(),
+        TeoValue::String(s) => env.create_string(s).unwrap().into_unknown(),
+        TeoValue::Bool(b) => env.get_boolean(*b).unwrap().into_unknown(),
+        TeoValue::I64(i) => env.create_int64(*i).unwrap().into_unknown(),
+        TeoValue::I32(i) => env.create_int32(*i).unwrap().into_unknown(),
+        TeoValue::F32(f) => env.create_double(*f as f64).unwrap().into_unknown(),
+        TeoValue::F64(f) => env.create_double(*f).unwrap().into_unknown(),
+        TeoValue::Date(d) => env.create_date(NaiveDateTime::new(*d, NaiveTime::default()).timestamp() as f64).unwrap().into_unknown(),
+        TeoValue::DateTime(d) => env.create_date(d.timestamp() as f64).unwrap().into_unknown(),
         TeoValue::Decimal(d) => {
-            let global = ctx.env.get_global().unwrap();
+            let global = env.get_global().unwrap();
             let require: JsFunction = global.get_named_property("require").unwrap();
-            let decimal_js: JsFunction = unsafe { require.call(None, &[ctx.env.create_string("decimal.js").unwrap().into_unknown()]).unwrap().cast() };
+            let decimal_js: JsFunction = unsafe { require.call(None, &[env.create_string("decimal.js").unwrap().into_unknown()]).unwrap().cast() };
             let decimal_string = d.normalized().to_string();
-            decimal_js.call(None, &[ctx.env.create_string(&decimal_string).unwrap()]).unwrap()
+            decimal_js.call(None, &[env.create_string(&decimal_string).unwrap()]).unwrap()
         },
         TeoValue::Vec(v) => {
-            let mut js_array = ctx.env.create_array_with_length(v.len()).unwrap();
+            let mut js_array = env.create_array_with_length(v.len()).unwrap();
             for (i, value) in v.iter().enumerate() {
-                let v = teo_value_to_js_unknown(value, ctx);
+                let v = teo_value_to_js_unknown(value, env);
                 let _ = js_array.set_element(i as u32, &v);
             }
             js_array.into_unknown()
         }
         TeoValue::HashMap(m) => { // how to reduce duplication here?
-            let mut js_object = ctx.env.create_object().unwrap();
+            let mut js_object = env.create_object().unwrap();
             for (k, value) in m.iter() {
-                let v = teo_value_to_js_unknown(value, ctx);
+                let v = teo_value_to_js_unknown(value, env);
                 let _ = js_object.set_named_property(k, &v);
             }
             js_object.into_unknown()
         }
         TeoValue::IndexMap(m) => {
-            let mut js_object = ctx.env.create_object().unwrap();
+            let mut js_object = env.create_object().unwrap();
             for (k, value) in m.iter() {
-                let v = teo_value_to_js_unknown(value, ctx);
+                let v = teo_value_to_js_unknown(value, env);
                 let _ = js_object.set_named_property(k, &v);
             }
             js_object.into_unknown()
         }
         TeoValue::BTreeMap(m) => {
-            let mut js_object = ctx.env.create_object().unwrap();
+            let mut js_object = env.create_object().unwrap();
             for (k, value) in m.iter() {
-                let v = teo_value_to_js_unknown(value, ctx);
+                let v = teo_value_to_js_unknown(value, env);
                 let _ = js_object.set_named_property(k, &v);
             }
             js_object.into_unknown()

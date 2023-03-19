@@ -8,7 +8,8 @@ pub mod value;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
-use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol};
+use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, NapiRaw, sys, Property};
+use napi::sys::{napi_callback_info, napi_env};
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
 use teo::core::object::{Object as TeoObject};
 use teo::core::graph::Graph;
@@ -113,8 +114,7 @@ impl App {
         let graph = teo_app.graph();
         for model in graph.models() {
             let leaked_model_name = Box::leak(Box::new(model.name().to_owned()));
-            let model_name = model.name();
-            let ctor = get_model_class(env, model_name.to_owned());
+            let ctor = get_model_class(env, leaked_model_name.to_owned());
             let mut ctor_object = ctor.coerce_to_object()?;
             let mut prototype: JsObject = ctor_object.get_named_property("prototype")?;
             // find unique
@@ -299,9 +299,23 @@ impl App {
                 ctx.env.create_string(&result)
             })?;
             prototype.set_named_property("toString", to_string)?;
-            // for field in model.fields() {
-
-            // }
+            for field in model.fields() {
+                let field_name = Box::leak(Box::new(field.name().to_owned()));
+                let property = Property::new(field_name.as_str())?.with_getter_closure(|ctx: CallContext<'_>| {
+                    let this: JsObject = ctx.this()?;
+                    let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                    let value: TeoValue = object.get(field_name.as_str()).unwrap();
+                    Ok(teo_value_to_js_unknown(&value, &ctx.env))
+                }).with_setter_closure(|ctx: CallContext<'_>| {
+                    let this: JsObject = ctx.this()?;
+                    let arg0: JsUnknown = ctx.get(0)?;
+                    let teo_value = js_unknown_to_teo_value(arg0, ctx.env.clone());
+                    let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                    object.set(field_name.as_str(), teo_value).unwrap();
+                    ctx.env.get_undefined()
+                });
+                prototype.define_properties(&[property])?;
+            }
         }
         Ok(())
     }
@@ -311,7 +325,7 @@ impl App {
     pub fn transform(&self, name: String, callback: JsFunction) -> Result<()> {
         let mut_builder = self.builder.to_mut();
         let tsfn: ThreadsafeFunction<TeoValue, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
-            let js_value = teo_value_to_js_unknown(&ctx.value, &ctx);
+            let js_value = teo_value_to_js_unknown(&ctx.value, &ctx.env);
             Ok(vec![js_value])
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));
@@ -327,7 +341,7 @@ impl App {
     pub fn validate(&self, name: String, callback: JsFunction) -> Result<()> {
         let mut_builder = self.builder.to_mut();
         let tsfn: ThreadsafeFunction<TeoValue, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
-            let js_value = teo_value_to_js_unknown(&ctx.value, &ctx);
+            let js_value = teo_value_to_js_unknown(&ctx.value, &ctx.env);
             Ok(vec![js_value])
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));
@@ -354,7 +368,7 @@ impl App {
     pub fn callback(&self, name: String, callback: JsFunction) -> Result<()> {
         let mut_builder = self.builder.to_mut();
         let tsfn: ThreadsafeFunction<TeoValue, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
-            let js_value = teo_value_to_js_unknown(&ctx.value, &ctx);
+            let js_value = teo_value_to_js_unknown(&ctx.value, &ctx.env);
             Ok(vec![js_value])
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));
@@ -369,8 +383,8 @@ impl App {
     pub fn compare(&self, name: String, callback: JsFunction) -> Result<()> {
         let mut_builder = self.builder.to_mut();
         let tsfn: ThreadsafeFunction<(TeoValue, TeoValue), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoValue)>| {
-            let js_value_0 = teo_value_to_js_unknown(&ctx.value.0, &ctx);
-            let js_value_1 = teo_value_to_js_unknown(&ctx.value.1, &ctx);
+            let js_value_0 = teo_value_to_js_unknown(&ctx.value.0, &ctx.env);
+            let js_value_1 = teo_value_to_js_unknown(&ctx.value.1, &ctx.env);
             Ok(vec![js_value_0, js_value_1])
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));

@@ -6,7 +6,7 @@ env:
 'on':
   push:
     branches:
-      - main
+      - publish
     tags-ignore:
       - '**'
     paths-ignore:

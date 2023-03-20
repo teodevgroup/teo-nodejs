@@ -316,6 +316,107 @@ impl App {
                 });
                 prototype.define_properties(&[property])?;
             }
+            for relation in model.relations() {
+                if relation.is_vec() {
+                    let name: &'static str = unsafe {
+                        let s = relation.name();
+                        let u = { s as *const str };
+                        let v = &*u;
+                        v
+                    };
+                    // get
+                    let get_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
+                        let teo_value = if ctx.length == 0 {
+                            TeoValue::HashMap(HashMap::new())
+                        } else {
+                            let val: JsUnknown = ctx.get(0)?;
+                            js_unknown_to_teo_value(val, ctx.env.clone())
+                        };
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            match object_cloned.force_get_relation_objects(name, teo_value).await {
+                                Ok(objects) => Ok(objects),
+                                Err(err) => Err(Error::from_reason(err.message())),
+                            }
+                        })(), |env, objects| {
+                            let mut array = env.create_array_with_length(objects.len())?;
+                            for (index, object) in objects.iter().enumerate() {
+                                array.set_element(index as u32, js_object_from_teo_object(env, object.clone())?)?;
+                            }
+                            Ok(array)
+                        })?;
+                        Ok(promise)
+                    })?;
+                    prototype.set_named_property(&name, get_relation)?;
+                    // set
+                    let set_name = "set".to_owned() + &name.to_pascal_case();
+                    let set_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
+                        let array: JsObject = ctx.get(0)?;
+                        let mut objects = vec![];
+                        for i in 0..array.get_array_length()? {
+                            let element: JsObject = array.get_element(i)?;
+                            let obj: &mut TeoObject = ctx.env.unwrap(&element)?;
+                            objects.push(obj.clone());
+                        }
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            Ok(object_cloned.force_set_relation_objects(name, objects).await)
+                        })(), |env, objects| {
+                            env.get_undefined()
+                        })?;
+                        Ok(promise)
+                    })?;
+                    prototype.set_named_property(&set_name, set_relation)?;
+                    // add
+                    let add_name = "addTo".to_owned() + &name.to_pascal_case();
+                    let add_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
+                        let array: JsObject = ctx.get(0)?;
+                        let mut objects = vec![];
+                        for i in 0..array.get_array_length()? {
+                            let element: JsObject = array.get_element(i)?;
+                            let obj: &mut TeoObject = ctx.env.unwrap(&element)?;
+                            objects.push(obj.clone());
+                        }
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            Ok(object_cloned.force_add_relation_objects(name, objects).await)
+                        })(), |env, objects| {
+                            env.get_undefined()
+                        })?;
+                        Ok(promise)
+                    })?;
+                    prototype.set_named_property(&add_name, add_relation)?;
+                    // remove
+                    let remove_name = "removeFrom".to_owned() + &name.to_pascal_case();
+                    let remove_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
+                        let array: JsObject = ctx.get(0)?;
+                        let mut objects = vec![];
+                        for i in 0..array.get_array_length()? {
+                            let element: JsObject = array.get_element(i)?;
+                            let obj: &mut TeoObject = ctx.env.unwrap(&element)?;
+                            objects.push(obj.clone());
+                        }
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            Ok(object_cloned.force_add_relation_objects(name, objects).await)
+                        })(), |env, objects| {
+                            env.get_undefined()
+                        })?;
+                        Ok(promise)
+                    })?;
+                    prototype.set_named_property(&remove_name, remove_relation)?;
+                } else {
+
+                }
+            }
             for model_property in model.properties() {
                 let field_name: &'static str = unsafe {
                     let s = model_property.name();

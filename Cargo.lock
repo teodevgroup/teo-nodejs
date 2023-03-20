@@ -2186,6 +2186,7 @@ dependencies = [
 [[package]]
 name = "napi"
 version = "2.11.4"
+source = "git+https://github.com/victorteokw/napi-rs?branch=property_closure#205a4d5e53dbaae2932d59e017bfd5a04f5b3d0c"
 dependencies = [
  "bitflags 2.0.2",
  "chrono",
@@ -2231,6 +2232,7 @@ dependencies = [
 [[package]]
 name = "napi-sys"
 version = "2.2.3"
+source = "git+https://github.com/victorteokw/napi-rs?branch=property_closure#205a4d5e53dbaae2932d59e017bfd5a04f5b3d0c"
 dependencies = [
  "libloading",
 ]
@@ -3500,7 +3502,7 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.0.52"
+version = "0.0.52-beta.0"
 dependencies = [
  "actix-http",
  "actix-web",

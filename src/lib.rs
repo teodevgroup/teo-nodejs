@@ -7,6 +7,7 @@ pub mod value;
 
 use std::collections::HashMap;
 use std::sync::Arc;
+use inflector::Inflector;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property};
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
@@ -316,21 +317,40 @@ impl App {
                 prototype.define_properties(&[property])?;
             }
             for model_property in model.properties() {
-                let field_name = Box::leak(Box::new(model_property.name().to_owned()));
-                let mut property = Property::new(field_name.as_str())?;
+                let field_name: &'static str = unsafe {
+                    let s = model_property.name();
+                    let u = { s as *const str };
+                    let v = &*u;
+                    v
+                };
                 if model_property.has_setter() {
-                    // property = property.with_setter_closure(|ctx: CallContext<'_>| {
-                    //     let this: JsObject = ctx.this()?;
-                    //     let object: &mut TeoObject = ctx.env.unwrap(&this)?;
-                    //     object.get_property()
-                    // });
-                }
-                if model_property.has_getter() {
-                    property = property.with_getter_closure(|ctx: CallContext<'_>| {
+                    let name = "set".to_owned() + &field_name.to_pascal_case();
+                    let set_property = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
+                        let val: JsUnknown = ctx.get(0)?;
+                        let teo_value = js_unknown_to_teo_value(val, ctx.env.clone());
                         let this: JsObject = ctx.this()?;
                         let object: &mut TeoObject = ctx.env.unwrap(&this)?;
-                        let promise = ctx.env.execute_tokio_future((|| async {
-                            match object.get_property::<TeoValue>(field_name).await {
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            match object_cloned.set_property(field_name, teo_value).await {
+                                Ok(()) => Ok(()),
+                                Err(err) => Err(Error::from_reason(err.message())),
+                            }
+                        })(), |env, v: ()| {
+                            Ok(v)
+                        })?;
+                        Ok(promise)
+                    })?;
+                    prototype.set_named_property(&name, set_property)?;
+                }
+                if model_property.has_getter() {
+                    let mut property = Property::new(field_name)?;
+                    property = property.with_getter_closure(move |ctx: CallContext<'_>| {
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            match object_cloned.get_property::<TeoValue>(field_name).await {
                                 Ok(v) => Ok(v),
                                 Err(err) => Err(Error::from_reason(err.message())),
                             }
@@ -339,8 +359,8 @@ impl App {
                         })?;
                         Ok(promise)
                     });
+                    prototype.define_properties(&[property])?;
                 }
-                prototype.define_properties(&[property])?;
             }
         }
         Ok(())

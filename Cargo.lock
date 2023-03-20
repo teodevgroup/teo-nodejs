@@ -3553,6 +3553,7 @@ version = "0.0.0"
 dependencies = [
  "bigdecimal",
  "chrono",
+ "inflector-plus",
  "napi",
  "napi-build",
  "napi-derive",

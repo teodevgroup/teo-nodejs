@@ -6,6 +6,7 @@ extern crate napi_derive;
 pub mod value;
 
 use std::collections::HashMap;
+use std::sync::Arc;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property};
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
@@ -312,6 +313,33 @@ impl App {
                     object.set(field_name.as_str(), teo_value).unwrap();
                     ctx.env.get_undefined()
                 });
+                prototype.define_properties(&[property])?;
+            }
+            for model_property in model.properties() {
+                let field_name = Box::leak(Box::new(model_property.name().to_owned()));
+                let mut property = Property::new(field_name.as_str())?;
+                if model_property.has_setter() {
+                    // property = property.with_setter_closure(|ctx: CallContext<'_>| {
+                    //     let this: JsObject = ctx.this()?;
+                    //     let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                    //     object.get_property()
+                    // });
+                }
+                if model_property.has_getter() {
+                    property = property.with_getter_closure(|ctx: CallContext<'_>| {
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                        let promise = ctx.env.execute_tokio_future((|| async {
+                            match object.get_property::<TeoValue>(field_name).await {
+                                Ok(v) => Ok(v),
+                                Err(err) => Err(Error::from_reason(err.message())),
+                            }
+                        })(), |env, v: TeoValue| {
+                            Ok(teo_value_to_js_unknown(&v, env))
+                        })?;
+                        Ok(promise)
+                    });
+                }
                 prototype.define_properties(&[property])?;
             }
         }

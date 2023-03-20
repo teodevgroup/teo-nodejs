@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use inflector::Inflector;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
-use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property};
+use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property, ValueType};
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
 use teo::core::object::{Object as TeoObject};
 use teo::core::graph::Graph;
@@ -317,13 +317,13 @@ impl App {
                 prototype.define_properties(&[property])?;
             }
             for relation in model.relations() {
+                let name: &'static str = unsafe {
+                    let s = relation.name();
+                    let u = { s as *const str };
+                    let v = &*u;
+                    v
+                };
                 if relation.is_vec() {
-                    let name: &'static str = unsafe {
-                        let s = relation.name();
-                        let u = { s as *const str };
-                        let v = &*u;
-                        v
-                    };
                     // get
                     let get_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
                         let teo_value = if ctx.length == 0 {
@@ -414,7 +414,50 @@ impl App {
                     })?;
                     prototype.set_named_property(&remove_name, remove_relation)?;
                 } else {
-
+                    // get
+                    let mut property = Property::new(name)?;
+                    property = property.with_getter_closure(move |ctx: CallContext<'_>| {
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            match object_cloned.force_get_relation_object(name).await {
+                                Ok(v) => Ok(v),
+                                Err(err) => Err(Error::from_reason(err.message())),
+                            }
+                        })(), |env, v: Option<TeoObject>| {
+                            match v {
+                                Some(obj) => Ok(js_object_from_teo_object(env, obj)?.into_unknown()),
+                                None => Ok(env.get_undefined()?.into_unknown()),
+                            }
+                        })?;
+                        Ok(promise)
+                    });
+                    prototype.define_properties(&[property])?;
+                    // set
+                    let set_name = "set".to_owned() + &name.to_pascal_case();
+                    let set_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
+                        let value: JsUnknown = ctx.get(0)?;
+                        let arg = match value.get_type()? {
+                            ValueType::Null | ValueType::Undefined => None,
+                            ValueType::Object => {
+                                let object = value.coerce_to_object()?;
+                                let obj: &mut TeoObject = ctx.env.unwrap(&object)?;
+                                Some(obj.clone())
+                            }
+                            _ => None,
+                        };
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            Ok(object_cloned.force_set_relation_object(name, arg).await)
+                        })(), |env, objects| {
+                            env.get_undefined()
+                        })?;
+                        Ok(promise)
+                    })?;
+                    prototype.set_named_property(&set_name, set_relation)?;
                 }
             }
             for model_property in model.properties() {

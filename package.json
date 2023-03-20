@@ -44,5 +44,21 @@
     "universal": "napi universal",
     "version": "napi version"
   },
-  "packageManager": "yarn@3.4.1"
+  "packageManager": "yarn@3.4.1",
+  "optionalDependencies": {
+    "@teocloud/teo-win32-x64-msvc": "0.0.51",
+    "@teocloud/teo-darwin-x64": "0.0.51",
+    "@teocloud/teo-linux-x64-gnu": "0.0.51",
+    "@teocloud/teo-darwin-arm64": "0.0.51",
+    "@teocloud/teo-android-arm64": "0.0.51",
+    "@teocloud/teo-linux-arm64-gnu": "0.0.51",
+    "@teocloud/teo-linux-arm64-musl": "0.0.51",
+    "@teocloud/teo-win32-arm64-msvc": "0.0.51",
+    "@teocloud/teo-linux-arm-gnueabihf": "0.0.51",
+    "@teocloud/teo-linux-x64-musl": "0.0.51",
+    "@teocloud/teo-freebsd-x64": "0.0.51",
+    "@teocloud/teo-win32-ia32-msvc": "0.0.51",
+    "@teocloud/teo-android-arm-eabi": "0.0.51",
+    "@teocloud/teo-darwin-universal": "0.0.51"
+  }
 }

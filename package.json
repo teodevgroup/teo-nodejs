@@ -21,9 +21,7 @@
       ]
     }
   },
-  "bin": {
-    "teo": "teo.js"
-  },
+  "bin": "teo.js",
   "license": "Apache-2.0",
   "dependencies": {
     "decimal.js": "^10.4.3"

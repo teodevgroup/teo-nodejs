@@ -1,6 +1,6 @@
 {
   "name": "@teocloud/teo",
-  "version": "0.0.52-beta.1",
+  "version": "0.0.52-beta.2",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
@@ -20,6 +20,9 @@
         "universal-apple-darwin"
       ]
     }
+  },
+  "bin": {
+    "teo": "teo.js"
   },
   "license": "Apache-2.0",
   "dependencies": {

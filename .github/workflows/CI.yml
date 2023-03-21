@@ -40,6 +40,7 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
+              export OPENSSL_DIR="/usr/lib/ssl" &&              
               sudo apt-get update &&
               sudo apt-get install libssl-dev pkg-config -y &&              
               yarn build --target x86_64-unknown-linux-gnu &&
@@ -57,7 +58,7 @@ jobs:
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: |-
-              export OPENSSL_DIR="usr/lib/ssl" &&
+              export OPENSSL_DIR="/usr/lib/ssl" &&
               set -e &&
               sudo apt-get update &&
               sudo apt-get install libssl-dev pkg-config -y &&
@@ -66,6 +67,7 @@ jobs:
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
             build: |
+              export OPENSSL_DIR="/usr/lib/ssl" &&              
               sudo apt-get update &&
               sudo apt-get install gcc-arm-linux-gnueabihf -y &&
               yarn build --target armv7-unknown-linux-gnueabihf
@@ -74,7 +76,7 @@ jobs:
             target: aarch64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |-
-              set -e &&
+              set -e &&              
               apk add linux-headers openssl-dev pkgconfig &&
               rustup target add aarch64-unknown-linux-musl &&
               yarn build --target aarch64-unknown-linux-musl &&

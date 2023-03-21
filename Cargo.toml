@@ -1,13 +1,13 @@
 [package]
 edition = "2021"
 name = "teocloud_teo"
-version = "0.0.52-beta.3"
+version = "0.0.52-beta.4"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-teo = { version = "0.0.52-beta.3", features = ["data-source-mysql", "data-source-postgres", "data-source-sqlite", "data-source-mongodb"] }
+teo = { path = "../teo", version = "0.0.52-beta.3", features = ["data-source-mysql", "data-source-postgres", "data-source-sqlite", "data-source-mongodb"] }
 to-mut = { version = "0.1.0" }
 napi = { git = "https://github.com/victorteokw/napi-rs", rev = "ecf9958", default-features = false, features = ["napi5", "async", "chrono_date", "compat-mode"] }
 napi-derive = "2.11.0"

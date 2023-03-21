@@ -6,7 +6,6 @@ extern crate napi_derive;
 pub mod value;
 
 use std::collections::HashMap;
-use std::sync::Arc;
 use inflector::Inflector;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property, ValueType};
@@ -100,6 +99,9 @@ impl App {
     /// Run this app.
     #[napi]
     pub fn run(&self, env: Env) {
+        // let mut_builder = self.builder.to_mut();
+        // let teo_app = mut_builder.build().await;
+        // let _ = teo_app.run().await;
         let mut_builder = self.builder.to_mut();
         let teo_app = Box::leak(Box::new(tokio::runtime::Builder::new_current_thread()
             .enable_all()
@@ -107,7 +109,10 @@ impl App {
             .unwrap()
             .block_on(mut_builder.build())));
         self.generate_classes(teo_app, env).unwrap();
-        let _ = tokio::spawn(teo_app.run());
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        rt.block_on(async {
+            let _ = teo_app.run().await;
+        });
     }
 
     fn generate_classes(&self, teo_app: &teo::core::app::App, env: Env) -> Result<()> {

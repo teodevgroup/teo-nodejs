@@ -2186,11 +2186,12 @@ dependencies = [
 [[package]]
 name = "napi"
 version = "2.11.4"
-source = "git+https://github.com/victorteokw/napi-rs?branch=property_closure#205a4d5e53dbaae2932d59e017bfd5a04f5b3d0c"
+source = "git+https://github.com/victorteokw/napi-rs?rev=ecf9958#ecf995898127de84b5e998beda8fd94907c10c59"
 dependencies = [
  "bitflags 2.0.2",
  "chrono",
  "ctor",
+ "napi-derive 2.11.2 (git+https://github.com/victorteokw/napi-rs?rev=ecf9958)",
  "napi-sys",
  "once_cell",
  "tokio",
@@ -2209,7 +2210,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e367c72b3f0243d490f0cf4feed9a28e40e4e9cba16912951dbeccf6c607576"
 dependencies = [
  "convert_case 0.6.0",
- "napi-derive-backend",
+ "napi-derive-backend 1.0.45 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "napi-derive"
+version = "2.11.2"
+source = "git+https://github.com/victorteokw/napi-rs?rev=ecf9958#ecf995898127de84b5e998beda8fd94907c10c59"
+dependencies = [
+ "convert_case 0.6.0",
+ "napi-derive-backend 1.0.45 (git+https://github.com/victorteokw/napi-rs?rev=ecf9958)",
  "proc-macro2",
  "quote",
  "syn",
@@ -2230,9 +2243,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "napi-derive-backend"
+version = "1.0.45"
+source = "git+https://github.com/victorteokw/napi-rs?rev=ecf9958#ecf995898127de84b5e998beda8fd94907c10c59"
+dependencies = [
+ "convert_case 0.6.0",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "napi-sys"
 version = "2.2.3"
-source = "git+https://github.com/victorteokw/napi-rs?branch=property_closure#205a4d5e53dbaae2932d59e017bfd5a04f5b3d0c"
+source = "git+https://github.com/victorteokw/napi-rs?rev=ecf9958#ecf995898127de84b5e998beda8fd94907c10c59"
 dependencies = [
  "libloading",
 ]
@@ -3553,14 +3577,14 @@ dependencies = [
 
 [[package]]
 name = "teocloud_teo"
-version = "0.0.0"
+version = "0.0.52-beta.1"
 dependencies = [
  "bigdecimal",
  "chrono",
  "inflector-plus",
  "napi",
  "napi-build",
- "napi-derive",
+ "napi-derive 2.11.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "once_cell",
  "teo",
  "to-mut",

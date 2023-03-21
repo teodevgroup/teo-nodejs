@@ -57,6 +57,7 @@ jobs:
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: |-
+              export OPENSSL_DIR="usr/lib/ssl" &&
               set -e &&
               sudo apt-get update &&
               sudo apt-get install libssl-dev pkg-config -y &&

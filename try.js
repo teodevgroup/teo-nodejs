@@ -4,6 +4,7 @@ const User = getModelClass('User')
 
 const app = new App()
 
+
 app.transform("replaceComWithIo", async function (input) {
   return input.replace(/com$/, 'io')
 })

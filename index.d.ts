@@ -10,7 +10,7 @@ export class App {
   /** @internal */
   static withCli(cli: boolean): App
   /** Run this app. */
-  run(): unknown
+  run(): Promise<void>
   /** Register a named transformer. */
   transform(name: string, callback: (input: any) => any | Promise<any>): void
   /** Register a named validator. */

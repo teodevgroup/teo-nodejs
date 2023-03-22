@@ -99,19 +99,26 @@ impl App {
     }
 
     /// Run this app.
-    #[napi]
-    pub fn run(&self, env: Env) -> Result<()> {
+    #[napi(ts_return_type="Promise<void>")]
+    pub fn run(&self, env: Env) -> Result<JsUnknown> {
         let mut_builder = self.builder.to_mut();
-        let teo_app = tokio::runtime::Builder::new_current_thread()
+        let teo_app = Box::leak(Box::new(tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
             .unwrap()
-            .block_on(mut_builder.build());
+            .block_on(mut_builder.build())));
         self.generate_classes(&teo_app, env)?;
-        let _ = napi::tokio_runtime::spawn((|| async move {
-            let _ = teo_app.run().await;
-        })());
-        Ok(())
+        let js_function = env.create_function_from_closure("run", |ctx| {
+            let promise = ctx.env.execute_tokio_future((|| async {
+                let _ = teo_app.run().await;
+                Ok(0)
+            })(), |env: &mut Env, _unknown: i32| {
+                env.get_undefined()
+            })?;
+            Ok(promise)
+        })?;
+        let result: JsUnknown = js_function.call(None, &[env.get_undefined()?])?;
+        Ok(result)
     }
 
     fn generate_classes(&self, teo_app: &teo::core::app::App, env: Env) -> Result<()> {
@@ -226,7 +233,7 @@ impl App {
                         Ok(()) => Ok(()),
                         Err(err) => Err(Error::from_reason(err.message())),
                     }
-                })(), |&mut env, result: ()| {
+                })(), |&mut env, _result: ()| {
                     env.get_undefined()
                 })?;
                 Ok(promise)
@@ -245,7 +252,7 @@ impl App {
                         Ok(()) => Ok(()),
                         Err(err) => Err(Error::from_reason(err.message())),
                     }
-                })(), |&mut env, result: ()| {
+                })(), |&mut env, _result: ()| {
                     env.get_undefined()
                 })?;
                 Ok(promise)

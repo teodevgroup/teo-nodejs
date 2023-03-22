@@ -3526,7 +3526,9 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.0.52-beta.4"
+version = "0.0.52"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "017dc5dfbcb2e63757db95a3b5e1a1bb5816653efab673cd6c2951b977d5fa26"
 dependencies = [
  "actix-http",
  "actix-web",
@@ -3576,7 +3578,7 @@ dependencies = [
 
 [[package]]
 name = "teocloud_teo"
-version = "0.0.52-beta.4"
+version = "0.0.52"
 dependencies = [
  "bigdecimal",
  "chrono",

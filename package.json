@@ -1,6 +1,6 @@
 {
   "name": "@teocloud/teo",
-  "version": "0.0.52-beta.4",
+  "version": "0.0.52",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {

@@ -62,6 +62,14 @@ pub fn teo_value_to_js_unknown(value: &TeoValue, env: &Env) -> JsUnknown {
     }
 }
 
+pub struct TeoUnused {}
+
+impl FromNapiValue for TeoUnused {
+    unsafe fn from_napi_value(raw_env: napi_env, napi_val: napi_value) -> Result<Self> {
+        Ok(TeoUnused {})
+    }
+}
+
 pub enum WrappedTeoValue {
     Promise(Promise<WrappedTeoValue>),
     TeoValue(TeoValue),

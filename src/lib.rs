@@ -9,14 +9,16 @@ use std::collections::HashMap;
 use inflector::Inflector;
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property, ValueType};
+use napi::bindgen_prelude::{FromNapiValue, Promise, This};
 use teo::core::app::{builder::AppBuilder, entrance::Entrance};
 use teo::core::object::{Object as TeoObject};
 use teo::core::graph::Graph;
 use teo::core::pipeline::items::function::validate::{ValidateResult, Validity};
 use teo::core::teon::Value as TeoValue;
+use teo::core::app::App as TeoApp;
 use to_mut::ToMut;
 use value::{teo_value_to_js_unknown, WrappedTeoValue};
-use crate::value::js_unknown_to_teo_value;
+use crate::value::{js_unknown_to_teo_value, TeoUnused};
 
 static mut CLASSES: Option<&'static HashMap<String, napi::Ref<()>>> = None;
 
@@ -72,7 +74,7 @@ pub(crate) fn js_object_from_teo_object(env: &mut Env, teo_object: TeoObject) ->
 
 #[napi(js_name = "App")]
 pub struct App {
-    builder: AppBuilder
+    builder: AppBuilder,
 }
 
 /// A Teo app.
@@ -96,23 +98,19 @@ impl App {
         App { builder: AppBuilder::new_with_environment_version_and_entrance(teo::core::app::environment::EnvironmentVersion::NodeJS(version_str), entrance) }
     }
 
+    #[napi]
+    pub async fn build_internal(&self) {
+        let mut_builder = self.builder.to_mut();
+        let teo_app = mut_builder.build().await;
+        *self.app.lock().await = Some(teo_app);
+    }
+
     /// Run this app.
     #[napi]
-    pub fn run(&self, env: Env) {
-        // let mut_builder = self.builder.to_mut();
-        // let teo_app = mut_builder.build().await;
-        // let _ = teo_app.run().await;
+    pub async fn run(&self) -> Result<()> {
         let mut_builder = self.builder.to_mut();
-        let teo_app = Box::leak(Box::new(tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(mut_builder.build())));
-        self.generate_classes(teo_app, env).unwrap();
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        rt.block_on(async {
-            let _ = teo_app.run().await;
-        });
+        let teo_app = mut_builder.build().await;
+        let _ = teo_app.run().await;
     }
 
     fn generate_classes(&self, teo_app: &teo::core::app::App, env: Env) -> Result<()> {
@@ -516,7 +514,7 @@ impl App {
     }
 
     /// Register a named transformer.
-    #[napi(ts_args_type = "callback: (input: any) => any | Promise<any>")]
+    #[napi(ts_args_type = "name: string, callback: (input: any) => any | Promise<any>")]
     pub fn transform(&self, name: String, callback: JsFunction) -> Result<()> {
         let mut_builder = self.builder.to_mut();
         let tsfn: ThreadsafeFunction<TeoValue, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
@@ -532,7 +530,7 @@ impl App {
     }
 
     /// Register a named validator.
-    #[napi(ts_args_type = "callback: (input: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
+    #[napi(ts_args_type = "name: string, callback: (input: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
     pub fn validate(&self, name: String, callback: JsFunction) -> Result<()> {
         let mut_builder = self.builder.to_mut();
         let tsfn: ThreadsafeFunction<TeoValue, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
@@ -559,7 +557,7 @@ impl App {
     }
 
     /// Register a named callback.
-    #[napi(ts_args_type = "callback: (input: any) => void | Promise<void>")]
+    #[napi(ts_args_type = "name: string, callback: (input: any) => void | Promise<void>")]
     pub fn callback(&self, name: String, callback: JsFunction) -> Result<()> {
         let mut_builder = self.builder.to_mut();
         let tsfn: ThreadsafeFunction<TeoValue, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
@@ -574,7 +572,7 @@ impl App {
         Ok(())
     }
 
-    #[napi(js_name = "compare<T>", ts_args_type = "callback: (oldValue: T, newValue: T) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
+    #[napi(js_name = "compare<T>", ts_args_type = "name: string, callback: (oldValue: T, newValue: T) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
     pub fn compare(&self, name: String, callback: JsFunction) -> Result<()> {
         let mut_builder = self.builder.to_mut();
         let tsfn: ThreadsafeFunction<(TeoValue, TeoValue), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoValue)>| {
@@ -597,6 +595,22 @@ impl App {
                 },
                 _ => ValidateResult::Validity(Validity::Valid)
             }
+        });
+        Ok(())
+    }
+
+    /// Run before server is started.
+    #[napi(ts_args_type = "callback: () => void | Promise<void>")]
+    pub fn before_server_start(&self, callback: JsFunction) -> Result<()> {
+        let mut_builder = self.builder.to_mut();
+        let tsfn: ThreadsafeFunction<i32, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
+            let undefined = ctx.env.get_undefined()?;
+            Ok(vec![undefined])
+        })?;
+        let tsfn_cloned = Box::leak(Box::new(tsfn));
+        mut_builder.before_server_start(|| async {
+            let _: Result<TeoUnused> = tsfn_cloned.call_async(0).await;
+            Ok(())
         });
         Ok(())
     }

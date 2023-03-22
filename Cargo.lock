@@ -2186,12 +2186,12 @@ dependencies = [
 [[package]]
 name = "napi"
 version = "2.11.4"
-source = "git+https://github.com/victorteokw/napi-rs?rev=ecf9958#ecf995898127de84b5e998beda8fd94907c10c59"
+source = "git+https://github.com/victorteokw/napi-rs?rev=591d5ee#591d5ee68587f68eefc316716198f65924c06043"
 dependencies = [
  "bitflags 2.0.2",
  "chrono",
  "ctor",
- "napi-derive 2.11.2 (git+https://github.com/victorteokw/napi-rs?rev=ecf9958)",
+ "napi-derive 2.11.2 (git+https://github.com/victorteokw/napi-rs?rev=591d5ee)",
  "napi-sys",
  "once_cell",
  "tokio",
@@ -2219,10 +2219,10 @@ dependencies = [
 [[package]]
 name = "napi-derive"
 version = "2.11.2"
-source = "git+https://github.com/victorteokw/napi-rs?rev=ecf9958#ecf995898127de84b5e998beda8fd94907c10c59"
+source = "git+https://github.com/victorteokw/napi-rs?rev=591d5ee#591d5ee68587f68eefc316716198f65924c06043"
 dependencies = [
  "convert_case 0.6.0",
- "napi-derive-backend 1.0.45 (git+https://github.com/victorteokw/napi-rs?rev=ecf9958)",
+ "napi-derive-backend 1.0.45 (git+https://github.com/victorteokw/napi-rs?rev=591d5ee)",
  "proc-macro2",
  "quote",
  "syn",
@@ -2245,7 +2245,7 @@ dependencies = [
 [[package]]
 name = "napi-derive-backend"
 version = "1.0.45"
-source = "git+https://github.com/victorteokw/napi-rs?rev=ecf9958#ecf995898127de84b5e998beda8fd94907c10c59"
+source = "git+https://github.com/victorteokw/napi-rs?rev=591d5ee#591d5ee68587f68eefc316716198f65924c06043"
 dependencies = [
  "convert_case 0.6.0",
  "proc-macro2",
@@ -2256,7 +2256,7 @@ dependencies = [
 [[package]]
 name = "napi-sys"
 version = "2.2.3"
-source = "git+https://github.com/victorteokw/napi-rs?rev=ecf9958#ecf995898127de84b5e998beda8fd94907c10c59"
+source = "git+https://github.com/victorteokw/napi-rs?rev=591d5ee#591d5ee68587f68eefc316716198f65924c06043"
 dependencies = [
  "libloading",
 ]

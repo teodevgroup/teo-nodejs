@@ -98,19 +98,20 @@ impl App {
         App { builder: AppBuilder::new_with_environment_version_and_entrance(teo::core::app::environment::EnvironmentVersion::NodeJS(version_str), entrance) }
     }
 
-    #[napi]
-    pub async fn build_internal(&self) {
-        let mut_builder = self.builder.to_mut();
-        let teo_app = mut_builder.build().await;
-        *self.app.lock().await = Some(teo_app);
-    }
-
     /// Run this app.
     #[napi]
-    pub async fn run(&self) -> Result<()> {
+    pub fn run(&self, env: Env) -> Result<()> {
         let mut_builder = self.builder.to_mut();
-        let teo_app = mut_builder.build().await;
-        let _ = teo_app.run().await;
+        let teo_app = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap()
+            .block_on(mut_builder.build());
+        self.generate_classes(&teo_app, env)?;
+        let _ = napi::tokio_runtime::spawn((|| async move {
+            let _ = teo_app.run().await;
+        })());
+        Ok(())
     }
 
     fn generate_classes(&self, teo_app: &teo::core::app::App, env: Env) -> Result<()> {
@@ -201,17 +202,15 @@ impl App {
             })?;
             ctor_object.set_named_property("create", create)?;
             // isNew
-            let is_new = Property::new("isNew")?.with_getter_closure(|ctx| {
-                let this: JsObject = ctx.this()?;
-                let object: &mut TeoObject = ctx.env.unwrap(&this)?;
-                ctx.env.get_boolean(object.is_new())
+            let is_new = Property::new("isNew")?.with_getter_closure(|env: Env, this: JsObject| {
+                let object: &mut TeoObject = env.unwrap(&this)?;
+                env.get_boolean(object.is_new())
             });
             prototype.define_properties(&[is_new])?;
             // isModified
-            let is_modified = Property::new("isModified")?.with_getter_closure(|ctx| {
-                let this: JsObject = ctx.this()?;
-                let object: &mut TeoObject = ctx.env.unwrap(&this)?;
-                ctx.env.get_boolean(object.is_modified())
+            let is_modified = Property::new("isModified")?.with_getter_closure(|env: Env, this: JsObject| {
+                let object: &mut TeoObject = env.unwrap(&this)?;
+                env.get_boolean(object.is_modified())
             });
             prototype.define_properties(&[is_modified])?;
             // set
@@ -304,18 +303,15 @@ impl App {
             prototype.set_named_property("toString", to_string)?;
             for field in model.fields() {
                 let field_name = Box::leak(Box::new(field.name().to_owned()));
-                let property = Property::new(field_name.as_str())?.with_getter_closure(|ctx: CallContext<'_>| {
-                    let this: JsObject = ctx.this()?;
-                    let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                let property = Property::new(field_name.as_str())?.with_getter_closure(|env: Env, this: JsObject| {
+                    let object: &mut TeoObject = env.unwrap(&this)?;
                     let value: TeoValue = object.get(field_name.as_str()).unwrap();
-                    Ok(teo_value_to_js_unknown(&value, &ctx.env))
-                }).with_setter_closure(|ctx: CallContext<'_>| {
-                    let this: JsObject = ctx.this()?;
-                    let arg0: JsUnknown = ctx.get(0)?;
-                    let teo_value = js_unknown_to_teo_value(arg0, ctx.env.clone());
-                    let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                    Ok(teo_value_to_js_unknown(&value, &env))
+                }).with_setter_closure(|env: Env, this: JsObject, arg0: JsUnknown| {
+                    let teo_value = js_unknown_to_teo_value(arg0, env.clone());
+                    let object: &mut TeoObject = env.unwrap(&this)?;
                     object.set(field_name.as_str(), teo_value).unwrap();
-                    ctx.env.get_undefined()
+                    Ok(())
                 });
                 prototype.define_properties(&[property])?;
             }
@@ -419,11 +415,10 @@ impl App {
                 } else {
                     // get
                     let mut property = Property::new(name)?;
-                    property = property.with_getter_closure(move |ctx: CallContext<'_>| {
-                        let this: JsObject = ctx.this()?;
-                        let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                    property = property.with_getter_closure(move |env: Env, this: JsObject| {
+                        let object: &mut TeoObject = env.unwrap(&this)?;
                         let object_cloned = object.clone();
-                        let promise = ctx.env.execute_tokio_future((|| async move {
+                        let promise = env.execute_tokio_future((|| async move {
                             match object_cloned.force_get_relation_object(name).await {
                                 Ok(v) => Ok(v),
                                 Err(err) => Err(Error::from_reason(err.message())),
@@ -492,11 +487,10 @@ impl App {
                 }
                 if model_property.has_getter() {
                     let mut property = Property::new(field_name)?;
-                    property = property.with_getter_closure(move |ctx: CallContext<'_>| {
-                        let this: JsObject = ctx.this()?;
-                        let object: &mut TeoObject = ctx.env.unwrap(&this)?;
+                    property = property.with_getter_closure(move |env: Env, this: JsObject| {
+                        let object: &mut TeoObject = env.unwrap(&this)?;
                         let object_cloned = object.clone();
-                        let promise = ctx.env.execute_tokio_future((|| async move {
+                        let promise = env.execute_tokio_future((|| async move {
                             match object_cloned.get_property::<TeoValue>(field_name).await {
                                 Ok(v) => Ok(v),
                                 Err(err) => Err(Error::from_reason(err.message())),

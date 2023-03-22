@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 teo = { path = "../teo", version = "0.0.52-beta.3", features = ["data-source-mysql", "data-source-postgres", "data-source-sqlite", "data-source-mongodb"] }
 to-mut = { version = "0.1.0" }
-napi = { git = "https://github.com/victorteokw/napi-rs", rev = "ecf9958", default-features = false, features = ["napi5", "async", "chrono_date", "compat-mode"] }
+napi = { git = "https://github.com/victorteokw/napi-rs", rev = "591d5ee", default-features = false, features = ["napi5", "async", "chrono_date", "compat-mode"] }
 napi-derive = "2.11.0"
 chrono = { version = "0.4.24" }
 bigdecimal = "0.3.0"

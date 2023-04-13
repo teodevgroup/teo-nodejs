@@ -101,12 +101,12 @@ impl App {
     /// Run this app.
     #[napi(ts_return_type="Promise<void>")]
     pub fn run(&self, env: Env) -> Result<JsUnknown> {
-        let mut_builder = self.builder.to_mut();
+        let mut builder = self.builder.clone();
         let teo_app = Box::leak(Box::new(tokio::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
             .unwrap()
-            .block_on(mut_builder.build())));
+            .block_on(builder.build())));
         self.generate_classes(&teo_app, env)?;
         let js_function = env.create_function_from_closure("run", |ctx| {
             let promise = ctx.env.execute_tokio_future((|| async {

@@ -12,6 +12,7 @@ use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymb
 use teo::app::ctx::AppCtx;
 use teo::app::entrance::Entrance;
 use teo::app::program::Program;
+use teo::app::cli::run_without_prepare::run_without_prepare;
 use teo::core::callbacks::types::validate::{ValidateResult, Validity};
 use teo::core::object::{Object as TeoObject};
 use teo::core::teon::Value as TeoValue;
@@ -76,6 +77,22 @@ fn ctx_constructor_function(env: Env) -> Result<JsFunction> {
     Ok(object)
 }
 
+fn model_class_constructor_function(env: Env, name: &str) -> Result<JsFunction> {
+    let ctor = env.create_function_from_closure(&name, |ctx| {
+        // let this = ctx.this_unchecked();
+        ctx.env.get_undefined()
+    })?;
+    let mut prototype = env.create_object()?;
+    prototype.set_named_property("__teo_class__", env.get_boolean(true)?)?;
+    let mut ctor_object = ctor.coerce_to_object()?;
+    ctor_object.set_named_property("prototype", prototype)?;
+    let r = env.create_reference(ctor_object)?;
+    classes_mut().insert(name.to_owned(), r);
+    let ref_get = unsafe { CLASSES.unwrap().get(name).unwrap() };
+    let object: JsFunction = env.get_reference_value(ref_get)?;
+    Ok(object)
+}
+
 fn model_object_constructor_function(env: Env, name: &str) -> Result<JsFunction> {
     let ctor = env.create_function_from_closure(&name, |ctx| {
         // let this = ctx.this_unchecked();
@@ -86,8 +103,8 @@ fn model_object_constructor_function(env: Env, name: &str) -> Result<JsFunction>
     let mut ctor_object = ctor.coerce_to_object()?;
     ctor_object.set_named_property("prototype", prototype)?;
     let r = env.create_reference(ctor_object)?;
-    classes_mut().insert(name.to_owned(), r);
-    let ref_get = unsafe { CLASSES.unwrap().get(name).unwrap() };
+    objects_mut().insert(name.to_owned(), r);
+    let ref_get = unsafe { OBJECTS.unwrap().get(name).unwrap() };
     let object: JsFunction = env.get_reference_value(ref_get)?;
     Ok(object)
 }
@@ -98,7 +115,7 @@ pub fn get_model_class_class(env: Env, name: &str) -> JsFunction {
             let object: JsFunction = env.get_reference_value(object_ref).unwrap();
             object
         } else {
-            model_object_constructor_function(env, name).unwrap()
+            model_class_constructor_function(env, name).unwrap()
         }
     }
 }
@@ -209,11 +226,11 @@ impl App {
     /// Run this app.
     #[napi(ts_return_type="Promise<void>")]
     pub fn run(&self, env: Env) -> Result<JsUnknown> {
-        self.teo_app.prepare().into_nodejs_result()?;
+        let cli = Box::leak(Box::new(self.teo_app.prepare().into_nodejs_result()?));
         self.generate_classes(env)?;
         let js_function = env.create_function_from_closure("run", |ctx| {
             let promise = ctx.env.execute_tokio_future((|| async {
-                let _ = self.teo_app.run().await;
+                let _ = run_without_prepare(cli).await;
                 Ok(0)
             })(), |env: &mut Env, _unknown: i32| {
                 env.get_undefined()

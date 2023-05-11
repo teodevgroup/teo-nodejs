@@ -4,7 +4,7 @@ use bigdecimal::BigDecimal;
 use napi::{Env, JsDate, JsString};
 use teo::core::teon::Value as TeoValue;
 use chrono::{NaiveDateTime, NaiveTime, DateTime, Utc};
-use napi::{JsUnknown, threadsafe_function::ThreadSafeCallContext, JsFunction, Result, ValueType};
+use napi::{JsUnknown, JsFunction, Result, ValueType};
 use napi::bindgen_prelude::{FromNapiValue, Promise};
 use napi::sys::{napi_env, napi_value};
 use teo::core::object::Object as TeoObject;
@@ -65,7 +65,7 @@ pub fn teo_value_to_js_unknown(value: &TeoValue, env: &Env) -> JsUnknown {
 pub struct TeoUnused {}
 
 impl FromNapiValue for TeoUnused {
-    unsafe fn from_napi_value(raw_env: napi_env, napi_val: napi_value) -> Result<Self> {
+    unsafe fn from_napi_value(_raw_env: napi_env, _napi_val: napi_value) -> Result<Self> {
         Ok(TeoUnused {})
     }
 }

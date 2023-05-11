@@ -2864,9 +2864,9 @@ dependencies = [
 
 [[package]]
 name = "quaint-forked"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bcca56c320ae11a35177d450ea1fe02361d3f25e9035d996932913f856b07bf3"
+checksum = "6827a0ede1bc738ab87c62dd669ceafe2510fcba24499c4ed91bd60fb09c6109"
 dependencies = [
  "async-trait",
  "base64 0.12.3",
@@ -3606,9 +3606,9 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.0.56-alpha.0"
+version = "0.0.56-alpha.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35531668aa6c0f23ad7dfa13fde542cec22d5b5476e05181962c45c2ed560652"
+checksum = "208d964e3553985babef3ed58f131c16a7c634eb048b6d63874a4e1998fd7a0e"
 dependencies = [
  "actix-http",
  "actix-web",
@@ -3660,7 +3660,7 @@ dependencies = [
 
 [[package]]
 name = "teocloud_teo"
-version = "0.0.55"
+version = "0.0.56-alpha.4"
 dependencies = [
  "bigdecimal",
  "chrono",

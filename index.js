@@ -252,9 +252,8 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { getModelClass, App } = nativeBinding
+const { App } = nativeBinding
 
-module.exports.getModelClass = getModelClass
 module.exports.App = App
 
 globalThis.require = require

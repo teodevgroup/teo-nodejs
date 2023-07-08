@@ -246,17 +246,18 @@ impl App {
         let mut ctx_prototype: JsObject = ctx_ctor_object.get_named_property("prototype")?;
         let graph = AppCtx::get().into_nodejs_result()?.graph().into_nodejs_result()?;
         for model in graph.models() {
-            let leaked_model_name = model.name();
-            let ctx_property = Property::new(leaked_model_name)?.with_getter_closure(|env: Env, this: JsObject| {
+            let model_name = model.name();
+            let lowercase_model_name = Box::leak(Box::new(model_name.to_lowercase())).as_str();
+            let ctx_property = Property::new(lowercase_model_name)?.with_getter_closure(|env: Env, this: JsObject| {
                 let user_ctx: &mut UserCtx = env.unwrap(&this)?;
-                let model_ctx = user_ctx.model_ctx(leaked_model_name).into_nodejs_result()?;
-                js_model_ctx_from_teo_model_ctx(env, model_ctx, leaked_model_name)
+                let model_ctx = user_ctx.model_ctx(model_name).into_nodejs_result()?;
+                js_model_ctx_from_teo_model_ctx(env, model_ctx, model_name)
             });
             ctx_prototype.define_properties(&[ctx_property])?;
-            let class_ctor = get_model_class_class(env, leaked_model_name);
+            let class_ctor = get_model_class_class(env, model_name);
             let class_ctor_object = class_ctor.coerce_to_object()?;
             let mut class_prototype: JsObject = class_ctor_object.get_named_property("prototype")?;
-            let object_ctor = get_model_object_class(env, leaked_model_name);
+            let object_ctor = get_model_object_class(env, model_name);
             let object_ctor_object = object_ctor.coerce_to_object()?;
             let mut object_prototype: JsObject = object_ctor_object.get_named_property("prototype")?;
             // find unique

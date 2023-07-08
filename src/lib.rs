@@ -216,8 +216,8 @@ impl App {
         let process: JsObject = global.get_named_property("process")?;
         let version: JsString = process.get_named_property("version")?;
         let version_str: String = version.into_utf8()?.as_str()?.to_owned();
-        let app_ctx = AppCtx::get().unwrap();
         let app = App { teo_app: TeoApp::new().unwrap() };
+        let app_ctx = AppCtx::get().unwrap();
         app_ctx.set_entrance(entrance).into_nodejs_result()?;
         app_ctx.set_program(Program::NodeJS(version_str)).into_nodejs_result()?;
         Ok(app)

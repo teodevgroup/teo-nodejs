@@ -11,12 +11,12 @@ export class App {
   /** Run this app. */
   run(): Promise<void>
   /** Register a named transformer. */
-  transform(name: string, callback: (input: any) => any | Promise<any>): void
+  transform(name: string, callback: (input: any, object?: any, ctx?: any) => any | Promise<any>): void
   /** Register a named validator. */
-  validate(name: string, callback: (input: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>): void
+  validate(name: string, callback: (input: any, object?: any, ctx?: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>): void
   /** Register a named callback. */
-  callback(name: string, callback: (input: any) => void | Promise<void>): void
-  compare<T>(name: string, callback: (oldValue: T, newValue: T) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>): void
+  callback(name: string, callback: (input: any, object?: any, ctx?: any) => void | Promise<void>): void
+  compare<T>(name: string, callback: (oldValue: T, newValue: T, object?: any, ctx?: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>): void
   /** Run before server is started. */
   setup(callback: () => void | Promise<void>): void
 }

@@ -2,5 +2,5 @@
 
 const { App } = require("./index.js")
 
-const app = new App()
+const app = App.withCli(true)
 app.run()

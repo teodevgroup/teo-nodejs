@@ -156,7 +156,6 @@ fn get_js_user_ctx_prototype(env: Env) -> JsObject {
     prototype
 }
 
-
 fn get_model_class_prototype(env: Env, name: &str) -> JsObject {
     let js_function = get_model_class_class(env, name);
     let js_object = js_function.coerce_to_object().unwrap();
@@ -227,7 +226,7 @@ impl App {
     #[napi(ts_return_type="Promise<void>")]
     pub fn run(&self, env: Env) -> Result<JsUnknown> {
         let cli = Box::leak(Box::new(self.teo_app.prepare().into_nodejs_result()?));
-        self.generate_classes(env)?;
+        self.generate_js_classes(env)?;
         let js_function = env.create_function_from_closure("run", |ctx| {
             let promise = ctx.env.execute_tokio_future((|| async {
                 let _ = run_without_prepare(cli).await;
@@ -241,7 +240,7 @@ impl App {
         Ok(result)
     }
 
-    fn generate_classes(&self, env: Env) -> Result<()> {
+    fn generate_js_classes(&self, env: Env) -> Result<()> {
         let ctx_ctor = ctx_constructor_function(env)?;
         let ctx_ctor_object = ctx_ctor.coerce_to_object()?;
         let mut ctx_prototype: JsObject = ctx_ctor_object.get_named_property("prototype")?;
@@ -658,7 +657,7 @@ impl App {
     }
 
     /// Register a named transformer.
-    #[napi(ts_args_type = "name: string, callback: (input: any) => any | Promise<any>")]
+    #[napi(ts_args_type = "name: string, callback: (input: any, object?: any, ctx?: any) => any | Promise<any>")]
     pub fn transform(&self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoObject, UserCtx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoObject, UserCtx)>| {
             let js_value = teo_value_to_js_unknown(&ctx.value.0, &ctx.env);
@@ -676,7 +675,7 @@ impl App {
     }
 
     /// Register a named validator.
-    #[napi(ts_args_type = "name: string, callback: (input: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
+    #[napi(ts_args_type = "name: string, callback: (input: any, object?: any, ctx?: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
     pub fn validate(&self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoObject, UserCtx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoObject, UserCtx)>| {
             let js_value = teo_value_to_js_unknown(&ctx.value.0, &ctx.env);
@@ -705,7 +704,7 @@ impl App {
     }
 
     /// Register a named callback.
-    #[napi(ts_args_type = "name: string, callback: (input: any) => void | Promise<void>")]
+    #[napi(ts_args_type = "name: string, callback: (input: any, object?: any, ctx?: any) => void | Promise<void>")]
     pub fn callback(&self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoObject, UserCtx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoObject, UserCtx)>| {
             let js_value = teo_value_to_js_unknown(&ctx.value.0, &ctx.env);
@@ -722,7 +721,7 @@ impl App {
         Ok(())
     }
 
-    #[napi(js_name = "compare<T>", ts_args_type = "name: string, callback: (oldValue: T, newValue: T) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
+    #[napi(js_name = "compare<T>", ts_args_type = "name: string, callback: (oldValue: T, newValue: T, object?: any, ctx?: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
     pub fn compare(&self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoValue, TeoObject, UserCtx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoValue, TeoObject, UserCtx)>| {
             let js_value_old = teo_value_to_js_unknown(&ctx.value.0, &ctx.env);

@@ -1,7 +1,7 @@
 Teo Node.js
 ==========
 
-Run Teo server and write custom callbacks and entities with Node.js.
+Run Teo server and write custom URL route handlers with Node.js.
 
 ## Installation
 
@@ -17,7 +17,6 @@ Write with JavaScript:
 const { App } = require("@teocloud/teo")
 
 const app = new App()
-app.validate("oddLength", (s) => s.length % 2 == 0)
 app.run()
 
 ```
@@ -28,7 +27,6 @@ Write with TypeScript:
 import { App } from "@teocloud/teo"
 
 const app = new App()
-app.validate("oddLength", (s: string) => s.length % 2 == 0)
 app.run()
 
 ```

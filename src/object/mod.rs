@@ -10,8 +10,8 @@ mod promise;
 use std::collections::HashMap;
 use std::str::FromStr;
 use bigdecimal::BigDecimal;
-use napi::{Env, JsDate, JsString};
-use teo::prelude::Value as TeoValue;
+use napi::{Env, Error, JsDate, JsString};
+use teo::prelude::{Value as TeoValue, Value};
 use chrono::{NaiveDateTime, NaiveTime, DateTime, Utc};
 use napi::{JsUnknown, JsFunction, Result, ValueType};
 use napi::bindgen_prelude::{FromNapiValue, Promise};
@@ -36,31 +36,27 @@ pub fn teo_object_to_js_any(object: &TeoObject, env: &Env) -> Result<JsUnknown> 
 }
 
 pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
-
-}
-
-pub fn js_unknown_to_teo_value(unknown: JsUnknown, env: Env) -> TeoValue {
-    let value_type = unknown.get_type().unwrap();
-    match value_type {
-        ValueType::Null => TeoValue::Null,
-        ValueType::Undefined => TeoValue::Null,
-        ValueType::Boolean => TeoValue::Bool(unknown.coerce_to_bool().unwrap().get_value().unwrap()),
-        ValueType::Number => {
-            let js_number = unknown.coerce_to_number().unwrap();
+    Ok(match any.get_type()? {
+        ValueType::Undefined => TeoObject::from(Value::Null),
+        ValueType::Null => TeoObject::from(Value::Null),
+        ValueType::Boolean => TeoObject::from(TeoValue::Bool(any.coerce_to_bool()?.get_value().unwrap())),
+        ValueType::Number => TeoObject::from({
+            let js_number = any.coerce_to_number()?;
             if let Ok(n) = js_number.get_int32() {
-                TeoValue::I32(n)
+                TeoValue::Int(n)
             } else if let Ok(n) = js_number.get_int64() {
-                TeoValue::I64(n)
+                TeoValue::Int64(n)
             } else if let Ok(f) = js_number.get_double() {
-                TeoValue::F64(f)
+                TeoValue::Float(f)
             } else {
-                unreachable!()
+                Error::new("ValueError", "cannot convert number value to teon number")?
             }
-        }
-        ValueType::String => {
-            let js_string = unknown.coerce_to_string().unwrap();
-            TeoValue::String(js_string.into_utf8().unwrap().as_str().unwrap().to_owned())
-        }
+        }),
+        ValueType::String => TeoObject::from({
+            let js_string = any.coerce_to_string()?;
+            TeoValue::String(js_string.into_utf8()?.as_str()?.to_owned())
+        }),
+        ValueType::Symbol => Error::new("ValueError", "cannot convert symbol to teon value")?,
         ValueType::Object => {
             if unknown.is_array().unwrap() {
                 let object = unknown.coerce_to_object().unwrap();
@@ -68,7 +64,7 @@ pub fn js_unknown_to_teo_value(unknown: JsUnknown, env: Env) -> TeoValue {
                 let mut result = vec![];
                 for n in 0..len {
                     let item: JsUnknown = object.get_element(n).unwrap();
-                    result.push(js_unknown_to_teo_value(item, env));
+                    result.push(crate::object::js_unknown_to_teo_value(item, env));
                 }
                 TeoValue::Vec(result)
             } else if unknown.is_date().unwrap() {
@@ -102,17 +98,15 @@ pub fn js_unknown_to_teo_value(unknown: JsUnknown, env: Env) -> TeoValue {
                     for i in 0..len {
                         let name: JsString = names.get_element(i).unwrap();
                         let v: JsUnknown = object.get_property(name).unwrap();
-                        map.insert(name.into_utf8().unwrap().as_str().unwrap().to_owned(), js_unknown_to_teo_value(v, env));
+                        map.insert(name.into_utf8().unwrap().as_str().unwrap().to_owned(), crate::object::js_unknown_to_teo_value(v, env));
                     }
                     return TeoValue::HashMap(map);
                 }
             }
         }
-        ValueType::Unknown => {
-            panic!("Unhandled Node.js unknown type.")
-        }
-        _ => {
-            panic!("Unhandled Node.js type.")
-        }
-    }
+        ValueType::Function => Error::new("ValueError", "cannot convert function to teon value")?,
+        ValueType::External => Error::new("ValueError", "cannot convert external to teon value")?,
+        ValueType::BigInt => Error::new("ValueError", "cannot convert big int to teon value")?,
+        ValueType::Unknown => Error::new("ValueError", "cannot convert unknown to teon value")?,
+    })
 }

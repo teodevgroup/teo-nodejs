@@ -1,6 +1,12 @@
-use napi::{Env, JsUnknown};
-use teo::prelude::{InterfaceEnumVariant, model};
+use napi::{Env, JsUnknown, Result};
+use teo::prelude::InterfaceEnumVariant as TeoInterfaceEnumVariant;
 
-pub fn teo_interface_enum_variant_to_js_any(interface_enum_variant: &InterfaceEnumVariant, env: &Env) -> JsUnknown {
+#[napi(js_name = "EnumVariant")]
+pub struct InterfaceEnumVariant {
+    value: TeoInterfaceEnumVariant
+}
 
+pub fn teo_interface_enum_variant_to_js_any(interface_enum_variant: &TeoInterfaceEnumVariant, env: &Env) -> Result<JsUnknown> {
+    let instance = InterfaceEnumVariant { value: interface_enum_variant.clone() }.into_instance(*env)?;
+    Ok(instance.as_object(*env).into_unknown())
 }

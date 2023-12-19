@@ -26,9 +26,7 @@ impl App {
         let version: JsString = process.get_named_property("version")?;
         let version_str: String = version.into_utf8()?.as_str()?.to_owned();
         let entrance = if cli { Entrance::CLI } else { Entrance::APP };
-        app::Ctx::set_entrance(entrance);
-        app::Ctx::set_runtime_version(RuntimeVersion::NodeJS(version_str));
-        let app = App { teo_app: TeoApp::new().unwrap() };
+        let app = App { teo_app: TeoApp::new_with_entrance_and_runtime_version(Some(entrance), Some(RuntimeVersion::NodeJS(version_str))).unwrap() };
         Ok(app)
     }
 

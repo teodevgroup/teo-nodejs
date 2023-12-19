@@ -3823,7 +3823,7 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.0.61"
+version = "0.1.0"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -3861,7 +3861,7 @@ dependencies = [
  "teo-generator",
  "teo-mongodb-connector",
  "teo-parser",
- "teo-result 0.0.61",
+ "teo-result",
  "teo-runtime",
  "teo-sql-connector",
  "teo-teon",
@@ -3872,7 +3872,7 @@ dependencies = [
 
 [[package]]
 name = "teo-generator"
-version = "0.0.61"
+version = "0.1.0"
 dependencies = [
  "askama",
  "async-recursion",
@@ -3886,7 +3886,7 @@ dependencies = [
  "pathdiff",
  "serde_json",
  "teo-parser",
- "teo-result 0.0.61",
+ "teo-result",
  "teo-runtime",
  "tokio",
  "toml_edit",
@@ -3894,7 +3894,7 @@ dependencies = [
 
 [[package]]
 name = "teo-mongodb-connector"
-version = "0.0.61"
+version = "0.1.0"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -3910,7 +3910,7 @@ dependencies = [
  "regex",
  "snailquote",
  "teo-parser",
- "teo-result 0.0.61",
+ "teo-result",
  "teo-runtime",
  "teo-teon",
  "tokio",
@@ -3918,7 +3918,7 @@ dependencies = [
 
 [[package]]
 name = "teo-parser"
-version = "0.0.61"
+version = "0.1.0"
 dependencies = [
  "array_tool",
  "colored",
@@ -3942,17 +3942,11 @@ dependencies = [
 
 [[package]]
 name = "teo-result"
-version = "0.0.60"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cabf868a398de9ea219fafd3363c5ad79edf5ab12076cf1722f51cd6570799ea"
-
-[[package]]
-name = "teo-result"
-version = "0.0.61"
+version = "0.1.0"
 
 [[package]]
 name = "teo-runtime"
-version = "0.0.61"
+version = "0.1.0"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -3980,7 +3974,7 @@ dependencies = [
  "serde",
  "serde_json",
  "teo-parser",
- "teo-result 0.0.61",
+ "teo-result",
  "teo-teon",
  "tokio",
  "uuid",
@@ -3988,7 +3982,7 @@ dependencies = [
 
 [[package]]
 name = "teo-sql-connector"
-version = "0.0.61"
+version = "0.1.0"
 dependencies = [
  "array_tool",
  "async-recursion",
@@ -4005,7 +3999,7 @@ dependencies = [
  "regex",
  "snailquote",
  "teo-parser",
- "teo-result 0.0.61",
+ "teo-result",
  "teo-runtime",
  "teo-teon",
  "tokio",
@@ -4015,9 +4009,7 @@ dependencies = [
 
 [[package]]
 name = "teo-teon"
-version = "0.0.60"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "056d5d3854f47472c3fd591bfb436775de9e8cd51eaef2fa678692e69364759f"
+version = "0.1.0"
 dependencies = [
  "bigdecimal",
  "bson",
@@ -4029,7 +4021,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_json",
- "teo-result 0.0.60",
+ "teo-result",
 ]
 
 [[package]]

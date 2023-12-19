@@ -2,9 +2,6 @@ use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCal
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property, ValueType};
 use teo::prelude::{App as TeoApp};
 
-#[macro_use]
-extern crate napi_derive;
-
 #[napi(js_name = "App")]
 pub struct App {
     teo_app: TeoApp,

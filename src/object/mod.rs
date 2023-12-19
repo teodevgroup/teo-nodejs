@@ -155,11 +155,11 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                     let pipeline: &mut Pipeline = env.unwrap(&object)?;
                     return Ok(TeoObject::from(pipeline.value.clone()));
                 }
-                // test for model object
-                if object.has_named_property("__teo_object__")? {
-                    let model_object: &mut ModelObject = env.unwrap(&object)?;
-                    return Ok(TeoObject::from(model_object.clone()));
-                }
+                // // test for model object
+                // if object.has_named_property("__teo_object__")? {
+                //     let model_object: &mut ModelObject = env.unwrap(&object)?;
+                //     return Ok(TeoObject::from(model_object.clone()));
+                // }
                 // otherwise, treat as default dictionary
                 let mut map = IndexMap::new();
                 let names = object.get_property_names()?;

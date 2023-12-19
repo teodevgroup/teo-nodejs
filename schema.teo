@@ -1,44 +1,42 @@
 connector {
-  /// We use MongoDB
-  provider .mysql
-  /// Use environment variable or a default one
-  url "mysql://localhost:3306/nodejs"
+  // We use MongoDB
+  provider: .mysql,
+  // Use environment variable or a default one
+  url: "mysql://localhost:3306/nodejs",
 }
 
 server {
-  /// Listening on port 5100
-  bind ("0.0.0.0", 5100)
-  /// Since we have signing in, Read JWT secret from ENV
-  jwtSecret ENV["JWT_SECRET"] ?? "top"
+  // Listening on port 5100
+  bind: ("0.0.0.0", 5100),
 }
 
-/// @name Auth Code
-/// @description The auth code is used for authentication.
-@migration(drop: true)
-model AuthCode {
+// /// @name Auth Code
+// /// @description The auth code is used for authentication.
+// @migration(drop: true)
+// model AuthCode {
 
-  @id @readonly @autoIncrement
-  id: Int
+//   @id @readonly @autoIncrement
+//   id: Int
 
-  /// @name Email
-  /// @description User's email address.
-  @unique @onSet($validate("oddLength").transform("replaceComWithIo"))
-  email: String
+//   /// @name Email
+//   /// @description User's email address.
+//   @unique @onSet($validate("oddLength").transform("replaceComWithIo"))
+//   email: String
 
-  /// @name Code
-  /// @description Code is a 4 digits number.
-  @internal @onSave($randomDigits(4).callback("print"))
-  code: String
+//   /// @name Code
+//   /// @description Code is a 4 digits number.
+//   @internal @onSave($randomDigits(4).callback("print"))
+//   code: String
 
-  @onSet($transform("10times"))
-  price: Decimal
+//   @onSet($transform("10times"))
+//   price: Decimal
 
-  @readonly @onSave($when(.create, $now))
-  createdAt: DateTime
+//   @readonly @onSave($when(.create, $now))
+//   createdAt: DateTime
 
-  @readonly @onSave($now)
-  updatedAt: DateTime
-}
+//   @readonly @onSave($now)
+//   updatedAt: DateTime
+// }
 
 model User {
   @id @readonly @autoIncrement

@@ -1,7 +1,7 @@
 use napi::{Env, JsUnknown, Result};
 use teo::prelude::InterfaceEnumVariant as TeoInterfaceEnumVariant;
 
-#[napi(js_name = "EnumVariant")]
+#[napi(js_name = "InterfaceEnumVariant")]
 pub struct InterfaceEnumVariant {
     pub(crate) value: TeoInterfaceEnumVariant
 }

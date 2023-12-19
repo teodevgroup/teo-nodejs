@@ -252,8 +252,16 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { App } = nativeBinding
+const { ObjectId, DateOnly, Range, File, EnumVariant, OptionVariant, Pipeline, InterfaceEnumVariant, App } = nativeBinding
 
+module.exports.ObjectId = ObjectId
+module.exports.DateOnly = DateOnly
+module.exports.Range = Range
+module.exports.File = File
+module.exports.EnumVariant = EnumVariant
+module.exports.OptionVariant = OptionVariant
+module.exports.Pipeline = Pipeline
+module.exports.InterfaceEnumVariant = InterfaceEnumVariant
 module.exports.App = App
 
 globalThis.require = require

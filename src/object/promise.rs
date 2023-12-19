@@ -1,5 +1,5 @@
 use napi::bindgen_prelude::{FromNapiValue, Promise};
-use napi::{Result, Env, JsUnknown};
+use napi::{Result, Env, JsUnknown, Status, Error};
 use napi::sys::{napi_env, napi_value};
 use teo::prelude::object::{Object as TeoObject, ObjectInner};
 use teo::prelude::{Value as TeoValue};
@@ -18,10 +18,10 @@ impl TeoObjectOrPromise {
         Ok(match self {
             TeoObjectOrPromise::Promise(promise) => match promise.await {
                 Ok(p) => match p {
-                    TeoObjectOrPromise::Promise(p) => p.await?.to_teo_object(),
+                    TeoObjectOrPromise::Promise(promise) => Err(Error::new(Status::Unknown, "nested promise detected"))?,
                     TeoObjectOrPromise::TeoObject(v) => v,
                 },
-                Err(e) => TeoValue::String(e.reason.clone()),
+                Err(e) => Err(e)?,
             },
             TeoObjectOrPromise::TeoObject(v) => v,
         })

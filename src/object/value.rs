@@ -97,7 +97,8 @@ pub fn teo_value_to_js_any(value: &TeoValue, env: &Env) -> Result<JsUnknown> {
         Value::Regex(regex) => {
             let global = env.get_global()?;
             let reg_exp_constructor: JsFunction = global.get_named_property("RegExp")?;
-            let js_regex = reg_exp_constructor.new_instance(&[regex.as_str()])?;
+            let js_regex_str = env.create_string(regex.as_str())?;
+            let js_regex = reg_exp_constructor.new_instance(&[js_regex_str])?;
             js_regex.into_unknown()
         }
         Value::File(file) => {

@@ -10,7 +10,7 @@ mod promise;
 use indexmap::IndexMap;
 use std::str::FromStr;
 use bigdecimal::BigDecimal;
-use napi::{Env, Error, JsDate, JsString};
+use napi::{Env, Error, JsDate, JsString, Status};
 use teo::prelude::{Value as TeoValue, Value};
 use chrono::{NaiveDateTime, NaiveTime, DateTime, Utc};
 use napi::{JsUnknown, JsFunction, Result, ValueType};
@@ -50,14 +50,14 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
             } else if let Ok(f) = js_number.get_double() {
                 TeoValue::Float(f)
             } else {
-                Error::new("ValueError", "cannot convert number value to teon number")?
+                Err(Error::new(Status::Unknown, "cannot convert number value to teon number"))?
             }
         }),
         ValueType::String => TeoObject::from({
             let js_string = any.coerce_to_string()?;
             TeoValue::String(js_string.into_utf8()?.as_str()?.to_owned())
         }),
-        ValueType::Symbol => Error::new("ValueError", "cannot convert symbol to teon value")?,
+        ValueType::Symbol => Err(Error::new(Status::Unknown, "cannot convert symbol to teon value"))?,
         ValueType::Object => {
             if any.is_array()? {
                 let object = any.coerce_to_object()?;
@@ -98,12 +98,12 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                     return Ok(TeoObject::from(TeoValue::Decimal(BigDecimal::from_str(s).unwrap())));
                 }
                 // test for object id
-                if ObjectId::instance_of(*env, &object)? {
+                if ObjectId::instance_of(env, &object)? {
                     let object_id: &mut ObjectId = env.unwrap(&object)?;
                     return Ok(TeoObject::from(TeoValue::ObjectId(object_id.value.clone())));
                 }
                 // test for date only
-                if DateOnly::instance_of(*env, &object)? {
+                if DateOnly::instance_of(env, &object)? {
                     let date_only: &mut DateOnly = env.unwrap(&object)?;
                     return Ok(TeoObject::from(TeoValue::Date(date_only.value.clone())));
                 }
@@ -120,38 +120,39 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                 let reg_exp: JsFunction = global.get_named_property("RegExp")?;
                 if object.instanceof(reg_exp)? {
                     let source: JsFunction = object.get_named_property("source")?;
-                    let source_string = source.call(Some(&object), &[])?.coerce_to_string()?;
+                    let source_unknown: JsUnknown = source.call_without_args(Some(&object))?;
+                    let source_string: JsString = source_unknown.coerce_to_string()?;
                     let rust_string = source_string.into_utf8()?.as_str()?.to_owned();
                     let regex = Regex::new(&rust_string).unwrap();
                     return Ok(TeoObject::from(TeoValue::Regex(regex)));
                 }
                 // test for range
-                if Range::instance_of(*env, &object)? {
+                if Range::instance_of(env, &object)? {
                     let range: &mut Range = env.unwrap(&object)?;
                     return Ok(TeoObject::from(TeoValue::Range(range.value.clone())));
                 }
                 // test for file
-                if File::instance_of(*env, &object)? {
+                if File::instance_of(env, &object)? {
                     let file: &mut File = env.unwrap(&object)?;
                     return Ok(TeoObject::from(TeoValue::File(file.value.clone())));
                 }
                 // test for enum variant
-                if EnumVariant::instance_of(*env, &object)? {
+                if EnumVariant::instance_of(env, &object)? {
                     let enum_variant: &mut EnumVariant = env.unwrap(&object)?;
                     return Ok(TeoObject::from(TeoValue::EnumVariant(enum_variant.value.clone())));
                 }
                 // test for option variant
-                if OptionVariant::instance_of(*env, &object)? {
+                if OptionVariant::instance_of(env, &object)? {
                     let enum_variant: &mut OptionVariant = env.unwrap(&object)?;
                     return Ok(TeoObject::from(TeoValue::OptionVariant(enum_variant.value.clone())));
                 }
                 // test for interface enum variant
-                if InterfaceEnumVariant::instance_of(*env, &object)? {
+                if InterfaceEnumVariant::instance_of(env, &object)? {
                     let enum_variant: &mut InterfaceEnumVariant = env.unwrap(&object)?;
                     return Ok(TeoObject::from(enum_variant.value.clone()));
                 }
                 // test for pipeline
-                if Pipeline::instance_of(*env, &object)? {
+                if Pipeline::instance_of(env, &object)? {
                     let pipeline: &mut Pipeline = env.unwrap(&object)?;
                     return Ok(TeoObject::from(pipeline.value.clone()));
                 }
@@ -167,14 +168,15 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                 for i in 0..len {
                     let name: JsString = names.get_element(i)?;
                     let v: JsUnknown = object.get_property(name)?;
-                    map.insert(name.into_utf8()?.as_str()?.to_owned(), js_any_to_teo_object(v, env)?);
+                    map.insert(name.into_utf8()?.as_str()?.to_owned(), js_any_to_teo_object(v, env)?.as_teon().unwrap().clone());
                 }
                 return Ok(TeoObject::from(TeoValue::Dictionary(map)));
             }
-        }
-        ValueType::Function => Error::new("ValueError", "cannot convert function to teon value")?,
-        ValueType::External => Error::new("ValueError", "cannot convert external to teon value")?,
-        ValueType::BigInt => Error::new("ValueError", "cannot convert big int to teon value")?,
-        ValueType::Unknown => Error::new("ValueError", "cannot convert unknown to teon value")?,
+        },
+        ValueType::Function => Err(Error::new(Status::Unknown, "cannot convert function to teon value"))?,
+        #[cfg(feature = "napi6")]
+        ValueType::BigInt => Err(Error::new(Status::Unknown, "cannot convert big int to teon value"))?,
+        ValueType::External => Err(Error::new(Status::Unknown, "cannot convert external to teon value"))?,
+        ValueType::Unknown => Err(Error::new(Status::Unknown, "cannot convert unknown to teon value"))?,
     })
 }

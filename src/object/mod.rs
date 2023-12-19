@@ -7,7 +7,7 @@ mod array;
 mod unused;
 mod promise;
 
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use std::str::FromStr;
 use bigdecimal::BigDecimal;
 use napi::{Env, Error, JsDate, JsString};
@@ -17,12 +17,13 @@ use napi::{JsUnknown, JsFunction, Result, ValueType};
 use napi::bindgen_prelude::{FromNapiValue, Promise};
 use napi::sys::{napi_env, napi_value};
 use teo::prelude::object::{Object as TeoObject, ObjectInner};
+use regex::Regex;
 use crate::object::array::teo_array_to_js_any;
-use crate::object::interface_enum_variant::teo_interface_enum_variant_to_js_any;
+use crate::object::interface_enum_variant::{InterfaceEnumVariant, teo_interface_enum_variant_to_js_any};
 use crate::object::model::teo_model_object_to_js_any;
-use crate::object::pipeline::teo_pipeline_to_js_any;
+use crate::object::pipeline::{Pipeline, teo_pipeline_to_js_any};
 use crate::object::r#struct::teo_struct_object_to_js_any;
-use crate::object::value::teo_value_to_js_any;
+use crate::object::value::{DateOnly, EnumVariant, File, ObjectId, OptionVariant, Range, teo_value_to_js_any};
 
 pub fn teo_object_to_js_any(object: &TeoObject, env: &Env) -> Result<JsUnknown> {
     match object.inner.as_ref() {
@@ -58,50 +59,117 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
         }),
         ValueType::Symbol => Error::new("ValueError", "cannot convert symbol to teon value")?,
         ValueType::Object => {
-            if unknown.is_array().unwrap() {
-                let object = unknown.coerce_to_object().unwrap();
-                let len = object.get_array_length().unwrap();
-                let mut result = vec![];
+            if any.is_array()? {
+                let object = any.coerce_to_object()?;
+                let len = object.get_array_length()?;
+                let mut result: Vec<TeoObject> = vec![];
                 for n in 0..len {
                     let item: JsUnknown = object.get_element(n).unwrap();
-                    result.push(crate::object::js_unknown_to_teo_value(item, env));
+                    result.push(js_any_to_teo_object(item, env)?);
                 }
-                TeoValue::Vec(result)
-            } else if unknown.is_date().unwrap() {
-                let js_date = JsDate::try_from(unknown).unwrap();
-                let milliseconds_since_epoch_utc = js_date.value_of().unwrap();
+                if result.is_empty() {
+                    TeoObject::from(TeoValue::Array(vec![]))
+                } else if result.first().unwrap().is_teon() {
+                    let teon_result: Vec<Value> = result.iter().map(|r| r.as_teon().unwrap().clone()).collect();
+                    TeoObject::from(teon_result)
+                } else {
+                    TeoObject::from(result)
+                }
+            } else if any.is_date()? {
+                let js_date = JsDate::try_from(any)?;
+                let milliseconds_since_epoch_utc = js_date.value_of()?;
                 let milliseconds_since_epoch_utc = milliseconds_since_epoch_utc as i64;
                 let timestamp_seconds = milliseconds_since_epoch_utc / 1_000;
                 let naive = NaiveDateTime::from_timestamp_opt(
                     timestamp_seconds,
                     (milliseconds_since_epoch_utc % 1_000 * 1_000_000) as u32,
                 ).unwrap();
-                TeoValue::DateTime(DateTime::<Utc>::from_utc(naive, Utc))
+                TeoObject::from(TeoValue::DateTime(DateTime::<Utc>::from_utc(naive, Utc)))
             } else {
-                let object = unknown.coerce_to_object().unwrap();
+                let object = any.coerce_to_object()?;
                 // test for decimal
-                let global = env.get_global().unwrap();
-                let require: JsFunction = global.get_named_property("require").unwrap();
-                let decimal_js: JsFunction = unsafe { require.call(None, &[env.create_string("decimal.js").unwrap()]).unwrap().cast() };
-                if object.instanceof(decimal_js).unwrap() {
-                    let js_string = object.coerce_to_string().unwrap();
-                    let js_string_utf8 = js_string.into_utf8().unwrap();
-                    let s = js_string_utf8.as_str().unwrap();
-                    return TeoValue::Decimal(BigDecimal::from_str(s).unwrap());
-                } else if object.has_named_property("__teo_object__").unwrap() {
-                    let teo_object: &mut TeoObject = env.unwrap(&object).unwrap();
-                    return TeoValue::Object(teo_object.clone());
-                } else {
-                    let mut map = HashMap::new();
-                    let names = object.get_property_names().unwrap();
-                    let len = names.get_array_length().unwrap();
-                    for i in 0..len {
-                        let name: JsString = names.get_element(i).unwrap();
-                        let v: JsUnknown = object.get_property(name).unwrap();
-                        map.insert(name.into_utf8().unwrap().as_str().unwrap().to_owned(), crate::object::js_unknown_to_teo_value(v, env));
-                    }
-                    return TeoValue::HashMap(map);
+                let global = env.get_global()?;
+                let require: JsFunction = global.get_named_property("require")?;
+                let decimal_js: JsFunction = unsafe { require.call(None, &[env.create_string("decimal.js")?])?.cast() };
+                if object.instanceof(decimal_js)? {
+                    let js_string = object.coerce_to_string()?;
+                    let js_string_utf8 = js_string.into_utf8()?;
+                    let s = js_string_utf8.as_str()?;
+                    return Ok(TeoObject::from(TeoValue::Decimal(BigDecimal::from_str(s).unwrap())));
                 }
+                // test for object id
+                if ObjectId::instance_of(*env, &object)? {
+                    let object_id: &mut ObjectId = env.unwrap(&object)?;
+                    return Ok(TeoObject::from(TeoValue::ObjectId(object_id.value.clone())));
+                }
+                // test for date only
+                if DateOnly::instance_of(*env, &object)? {
+                    let date_only: &mut DateOnly = env.unwrap(&object)?;
+                    return Ok(TeoObject::from(TeoValue::Date(date_only.value.clone())));
+                }
+                // test for date time
+                if object.is_date()? {
+                    let number: JsFunction = global.get_named_property("Number")?;
+                    let milliseconds = number.new_instance(&[object])?.coerce_to_number()?.get_int64()?;
+                    let ts_secs = milliseconds / 1000;
+                    let ts_ns = (milliseconds % 1000) * 1_000_000 ;
+                    let datetime = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(ts_secs, ts_ns as u32), Utc);
+                    return Ok(TeoObject::from(TeoValue::DateTime(datetime)));
+                }
+                // test for regex
+                let reg_exp: JsFunction = global.get_named_property("RegExp")?;
+                if object.instanceof(reg_exp)? {
+                    let source: JsFunction = object.get_named_property("source")?;
+                    let source_string = source.call(Some(&object), &[])?.coerce_to_string()?;
+                    let rust_string = source_string.into_utf8()?.as_str()?.to_owned();
+                    let regex = Regex::new(&rust_string).unwrap();
+                    return Ok(TeoObject::from(TeoValue::Regex(regex)));
+                }
+                // test for range
+                if Range::instance_of(*env, &object)? {
+                    let range: &mut Range = env.unwrap(&object)?;
+                    return Ok(TeoObject::from(TeoValue::Range(range.value.clone())));
+                }
+                // test for file
+                if File::instance_of(*env, &object)? {
+                    let file: &mut File = env.unwrap(&object)?;
+                    return Ok(TeoObject::from(TeoValue::File(file.value.clone())));
+                }
+                // test for enum variant
+                if EnumVariant::instance_of(*env, &object)? {
+                    let enum_variant: &mut EnumVariant = env.unwrap(&object)?;
+                    return Ok(TeoObject::from(TeoValue::EnumVariant(enum_variant.value.clone())));
+                }
+                // test for option variant
+                if OptionVariant::instance_of(*env, &object)? {
+                    let enum_variant: &mut OptionVariant = env.unwrap(&object)?;
+                    return Ok(TeoObject::from(TeoValue::OptionVariant(enum_variant.value.clone())));
+                }
+                // test for interface enum variant
+                if InterfaceEnumVariant::instance_of(*env, &object)? {
+                    let enum_variant: &mut InterfaceEnumVariant = env.unwrap(&object)?;
+                    return Ok(TeoObject::from(enum_variant.value.clone()));
+                }
+                // test for pipeline
+                if Pipeline::instance_of(*env, &object)? {
+                    let pipeline: &mut Pipeline = env.unwrap(&object)?;
+                    return Ok(TeoObject::from(pipeline.value.clone()));
+                }
+                // test for model object
+                if object.has_named_property("__teo_object__")? {
+                    let model_object: &mut ModelObject = env.unwrap(&object)?;
+                    return Ok(TeoObject::from(model_object.clone()));
+                }
+                // otherwise, treat as default dictionary
+                let mut map = IndexMap::new();
+                let names = object.get_property_names()?;
+                let len = names.get_array_length()?;
+                for i in 0..len {
+                    let name: JsString = names.get_element(i)?;
+                    let v: JsUnknown = object.get_property(name)?;
+                    map.insert(name.into_utf8()?.as_str()?.to_owned(), js_any_to_teo_object(v, env)?);
+                }
+                return Ok(TeoObject::from(TeoValue::Dictionary(map)));
             }
         }
         ValueType::Function => Error::new("ValueError", "cannot convert function to teon value")?,

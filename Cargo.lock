@@ -4039,11 +4039,13 @@ dependencies = [
  "bigdecimal",
  "bson",
  "chrono",
+ "indexmap 2.1.0",
  "inflector-plus",
  "napi",
  "napi-build",
  "napi-derive 2.11.2",
  "once_cell",
+ "regex",
  "teo",
  "tokio",
 ]

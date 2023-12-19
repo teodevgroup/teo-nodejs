@@ -3,7 +3,7 @@ use teo::prelude::InterfaceEnumVariant as TeoInterfaceEnumVariant;
 
 #[napi(js_name = "EnumVariant")]
 pub struct InterfaceEnumVariant {
-    value: TeoInterfaceEnumVariant
+    pub(crate) value: TeoInterfaceEnumVariant
 }
 
 pub fn teo_interface_enum_variant_to_js_any(interface_enum_variant: &TeoInterfaceEnumVariant, env: &Env) -> Result<JsUnknown> {

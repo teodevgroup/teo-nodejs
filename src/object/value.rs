@@ -5,32 +5,32 @@ use bson::oid::ObjectId as BsonObjectId;
 
 #[napi(js_name = "ObjectId")]
 pub struct ObjectId {
-    value: BsonObjectId,
+    pub(crate) value: BsonObjectId,
 }
 
 #[napi(js_name = "DateOnly")]
 pub struct DateOnly {
-    value: NaiveDate
+    pub(crate) value: NaiveDate
 }
 
 #[napi(js_name = "Range")]
 pub struct Range {
-    value: TeoRange
+    pub(crate) value: TeoRange
 }
 
 #[napi(js_name = "File")]
 pub struct File {
-    value: TeoFile
+    pub(crate) value: TeoFile
 }
 
 #[napi(js_name = "EnumVariant")]
 pub struct EnumVariant {
-    value: TeoEnumVariant
+    pub(crate) value: TeoEnumVariant
 }
 
 #[napi(js_name = "OptionVariant")]
 pub struct OptionVariant {
-    value: TeoOptionVariant
+    pub(crate) value: TeoOptionVariant
 }
 
 pub fn teo_value_to_js_any(value: &TeoValue, env: &Env) -> Result<JsUnknown> {

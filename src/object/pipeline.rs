@@ -1,11 +1,9 @@
-use chrono::NaiveDate;
 use napi::{Env, JsUnknown, Result};
 use teo::prelude::Pipeline as TeoPipeline;
-use crate::object::value::DateOnly;
 
 #[napi(js_name = "Pipeline")]
 pub struct Pipeline {
-    value: TeoPipeline
+    pub(crate) value: TeoPipeline
 }
 
 pub fn teo_pipeline_to_js_any(pipeline: &TeoPipeline, env: &Env) -> Result<JsUnknown> {

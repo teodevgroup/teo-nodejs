@@ -1,6 +1,7 @@
 use teo::prelude::{App as TeoApp, app, Entrance, RuntimeVersion};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property, ValueType, JsUndefined};
+use crate::namespace::Namespace;
 use crate::result::IntoNodeJSResult;
 
 #[napi(js_name = "App")]
@@ -46,5 +47,10 @@ impl App {
         })?;
         let result: JsUnknown = js_function.call(None, &[env.get_undefined()?])?;
         Ok(result)
+    }
+
+    #[napi(js_name = "mainNamespace", writable = false)]
+    pub fn main_namespace(&'static self) -> Namespace {
+      Namespace { teo_namespace: self.teo_app.main_namespace_mut() }
     }
 }

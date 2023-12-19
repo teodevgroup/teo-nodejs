@@ -5,7 +5,7 @@ mod pipeline;
 mod interface_enum_variant;
 mod array;
 mod unused;
-mod promise;
+pub(crate) mod promise;
 
 use indexmap::IndexMap;
 use std::str::FromStr;

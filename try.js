@@ -4,7 +4,8 @@ const Decimal = require('decimal.js')
 //const User = getModelClass('User')
 
 const app = new App()
-app.mainNamespace.definePipelineItem("replaceComWithIo", (input) => input.replace(/com$/, 'io'))
+console.log(app.mainNamespace)
+app.mainNamespace().definePipelineItem("replaceComWithIo", (input) => input.replace(/com$/, 'io'))
 
 // app.transform("replaceComWithIo", async function (input) {
 //   return input.replace(/com$/, 'io')

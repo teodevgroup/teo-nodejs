@@ -2434,13 +2434,14 @@ dependencies = [
 
 [[package]]
 name = "napi"
-version = "2.13.2"
-source = "git+https://github.com/victorteokw/napi-rs?rev=f865309#f86530913dbf488345321610e69d1d947a20373b"
+version = "2.14.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1133249c46e92da921bafc8aba4912bf84d6c475f7625183772ed2d0844dc3a7"
 dependencies = [
  "bitflags 2.0.2",
  "chrono",
  "ctor",
- "napi-derive 2.13.0",
+ "napi-derive",
  "napi-sys",
  "once_cell",
  "tokio",
@@ -2454,59 +2455,38 @@ checksum = "882a73d9ef23e8dc2ebbffb6a6ae2ef467c0f18ac10711e4cc59c5485d41df0e"
 
 [[package]]
 name = "napi-derive"
-version = "2.11.2"
+version = "2.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e367c72b3f0243d490f0cf4feed9a28e40e4e9cba16912951dbeccf6c607576"
-dependencies = [
- "convert_case 0.6.0",
- "napi-derive-backend 1.0.45",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "napi-derive"
-version = "2.13.0"
-source = "git+https://github.com/victorteokw/napi-rs?rev=f865309#f86530913dbf488345321610e69d1d947a20373b"
+checksum = "9b5af262f1d8e660742eb722abc7113a5b3c3de4144d0ef23ede2518672ceff1"
 dependencies = [
  "cfg-if",
  "convert_case 0.6.0",
- "napi-derive-backend 1.0.52",
+ "napi-derive-backend",
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.37",
 ]
 
 [[package]]
 name = "napi-derive-backend"
-version = "1.0.45"
+version = "1.0.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2cf4ba5f1f6d51b9b5e2d809e229201f3aa14f198d58ec9ba4ecf82dbabb381"
+checksum = "4ea236321b521d6926213a2021e407b0562e28a257c037a45919e414d2cdb4f8"
 dependencies = [
  "convert_case 0.6.0",
  "once_cell",
  "proc-macro2",
  "quote",
  "regex",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "napi-derive-backend"
-version = "1.0.52"
-source = "git+https://github.com/victorteokw/napi-rs?rev=f865309#f86530913dbf488345321610e69d1d947a20373b"
-dependencies = [
- "convert_case 0.6.0",
- "proc-macro2",
- "quote",
- "syn 1.0.109",
+ "semver 1.0.17",
+ "syn 2.0.37",
 ]
 
 [[package]]
 name = "napi-sys"
-version = "2.2.3"
-source = "git+https://github.com/victorteokw/napi-rs?rev=f865309#f86530913dbf488345321610e69d1d947a20373b"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2503fa6af34dc83fb74888df8b22afe933b58d37daf7d80424b1c60c68196b8b"
 dependencies = [
  "libloading 0.8.0",
 ]
@@ -4035,7 +4015,7 @@ dependencies = [
  "inflector-plus",
  "napi",
  "napi-build",
- "napi-derive 2.11.2",
+ "napi-derive",
  "once_cell",
  "regex",
  "teo",

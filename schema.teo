@@ -38,9 +38,11 @@ server {
 //   updatedAt: DateTime
 // }
 
+declare pipeline item replaceComWithIo: String -> String
+
 model User {
   @id @readonly @autoIncrement
   id: Int
-  @unique
+  @unique @onSet($presents.replaceComWithIo)
   email: String
 }

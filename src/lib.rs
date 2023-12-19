@@ -3,7 +3,6 @@
 #[macro_use]
 extern crate napi_derive;
 
-pub mod value;
 pub mod app;
 pub mod handler;
 pub mod middleware;

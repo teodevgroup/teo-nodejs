@@ -32,9 +32,19 @@ impl App {
 
     /// Run this app.
     #[napi(ts_return_type="Promise<void>")]
-    pub async fn run(&self) -> Result<()> {
+    pub fn run(&self, env: Env) -> Result<JsUnknown> {
         self.teo_app.prepare_for_run().into_nodejs_result()?;
-        self.teo_app.run_without_prepare().await.into_nodejs_result()?;
-        Ok(())
+        let static_self: &'static App = unsafe { &*(self as * const App) };
+        let js_function = env.create_function_from_closure("run", |ctx| {
+            let promise = ctx.env.execute_tokio_future((|| async {
+                static_self.teo_app.run_without_prepare().await.into_nodejs_result()?;
+                Ok(0)
+            })(), |env: &mut Env, _unknown: i32| {
+                env.get_undefined()
+            })?;
+            Ok(promise)
+        })?;
+        let result: JsUnknown = js_function.call(None, &[env.get_undefined()?])?;
+        Ok(result)
     }
 }

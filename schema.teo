@@ -1,7 +1,5 @@
 connector {
-  // We use MongoDB
   provider: .mysql,
-  // Use environment variable or a default one
   url: "mysql://localhost:3306/nodejs",
 }
 

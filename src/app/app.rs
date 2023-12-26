@@ -1,6 +1,7 @@
 use teo::prelude::{App as TeoApp, app, Entrance, RuntimeVersion};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property, ValueType, JsUndefined};
+use crate::dynamic::synthesize_dynamic_nodejs_classes;
 use crate::namespace::Namespace;
 use crate::result::IntoNodeJSResult;
 
@@ -34,7 +35,11 @@ impl App {
     /// Run this app.
     #[napi(ts_return_type="Promise<void>")]
     pub fn run(&self, env: Env) -> Result<JsUnknown> {
+        // this load user's schema
         self.teo_app.prepare_for_run().into_nodejs_result()?;
+        // synthesize dynamic running classes for Node.js
+        synthesize_dynamic_nodejs_classes(&self.teo_app, env)?;
+        // the CLI parsing and dispatch process
         let static_self: &'static App = unsafe { &*(self as * const App) };
         let js_function = env.create_function_from_closure("run", |ctx| {
             let promise = ctx.env.execute_tokio_future((|| async {

@@ -20,7 +20,7 @@ indexmap = "2.1.0"
 regex = "1.10.2"
 
 [build-dependencies]
-napi-build = "2.0.1"
+napi-build = "2.1.0"
 
 [profile.release]
 lto = true

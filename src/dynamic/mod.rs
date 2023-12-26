@@ -589,5 +589,15 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             }
         }        
     }
+    for namespace in namespace.namespaces.values() {
+        let namespace_name = namespace.path().join(".");
+        let ctx_property = Property::new(&namespace_name)?.with_getter_closure(|env: Env, this: JsObject| {
+            let namespace_name = namespace.path().join(".");
+            let transaction_ctx: &mut transaction::Ctx = env.unwrap(&this)?;
+            let _ = ctx_constructor_function(env, &namespace.path().join("."))?;
+            js_ctx_object_from_teo_transaction_ctx(env, transaction_ctx.clone(), namespace_name.as_str())
+        });
+        ctx_prototype.define_properties(&[ctx_property])?;
+    }
     Ok(())
 }

@@ -56,6 +56,21 @@ impl App {
 
     #[napi(js_name = "mainNamespace", writable = false)]
     pub fn main_namespace(&'static self) -> Namespace {
-      Namespace { teo_namespace: self.teo_app.main_namespace_mut() }
+        Namespace { teo_namespace: self.teo_app.main_namespace_mut() }
     }
+
+    // /// Run before server is started.
+    // #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
+    // pub fn setup(&self, callback: JsFunction) -> Result<()> {
+    //     let tsfn: ThreadsafeFunction<i32, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
+    //         let undefined = ctx.env.get_undefined()?;
+    //         Ok(vec![undefined])
+    //     })?;
+    //     let tsfn_cloned = Box::leak(Box::new(tsfn));
+    //     self.teo_app.setup(|| async {
+    //         let _: Result<Unused> = tsfn_cloned.call_async(0).await;
+    //         Ok(())
+    //     }).into_nodejs_result()?;
+    //     Ok(())
+    // }
 }

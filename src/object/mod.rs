@@ -1,4 +1,4 @@
-mod value;
+pub(crate) mod value;
 mod model;
 mod r#struct;
 mod pipeline;
@@ -6,6 +6,7 @@ mod interface_enum_variant;
 mod array;
 mod unused;
 pub(crate) mod promise;
+pub(crate) mod arguments;
 
 use indexmap::IndexMap;
 use std::str::FromStr;

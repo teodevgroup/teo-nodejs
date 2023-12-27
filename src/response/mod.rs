@@ -3,12 +3,12 @@ mod header_map;
 use crate::{object::js_any_to_teo_object, result::IntoNodeJSResult};
 
 use self::header_map::ReadWriteHeaderMap;
-use napi::{JsObject, Result, JsUnknown, Env};
+use napi::{JsObject, Result, JsUnknown, Env, bindgen_prelude::{FromNapiValue, FromNapiRef}};
 use teo::prelude::response::Response as TeoResponse;
 
 #[napi(js_name = "Response")]
 pub struct Response {
-    teo_response: TeoResponse,
+    pub(crate) teo_response: TeoResponse,
 }
 
 #[napi]
@@ -90,4 +90,11 @@ impl Response {
     }
 
     // body
+}
+
+impl FromNapiValue for Response {
+
+    unsafe fn from_napi_value(env: napi::sys::napi_env, napi_val: napi::sys::napi_value) -> Result<Self> {
+        
+    }
 }

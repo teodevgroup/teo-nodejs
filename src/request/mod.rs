@@ -19,6 +19,12 @@ pub struct Request {
 #[napi]
 impl Request {
 
+    pub(crate) fn new(teo_request: TeoRequest) -> Self {
+        Self {
+            teo_request
+        }
+    }
+
     #[napi]
     pub fn method(&self, env: Env) -> &str {
         self.teo_request.method()

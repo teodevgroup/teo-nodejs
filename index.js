@@ -252,7 +252,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { Namespace, ObjectId, DateOnly, Range, File, EnumVariant, OptionVariant, Pipeline, InterfaceEnumVariant, App } = nativeBinding
+const { Namespace, ObjectId, DateOnly, Range, File, EnumVariant, OptionVariant, Pipeline, InterfaceEnumVariant, App, ReadOnlyHeaderMap, Request, ReadWriteHeaderMap, Response } = nativeBinding
 
 module.exports.Namespace = Namespace
 module.exports.ObjectId = ObjectId
@@ -264,6 +264,10 @@ module.exports.OptionVariant = OptionVariant
 module.exports.Pipeline = Pipeline
 module.exports.InterfaceEnumVariant = InterfaceEnumVariant
 module.exports.App = App
+module.exports.ReadOnlyHeaderMap = ReadOnlyHeaderMap
+module.exports.Request = Request
+module.exports.ReadWriteHeaderMap = ReadWriteHeaderMap
+module.exports.Response = Response
 
 globalThis.require = require
 process.on('SIGINT', function() { process.exit(0) })

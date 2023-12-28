@@ -1,8 +1,7 @@
 use napi::bindgen_prelude::FromNapiRef;
-use napi::{JsFunction, Result, Env, JsUnknown, JsObject};
+use napi::{JsFunction, Result, Env, JsUnknown, JsObject, Error};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
-use teo::prelude::response;
-use teo::prelude::{Namespace as TeoNamespace, object::Object as TeoObject, Arguments as TeoArgs, pipeline, model, transaction, request};
+use teo::prelude::{Namespace as TeoNamespace, object::Object as TeoObject, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
 use crate::dynamic::{js_ctx_object_from_teo_transaction_ctx, js_model_object_from_teo_model_object};
 use crate::object::promise::TeoObjectOrPromise;
 use crate::object::teo_object_to_js_any;
@@ -40,12 +39,12 @@ impl Namespace {
     }
 
     #[napi(js_name = "defineHandler")]
-    pub fn define_handler(&mut self, name: String, callback: JsFunction, env: Env) -> Result<()> {
+    pub fn define_handler(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<request::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<request::Ctx>| {
             let teo_request = ctx.value.request().clone();
             let request = Request::new(teo_request);
-            let request_instance = request.into_instance(env)?;
-            let request_unknown = request_instance.as_object(env).into_unknown();
+            let request_instance = request.into_instance(ctx.env)?;
+            let request_unknown = request_instance.as_object(ctx.env).into_unknown();
             let body = teo_value_to_js_any(&ctx.value.body(), &ctx.env)?;
             let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.transaction_ctx(), "")?.into_unknown();
             Ok(vec![body, js_ctx, request_unknown])
@@ -53,7 +52,7 @@ impl Namespace {
         let tsfn_cloned = unsafe { &*Box::leak(Box::new(tsfn)) };
         self.teo_namespace.define_handler(name.as_str(), move |ctx: request::Ctx| async move {
             let response_unknown: Response = tsfn_cloned.call_async(ctx).await.unwrap();
-            Ok(teo_response)
+            Ok::<TeoResponse, teo::prelude::path::Error>(response_unknown.teo_response.clone())
         });
         Ok(())
     }

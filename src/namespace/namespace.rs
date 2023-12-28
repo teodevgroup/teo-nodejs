@@ -51,7 +51,7 @@ impl Namespace {
         })?;
         let tsfn_cloned = unsafe { &*Box::leak(Box::new(tsfn)) };
         self.teo_namespace.define_handler(name.as_str(), move |ctx: request::Ctx| async move {
-            let response_unknown: Response = tsfn_cloned.call_async(ctx).await.unwrap();
+            let response_unknown: &Response = tsfn_cloned.call_async(ctx).await.unwrap();
             Ok::<TeoResponse, teo::prelude::path::Error>(response_unknown.teo_response.clone())
         });
         Ok(())

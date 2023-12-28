@@ -1,11 +1,17 @@
 //const { App, getModelClass } = require("./index.js")
-const { App } = require("./index.js")
+const { App, Response } = require("./index.js")
 const Decimal = require('decimal.js')
 //const User = getModelClass('User')
 
 const app = new App()
 
 app.mainNamespace().definePipelineItem("replaceComWithIo", (input) => input.replace(/com$/, 'io'))
+
+app.mainNamespace().defineHandler("myHandler", () => {
+    var res = Response.html("<h1>Hello, Teo!</h1>")
+    console.log(res)
+    return res
+})
 
 // app.transform("replaceComWithIo", async function (input) {
 //   return input.replace(/com$/, 'io')

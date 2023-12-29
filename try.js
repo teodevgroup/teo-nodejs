@@ -5,7 +5,12 @@ const Decimal = require('decimal.js')
 
 const app = new App()
 
-app.mainNamespace().definePipelineItem("replaceComWithIo", (input) => input.replace(/com$/, 'io'))
+app.mainNamespace().definePipelineItem("replaceComWithIo", async (input, _, __, teo) => {
+    var res = await teo.user.findMany({})
+    console.log("b")
+    console.log(res)
+    return input.replace(/com$/, 'io')
+})
 
 app.mainNamespace().defineHandler("myHandler", async (_, teo) => {
     //throw new Error("Error!!")

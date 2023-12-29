@@ -23,6 +23,8 @@ export class App {
   /** Run this app. */
   run(): Promise<void>
   mainNamespace(): Namespace
+  /** Run before server is started. */
+  setup(callback: (ctx: any) => void | Promise<void>): void
 }
 export class ReadOnlyHeaderMap {
   keys(): Array<string>

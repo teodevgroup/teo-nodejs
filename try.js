@@ -8,12 +8,19 @@ const app = new App()
 app.mainNamespace().definePipelineItem("replaceComWithIo", (input) => input.replace(/com$/, 'io'))
 
 app.mainNamespace().defineHandler("myHandler", async (_, teo) => {
-    console.log("a")
+    //throw new Error("Error!!")
+    // console.log("a")
     var res = await teo.user.findMany({})
     console.log("b")
     console.log(res)
     return Response.data({"a":1,"b":2})
 })
+
+app.setup(async (teo) => {
+    console.log("setup")
+    let results = await teo.user.findMany({})
+    console.log(results)
+});
 
 // app.transform("replaceComWithIo", async function (input) {
 //   return input.replace(/com$/, 'io')

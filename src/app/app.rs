@@ -1,11 +1,13 @@
-use teo::prelude::{App as TeoApp, app, Entrance, RuntimeVersion};
+use teo::app::callbacks::callback;
+use teo::prelude::{App as TeoApp, Entrance, RuntimeVersion, transaction};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
-use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property, ValueType, JsUndefined};
-use crate::dynamic::synthesize_dynamic_nodejs_classes;
+use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown};
+use crate::dynamic::{synthesize_dynamic_nodejs_classes, js_ctx_object_from_teo_transaction_ctx};
 use crate::namespace::Namespace;
+use crate::object::promise_or_ignore::PromiseOrIgnore;
 use crate::result::IntoNodeJSResult;
 
-#[napi(js_name = "App")]
+#[napi]
 pub struct App {
     teo_app: TeoApp,
 }
@@ -59,18 +61,18 @@ impl App {
         Namespace { teo_namespace: self.teo_app.main_namespace_mut() }
     }
 
-    // /// Run before server is started.
-    // #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
-    // pub fn setup(&self, callback: JsFunction) -> Result<()> {
-    //     let tsfn: ThreadsafeFunction<i32, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx| {
-    //         let undefined = ctx.env.get_undefined()?;
-    //         Ok(vec![undefined])
-    //     })?;
-    //     let tsfn_cloned = Box::leak(Box::new(tsfn));
-    //     self.teo_app.setup(|| async {
-    //         let _: Result<Unused> = tsfn_cloned.call_async(0).await;
-    //         Ok(())
-    //     }).into_nodejs_result()?;
-    //     Ok(())
-    // }
+    /// Run before server is started.
+    #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
+    pub fn setup(&self, callback: JsFunction) -> Result<()> {
+        let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+            let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.clone(), "")?;
+            Ok(vec![js_ctx])
+        })?;
+        let tsfn_cloned = Box::leak(Box::new(tsfn));
+        self.teo_app.setup(|ctx: transaction::Ctx| async {
+            let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await.unwrap();
+            Ok(promise_or_ignore.to_ignore().await.unwrap())
+        });
+        Ok(())
+    }
 }

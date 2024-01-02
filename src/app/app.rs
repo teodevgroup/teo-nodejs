@@ -63,8 +63,7 @@ impl App {
 
     /// Run before server is started.
     #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
-    pub fn setup(&self, callback: JsFunction, env: Env) -> Result<()> {
-        // let js_fn_ref = env.create_reference(callback)?;
+    pub fn setup(&self, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])

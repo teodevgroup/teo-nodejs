@@ -1,7 +1,8 @@
 use napi::{JsFunction, Result};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
-use teo::prelude::{Arguments, Namespace as TeoNamespace, Model as TeoModel, model::Field as TeoField, model::Property as TeoProperty, model::Relation as TeoRelation, object::Object as TeoObject, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
+use teo::prelude::{Arguments, Namespace as TeoNamespace, handler::Group as TeoHandlerGroup, Enum as TeoEnum, Member as TeoEnumMember, Model as TeoModel, model::Field as TeoField, model::Property as TeoProperty, model::Relation as TeoRelation, object::Object as TeoObject, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
 use crate::dynamic::{js_ctx_object_from_teo_transaction_ctx, js_model_object_from_teo_model_object};
+use crate::handler::group::HandlerGroup;
 use crate::model::model::Model;
 use crate::model::relation::relation::Relation;
 use crate::model::field::field::Field;
@@ -10,6 +11,8 @@ use crate::object::promise::TeoObjectOrPromise;
 use crate::object::teo_object_to_js_any;
 use crate::object::arguments::teo_args_to_js_args;
 use crate::object::value::teo_value_to_js_any;
+use crate::r#enum::member::member::EnumMember;
+use crate::r#enum::r#enum::Enum;
 use crate::request::Request;
 use crate::response::response_or_promise::ResponseOrPromise;
 
@@ -120,6 +123,38 @@ impl Namespace {
         Ok(())
     }
 
+    #[napi(js_name = "defineEnumDecorator", ts_args_type = "name: string, body: (enum: Enum) => void")]
+    pub fn define_enum_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
+        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoEnum), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoEnum)>| {
+            let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
+            let js_model = Enum { teo_enum: ctx.value.1 };
+            Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
+        })?;
+        let tsfn_cloned = &*Box::leak(Box::new(tsfn));
+        self.teo_namespace.define_enum_decorator(name.as_str(), |arguments, model| {
+            let static_model: &'static mut TeoEnum = unsafe { &mut *(model as * mut TeoEnum) };
+            let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+            Ok(())
+        });
+        Ok(())
+    }
+
+    #[napi(js_name = "defineEnumMemberDecorator", ts_args_type = "name: string, body: (member: EnumMember) => void")]
+    pub fn define_enum_member_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
+        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoEnumMember), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoEnumMember)>| {
+            let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
+            let js_model = EnumMember { teo_enum_member: ctx.value.1 };
+            Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
+        })?;
+        let tsfn_cloned = &*Box::leak(Box::new(tsfn));
+        self.teo_namespace.define_enum_member_decorator(name.as_str(), |arguments, model| {
+            let static_model: &'static mut TeoEnumMember = unsafe { &mut *(model as * mut TeoEnumMember) };
+            let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+            Ok(())
+        });
+        Ok(())
+    }
+
     #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (value: any, args?: {[key: string]: any}, object?: any, ctx?: any) => any | Promise<any>")]
     pub fn define_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoObject, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoObject, TeoArgs, model::Object, transaction::Ctx)>| {
@@ -155,6 +190,36 @@ impl Namespace {
         self.teo_namespace.define_handler(name.as_str(), move |ctx: request::Ctx| async move {
             let response_unknown: ResponseOrPromise = tsfn_cloned.call_async(ctx).await.unwrap();
             Ok::<TeoResponse, teo::prelude::path::Error>(response_unknown.to_teo_response().await.unwrap())
+        });
+        Ok(())
+    }
+
+    #[napi(js_name = "defineHandlerGroup")]
+    pub fn define_handler_group(&mut self, name: String, callback: JsFunction) -> Result<()> {
+        let tsfn: ThreadsafeFunction<HandlerGroup, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<HandlerGroup>| {
+            let handler_group = ctx.value;
+            Ok(vec![handler_group])
+        })?;
+        let tsfn_cloned = &*Box::leak(Box::new(tsfn));
+        self.teo_namespace.define_handler_group(name.as_str(), |teo_handler_group: &mut TeoHandlerGroup| {
+            let static_model: &'static mut TeoHandlerGroup = unsafe { &mut *(teo_handler_group as * mut TeoHandlerGroup) };
+            let handler_group = HandlerGroup { teo_handler_group: static_model };
+            let _ = tsfn_cloned.call(handler_group, napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+        });
+        Ok(())
+    }
+
+    #[napi(js_name = "defineModelHandlerGroup")]
+    pub fn define_model_handler_group(&mut self, name: String, callback: JsFunction) -> Result<()> {
+        let tsfn: ThreadsafeFunction<HandlerGroup, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<HandlerGroup>| {
+            let handler_group = ctx.value;
+            Ok(vec![handler_group])
+        })?;
+        let tsfn_cloned = &*Box::leak(Box::new(tsfn));
+        self.teo_namespace.define_model_handler_group(name.as_str(), |teo_handler_group: &mut TeoHandlerGroup| {
+            let static_model: &'static mut TeoHandlerGroup = unsafe { &mut *(teo_handler_group as * mut TeoHandlerGroup) };
+            let handler_group = HandlerGroup { teo_handler_group: static_model };
+            let _ = tsfn_cloned.call(handler_group, napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
         });
         Ok(())
     }

@@ -14,3 +14,4 @@ pub mod app;
 pub mod dynamic;
 pub mod request;
 pub mod response;
+pub mod r#enum;

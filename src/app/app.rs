@@ -1,3 +1,4 @@
+use teo::app::callbacks::callback;
 use teo::prelude::{App as TeoApp, Entrance, RuntimeVersion, transaction};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error};
@@ -70,8 +71,7 @@ impl App {
         let tsfn_cloned = Box::leak(Box::new(tsfn));
         self.teo_app.setup(|ctx: transaction::Ctx| async {
             let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await.into_teo_result()?;
-            promise_or_ignore.to_ignore().await.into_teo_result()?;
-            Ok(())
+            Ok(promise_or_ignore.to_ignore().await.into_teo_result()?)
         });
         Ok(())
     }
@@ -85,8 +85,8 @@ impl App {
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));
         self.teo_app.program(name.as_str(), |ctx: transaction::Ctx| async {
-            let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await.unwrap();
-            Ok(promise_or_ignore.to_ignore().await.unwrap())
+            let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await.into_teo_result()?;
+            Ok(promise_or_ignore.to_ignore().await.into_teo_result()?)
         });
         Ok(())
     }

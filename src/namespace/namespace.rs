@@ -26,7 +26,7 @@ impl Namespace {
             let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.3.clone(), "")?;
             Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
-        let tsfn_cloned = unsafe { &*Box::leak(Box::new(tsfn)) };
+        let tsfn_cloned = &*Box::leak(Box::new(tsfn));
         self.teo_namespace.define_pipeline_item(name.as_str(), move |args: TeoArgs, ctx: pipeline::Ctx| async move {
             let object = ctx.value().clone();
             let model_object = ctx.object().clone();

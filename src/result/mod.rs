@@ -9,8 +9,12 @@ impl<T> IntoNodeJSResult<T> for teo::prelude::Result<T> {
         match self {
             Ok(r) => Ok(r),
             Err(e) => {
-                let (status, reason) = parse_error_status_and_reason(e.message());
-                Err(Error::new(status, reason))
+                if let Some(napi_error) = e.get_meta::<napi::Error>("nodejs") {
+                    Err(napi_error.clone())
+                } else {
+                    let (status, reason) = parse_error_status_and_reason(e.message());
+                    Err(Error::new(status, reason))    
+                }
             },
         }
     }
@@ -34,7 +38,11 @@ impl<T> IntoTeoResult<T> for napi::Result<T> {
     fn into_teo_result(self) -> teo::prelude::Result<T> {
         match self {
             Ok(r) => Ok(r),
-            Err(e) => Err(teo::prelude::Error::new(e.reason)),
+            Err(e) => {
+                let mut error = teo::prelude::Error::new(e.reason.as_str());
+                error.insert_meta("nodejs", e);
+                Err(error)
+            },
         }
     }
 }

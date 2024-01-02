@@ -3868,9 +3868,7 @@ dependencies = [
 
 [[package]]
 name = "teo-generator"
-version = "0.0.65"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "454aa17b17115b05870235a185877a8c5f04d2293920a120c6aa364794df6ed5"
+version = "0.1.0"
 dependencies = [
  "askama",
  "async-recursion",
@@ -3893,9 +3891,7 @@ dependencies = [
 
 [[package]]
 name = "teo-mongodb-connector"
-version = "0.0.65"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8afe92180fe7457084af87a6e931c63f61f10176e013fd8b6bd6fb0f2a4a83e0"
+version = "0.1.0"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -3919,9 +3915,7 @@ dependencies = [
 
 [[package]]
 name = "teo-parser"
-version = "0.0.65"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56c8ad99d8d00109962950f9a474637690a72fdf7cc7fcb5d92f7628d6dd842b"
+version = "0.1.0"
 dependencies = [
  "array_tool",
  "colored",
@@ -3945,15 +3939,11 @@ dependencies = [
 
 [[package]]
 name = "teo-result"
-version = "0.0.65"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e85b0a7c9cc274690304a20a7210f54b68605bd2b68efa2561f4a5251115edab"
+version = "0.1.0"
 
 [[package]]
 name = "teo-runtime"
-version = "0.0.65"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "636e7db9e137c91d0b3147c58083f48c8d8cda4c1d43b3f48c1c451de7d84708"
+version = "0.1.0"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -3989,9 +3979,7 @@ dependencies = [
 
 [[package]]
 name = "teo-sql-connector"
-version = "0.0.65"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "302d6651abf72d3037a2d9e90e0c5e8359d8b881d0d3d00a78b3c7870fac177d"
+version = "0.1.0"
 dependencies = [
  "array_tool",
  "async-recursion",
@@ -4018,9 +4006,7 @@ dependencies = [
 
 [[package]]
 name = "teo-teon"
-version = "0.0.65"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6fe59378159f88f4503e30abb75a7c735a9af7462a358cade4483c75ebc27b69"
+version = "0.1.0"
 dependencies = [
  "bigdecimal",
  "bson",

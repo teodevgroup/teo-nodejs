@@ -26,9 +26,12 @@ app.setup(async (teo) => {
     console.log(results)
 })
 
-// app.transform("replaceComWithIo", async function (input) {
-//   return input.replace(/com$/, 'io')
-// })
+app.program("mycode", async (teo) => {
+    console.log("mycode")
+    let results = await teo.user.findMany({})
+    console.log(results)
+})
+
 //
 // app.transform("10times", async function (input) {
 //   return Decimal((input || Decimal(5)) * 10)

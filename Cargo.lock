@@ -44,9 +44,9 @@ dependencies = [
 
 [[package]]
 name = "actix-http"
-version = "3.4.0"
+version = "3.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a92ef85799cba03f76e4f7c10f533e66d87c9a7e7055f3391f09000ad8351bc9"
+checksum = "129d4c88e98860e1758c5de288d1632b07970a16d59bdf7b8d66053d582bb71f"
 dependencies = [
  "actix-codec",
  "actix-rt",
@@ -193,9 +193,9 @@ dependencies = [
 
 [[package]]
 name = "actix-web"
-version = "4.4.0"
+version = "4.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e4a5b5e29603ca8c94a77c65cf874718ceb60292c5a5c3e5f4ace041af462b9"
+checksum = "e43428f3bf11dee6d166b00ec2df4e3aa8cc1606aaa0b7433c146852e2f4e03b"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -3819,7 +3819,7 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.0.65"
+version = "0.1.0"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -3869,6 +3869,8 @@ dependencies = [
 [[package]]
 name = "teo-generator"
 version = "0.0.65"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "454aa17b17115b05870235a185877a8c5f04d2293920a120c6aa364794df6ed5"
 dependencies = [
  "askama",
  "async-recursion",
@@ -3892,6 +3894,8 @@ dependencies = [
 [[package]]
 name = "teo-mongodb-connector"
 version = "0.0.65"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8afe92180fe7457084af87a6e931c63f61f10176e013fd8b6bd6fb0f2a4a83e0"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -3915,9 +3919,9 @@ dependencies = [
 
 [[package]]
 name = "teo-parser"
-version = "0.0.64"
+version = "0.0.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e15ca74b17b92338fea18a1e60982988266c0c088e3fad36a943fda2a3380d1"
+checksum = "56c8ad99d8d00109962950f9a474637690a72fdf7cc7fcb5d92f7628d6dd842b"
 dependencies = [
  "array_tool",
  "colored",
@@ -3941,13 +3945,15 @@ dependencies = [
 
 [[package]]
 name = "teo-result"
-version = "0.0.64"
+version = "0.0.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed45684151ca8fecb0012a29574deb6f19aed78ca90093a6b5bb5b11ee40857c"
+checksum = "e85b0a7c9cc274690304a20a7210f54b68605bd2b68efa2561f4a5251115edab"
 
 [[package]]
 name = "teo-runtime"
 version = "0.0.65"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "636e7db9e137c91d0b3147c58083f48c8d8cda4c1d43b3f48c1c451de7d84708"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -3984,6 +3990,8 @@ dependencies = [
 [[package]]
 name = "teo-sql-connector"
 version = "0.0.65"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "302d6651abf72d3037a2d9e90e0c5e8359d8b881d0d3d00a78b3c7870fac177d"
 dependencies = [
  "array_tool",
  "async-recursion",
@@ -4010,9 +4018,9 @@ dependencies = [
 
 [[package]]
 name = "teo-teon"
-version = "0.0.64"
+version = "0.0.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "32086c9e49462a51340a91eb362d7d2fadc734de8e4ed49fdb8425005c96184c"
+checksum = "6fe59378159f88f4503e30abb75a7c735a9af7462a358cade4483c75ebc27b69"
 dependencies = [
  "bigdecimal",
  "bson",
@@ -4029,7 +4037,7 @@ dependencies = [
 
 [[package]]
 name = "teocloud_teo"
-version = "0.1.0"
+version = "0.0.65"
 dependencies = [
  "bigdecimal",
  "bson",
@@ -4922,20 +4930,19 @@ checksum = "c394b5bd0c6f669e7275d9c20aa90ae064cb22e75a1cad54e1b34088034b149f"
 
 [[package]]
 name = "zstd"
-version = "0.12.3+zstd.1.5.2"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76eea132fb024e0e13fd9c2f5d5d595d8a967aa72382ac2f9d39fcc95afd0806"
+checksum = "bffb3309596d527cfcba7dfc6ed6052f1d39dfbd7c867aa2e865e4a449c10110"
 dependencies = [
  "zstd-safe",
 ]
 
 [[package]]
 name = "zstd-safe"
-version = "6.0.4+zstd.1.5.4"
+version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7afb4b54b8910cf5447638cb54bf4e8a65cbedd783af98b98c62ffe91f185543"
+checksum = "43747c7422e2924c11144d5229878b98180ef8b06cca4ab5af37afc8a8d8ea3e"
 dependencies = [
- "libc",
  "zstd-sys",
 ]
 

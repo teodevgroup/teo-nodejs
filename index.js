@@ -252,8 +252,12 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { Namespace, ObjectId, DateOnly, Range, File, EnumVariant, OptionVariant, Pipeline, InterfaceEnumVariant, App, ReadOnlyHeaderMap, Request, ReadWriteHeaderMap, Response } = nativeBinding
+const { Model, Field, Property, Property, Namespace, ObjectId, DateOnly, Range, File, EnumVariant, OptionVariant, Pipeline, InterfaceEnumVariant, App, ReadOnlyHeaderMap, Request, ReadWriteHeaderMap, Response } = nativeBinding
 
+module.exports.Model = Model
+module.exports.Field = Field
+module.exports.Property = Property
+module.exports.Property = Property
 module.exports.Namespace = Namespace
 module.exports.ObjectId = ObjectId
 module.exports.DateOnly = DateOnly

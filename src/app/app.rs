@@ -1,7 +1,6 @@
-use teo::app::callbacks::callback;
 use teo::prelude::{App as TeoApp, Entrance, RuntimeVersion, transaction};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
-use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error};
+use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown};
 use crate::dynamic::{synthesize_dynamic_nodejs_classes, js_ctx_object_from_teo_transaction_ctx};
 use crate::namespace::Namespace;
 use crate::object::promise_or_ignore::PromiseOrIgnore;

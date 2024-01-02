@@ -8,7 +8,33 @@ impl<T> IntoNodeJSResult<T> for teo::prelude::Result<T> {
     fn into_nodejs_result(self) -> napi::Result<T> {
         match self {
             Ok(r) => Ok(r),
-            Err(e) => Err(Error::from_reason(e.message())),
+            Err(e) => {
+                let (status, reason) = parse_error_status_and_reason(e.message());
+                Err(Error::new(status, reason))
+            },
+        }
+    }
+}
+
+fn parse_error_status_and_reason(msg: &str) -> (napi::Status, String) {
+    let msg_owned = if let Some(position) = msg.chars().position(|c| c == ':') {
+        msg[(position + 2)..].to_owned()
+    } else {
+        msg.to_owned()
+    };
+    (napi::Status::GenericFailure, msg_owned)
+}
+
+pub trait IntoTeoResult<T> {
+    fn into_teo_result(self) -> teo::prelude::Result<T>;
+}
+
+impl<T> IntoTeoResult<T> for napi::Result<T> {
+
+    fn into_teo_result(self) -> teo::prelude::Result<T> {
+        match self {
+            Ok(r) => Ok(r),
+            Err(e) => Err(teo::prelude::Error::new(e.reason)),
         }
     }
 }

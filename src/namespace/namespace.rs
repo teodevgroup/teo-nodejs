@@ -1,4 +1,4 @@
-use napi::{JsFunction, Result};
+use napi::{JsFunction, Result, Env, Error};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
 use teo::prelude::{Namespace as TeoNamespace, object::Object as TeoObject, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
 use crate::dynamic::{js_ctx_object_from_teo_transaction_ctx, js_model_object_from_teo_model_object};

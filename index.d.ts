@@ -25,6 +25,8 @@ export class App {
   mainNamespace(): Namespace
   /** Run before server is started. */
   setup(callback: (ctx: any) => void | Promise<void>): void
+  /** Define a custom program. */
+  program(name: string, callback: (ctx: any) => void | Promise<void>): void
 }
 export class ReadOnlyHeaderMap {
   keys(): Array<string>

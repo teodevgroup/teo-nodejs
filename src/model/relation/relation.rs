@@ -3,7 +3,7 @@ use teo::prelude::model::Relation as TeoRelation;
 
 use crate::object::{teo_object_to_js_any, js_any_to_teo_object};
 
-#[napi(js_name = "Property")]
+#[napi(js_name = "Relation")]
 pub struct Relation {
     pub(crate) teo_relation: &'static mut TeoRelation,
 }

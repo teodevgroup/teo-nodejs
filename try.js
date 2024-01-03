@@ -5,6 +5,15 @@ const Decimal = require('decimal.js')
 
 const app = new App()
 
+app.mainNamespace().defineMiddleware("myWrap", () => {
+    return async (req, next) => {
+        console.log("before")
+        const res = await next(req)
+        console.log("after")
+        res
+    }
+});
+
 app.mainNamespace().definePipelineItem("replaceComWithIo", async (input, _, __, teo) => {
     var res = await teo.user.findMany({})
     console.log("b")

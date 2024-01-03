@@ -1,9 +1,8 @@
-use std::pin::Pin;
-use std::sync::Arc;
-
+use std::sync::{Arc, Mutex};
 use napi::{JsFunction, Result, Env};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
 use teo::prelude::{middleware_wrap_fn, Next, Middleware};
+use crate::request::send_next::SendNext;
 use teo::prelude::{Arguments, Namespace as TeoNamespace, handler::Group as TeoHandlerGroup, Enum as TeoEnum, Member as TeoEnumMember, Model as TeoModel, model::Field as TeoField, model::Property as TeoProperty, model::Relation as TeoRelation, object::Object as TeoObject, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
 use crate::dynamic::{js_ctx_object_from_teo_transaction_ctx, js_model_object_from_teo_model_object};
 use crate::handler::group::HandlerGroup;
@@ -129,7 +128,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineEnumDecorator", ts_args_type = "name: string, body: (enum: Enum) => void")]
+    #[napi(js_name = "defineEnumDecorator", ts_args_type = "name: string, body: (e: Enum) => void")]
     pub fn define_enum_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoEnum), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoEnum)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
@@ -236,13 +235,14 @@ impl Namespace {
             let js_args = teo_args_to_js_args(&arguments, &env).into_teo_result()?;
             let middleware_function = callback.call(None, &[js_args]).into_teo_result()?;
             let func: JsFunction = middleware_function.try_into().into_teo_result()?;
-            let thread_safe_function: ThreadsafeFunction<(teo::prelude::request::Ctx, &'static dyn Next), ErrorStrategy::Fatal> = func.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(teo::prelude::request::Ctx, &'static dyn Next)>| {
+            let thread_safe_function: ThreadsafeFunction<(teo::prelude::request::Ctx, SendNext), ErrorStrategy::Fatal> = func.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(teo::prelude::request::Ctx, SendNext)>| {
                 let request_ctx = RequestCtx::new(ctx.value.0.clone());
                 let request_ctx_unknown = request_ctx.into_instance(ctx.env)?.as_object(ctx.env).into_unknown();
                 let wrapped_next = ctx.env.create_function_from_closure("next", move |_| {
                     let teo_request_ctx = ctx.value.0.clone();
                     let teo_next = ctx.value.1;
-                    let promise = ctx.env.execute_tokio_future((move || async {
+                    let teo_next = teo_next.next();
+                    let promise = ctx.env.execute_tokio_future((move || async move {
                         let result = teo_next.call(teo_request_ctx).await.into_nodejs_result()?;
                         Ok(result)
                     })(), |env: &mut Env, response: TeoResponse| {
@@ -254,16 +254,15 @@ impl Namespace {
                 })?.into_unknown();
                 Ok(vec![request_ctx_unknown, wrapped_next])
             }).into_teo_result()?;
-            let tsfn_cloned_raw = Box::leak(Box::new(thread_safe_function));
-            let tsfn_cloned: &ThreadsafeFunction<(request::Ctx, &'static dyn Next), ErrorStrategy::Fatal> = tsfn_cloned_raw;
+            let tsfn_cloned: &'static ThreadsafeFunction<(request::Ctx, SendNext), ErrorStrategy::Fatal> = &*Box::leak(Box::new(thread_safe_function));
             let wrapped_result = move |ctx: teo::prelude::request::Ctx, next: &'static dyn Next| async move {
-                let res: Response = tsfn_cloned.call_async((ctx.clone(), next)).await.into_teo_result()?;
+                let res: Response = tsfn_cloned.clone().call_async((ctx.clone(), SendNext::new(next))).await.into_teo_result()?;
                 return Ok(res.teo_response.clone());
                 // let res = next.call(ctx).await?;
                 // return Ok(res);
             };
             let wrapped_box = Box::new(wrapped_result);
-            let wrapped_raw = Box::into_raw(wrapped_box);
+            let wrapped_raw = Box::leak(wrapped_box);
             let leak_static_result: &'static dyn Middleware = unsafe { &*(wrapped_raw as * const dyn Middleware) };
             return Ok(leak_static_result);
         });

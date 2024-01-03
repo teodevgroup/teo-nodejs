@@ -14,8 +14,11 @@ export class Field {
   setData(key: string, value: unknown): void
   data(key: string): unknown
 }
-export type Relation = Property
 export class Property {
+  setData(key: string, value: unknown): void
+  data(key: string): unknown
+}
+export class Relation {
   setData(key: string, value: unknown): void
   data(key: string): unknown
 }
@@ -31,12 +34,13 @@ export class Namespace {
   defineModelFieldDecorator(name: string, body: (field: Field) => void): void
   defineModelRelationDecorator(name: string, body: (relation: Relation) => void): void
   defineModelPropertyDecorator(name: string, body: (property: Property) => void): void
-  defineEnumDecorator(name: string, body: (enum: Enum) => void): void
+  defineEnumDecorator(name: string, body: (e: Enum) => void): void
   defineEnumMemberDecorator(name: string, body: (member: EnumMember) => void): void
   definePipelineItem(name: string, body: (value: any, args?: {[key: string]: any}, object?: any, ctx?: any) => any | Promise<any>): void
   defineHandler(name: string, callback: (...args: any[]) => any): void
   defineHandlerGroup(name: string, callback: (...args: any[]) => any): void
   defineModelHandlerGroup(name: string, callback: (...args: any[]) => any): void
+  defineMiddleware(name: string, callback: (...args: any[]) => any): void
 }
 export class ObjectId { }
 export class DateOnly { }
@@ -64,6 +68,17 @@ export class ReadOnlyHeaderMap {
   len(): number
   containsKey(key: string): boolean
   get(key: string): string | null
+}
+export class RequestCtx {
+  request(): Request
+  body(): unknown
+  teo(): unknown
+  handlerMatch(): HandlerMatch
+}
+export class HandlerMatch {
+  path(): Array<string>
+  handlerName(): string
+  captures(): object
 }
 export class Request {
   method(): string

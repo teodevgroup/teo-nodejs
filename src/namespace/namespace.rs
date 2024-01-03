@@ -4,6 +4,7 @@ use napi::bindgen_prelude::Promise;
 use napi::{JsFunction, Result, Env, JsObject, JsString, JsUnknown};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
 use teo::prelude::{middleware_wrap_fn, Next, Middleware};
+use crate::middleware::SendMiddlewareCallback;
 use crate::request::send_next::SendNext;
 use teo::prelude::{Arguments, Namespace as TeoNamespace, handler::Group as TeoHandlerGroup, Enum as TeoEnum, Member as TeoEnumMember, Model as TeoModel, model::Field as TeoField, model::Property as TeoProperty, model::Relation as TeoRelation, object::Object as TeoObject, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
 use crate::dynamic::{js_ctx_object_from_teo_transaction_ctx, js_model_object_from_teo_model_object};
@@ -239,30 +240,9 @@ impl Namespace {
         })?;
         let threadsafe_callback: &'static ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = &*Box::leak(Box::new(threadsafe_callback));
         self.teo_namespace.define_middleware(name.as_str(), move |arguments| async move {
-            let middleware_function: JsFunction = threadsafe_callback.call_async(arguments).await.into_teo_result()?;
-            let thread_safe_function: ThreadsafeFunction<(teo::prelude::request::Ctx, SendNext), ErrorStrategy::Fatal> = middleware_function.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(teo::prelude::request::Ctx, SendNext)>| {
-                let request_ctx = RequestCtx::new(ctx.value.0.clone());
-                let request_ctx_unknown = request_ctx.into_instance(ctx.env)?.as_object(ctx.env).into_unknown();
-                let wrapped_next = ctx.env.create_function_from_closure("next", move |_| {
-                    let teo_request_ctx = ctx.value.0.clone();
-                    let teo_next = ctx.value.1;
-                    let teo_next = teo_next.next();
-                    let promise = ctx.env.execute_tokio_future((move || async move {
-                        let result = teo_next.call(teo_request_ctx).await.into_nodejs_result()?;
-                        Ok(result)
-                    })(), |env: &mut Env, response: TeoResponse| {
-                        Ok(Response {
-                            teo_response: response.clone()
-                        }.into_instance(*env)?.as_object(*env))
-                    })?;
-                    Ok(promise)
-                })?.into_unknown();
-                Ok(vec![request_ctx_unknown, wrapped_next])
-            }).into_teo_result()?;
-            println!("here 3");
-            let tsfn_cloned: &'static ThreadsafeFunction<(request::Ctx, SendNext), ErrorStrategy::Fatal> = &*Box::leak(Box::new(thread_safe_function));
+            let middleware_function: SendMiddlewareCallback = threadsafe_callback.call_async(arguments).await.into_teo_result()?;
             let wrapped_result = move |ctx: teo::prelude::request::Ctx, next: &'static dyn Next| async move {
-                let res: Response = tsfn_cloned.clone().call_async((ctx.clone(), SendNext::new(next))).await.into_teo_result()?;
+                let res: Response = middleware_function.inner.call_async((ctx.clone(), SendNext::new(next))).await.into_teo_result()?;
                 return Ok(res.teo_response.clone());
             };
             println!("here 4");

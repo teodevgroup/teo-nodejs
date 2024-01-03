@@ -1,5 +1,7 @@
+use std::ptr::null;
 use std::sync::{Arc, Mutex};
-use napi::{JsFunction, Result, Env};
+use napi::bindgen_prelude::Promise;
+use napi::{JsFunction, Result, Env, JsObject, JsString, JsUnknown};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
 use teo::prelude::{middleware_wrap_fn, Next, Middleware};
 use crate::request::send_next::SendNext;
@@ -10,7 +12,7 @@ use crate::model::model::Model;
 use crate::model::relation::relation::Relation;
 use crate::model::field::field::Field;
 use crate::model::property::property::Property;
-use crate::object::promise::TeoObjectOrPromise;
+use crate::object::promise::{TeoObjectOrPromise, self};
 use crate::object::teo_object_to_js_any;
 use crate::object::arguments::teo_args_to_js_args;
 use crate::object::value::teo_value_to_js_any;
@@ -230,12 +232,15 @@ impl Namespace {
     }
 
     #[napi(js_name = "defineMiddleware")]
-    pub fn define_middleware(&mut self, name: String, callback: JsFunction, env: Env) -> Result<()> {
-        self.teo_namespace.define_middleware(name.as_str(), move |arguments| {
-            let js_args = teo_args_to_js_args(&arguments, &env).into_teo_result()?;
-            let middleware_function = callback.call(None, &[js_args]).into_teo_result()?;
-            let func: JsFunction = middleware_function.try_into().into_teo_result()?;
-            let thread_safe_function: ThreadsafeFunction<(teo::prelude::request::Ctx, SendNext), ErrorStrategy::Fatal> = func.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(teo::prelude::request::Ctx, SendNext)>| {
+    pub fn define_middleware(&mut self, name: String, callback: JsFunction) -> Result<()> {
+        let threadsafe_callback: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
+            let js_args = teo_args_to_js_args(&ctx.value, &ctx.env)?;
+            Ok(vec![js_args])
+        })?;
+        let threadsafe_callback: &'static ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = &*Box::leak(Box::new(threadsafe_callback));
+        self.teo_namespace.define_middleware(name.as_str(), move |arguments| async move {
+            let middleware_function: JsFunction = threadsafe_callback.call_async(arguments).await.into_teo_result()?;
+            let thread_safe_function: ThreadsafeFunction<(teo::prelude::request::Ctx, SendNext), ErrorStrategy::Fatal> = middleware_function.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(teo::prelude::request::Ctx, SendNext)>| {
                 let request_ctx = RequestCtx::new(ctx.value.0.clone());
                 let request_ctx_unknown = request_ctx.into_instance(ctx.env)?.as_object(ctx.env).into_unknown();
                 let wrapped_next = ctx.env.create_function_from_closure("next", move |_| {
@@ -254,13 +259,13 @@ impl Namespace {
                 })?.into_unknown();
                 Ok(vec![request_ctx_unknown, wrapped_next])
             }).into_teo_result()?;
+            println!("here 3");
             let tsfn_cloned: &'static ThreadsafeFunction<(request::Ctx, SendNext), ErrorStrategy::Fatal> = &*Box::leak(Box::new(thread_safe_function));
             let wrapped_result = move |ctx: teo::prelude::request::Ctx, next: &'static dyn Next| async move {
                 let res: Response = tsfn_cloned.clone().call_async((ctx.clone(), SendNext::new(next))).await.into_teo_result()?;
                 return Ok(res.teo_response.clone());
-                // let res = next.call(ctx).await?;
-                // return Ok(res);
             };
+            println!("here 4");
             let wrapped_box = Box::new(wrapped_result);
             let wrapped_raw = Box::leak(wrapped_box);
             let leak_static_result: &'static dyn Middleware = unsafe { &*(wrapped_raw as * const dyn Middleware) };

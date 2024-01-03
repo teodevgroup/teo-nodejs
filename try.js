@@ -5,7 +5,8 @@ const Decimal = require('decimal.js')
 
 const app = new App()
 
-app.mainNamespace().defineMiddleware("myWrap", () => {
+app.mainNamespace().defineMiddleware("myWrap", (args) => {
+    console.log("in js: see args", args)
     return async (req, next) => {
         console.log("before")
         const res = await next(req)

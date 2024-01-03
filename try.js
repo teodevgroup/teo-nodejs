@@ -5,18 +5,26 @@ const Decimal = require('decimal.js')
 
 const app = new App()
 
-app.mainNamespace().defineMiddleware("myWrap", (args) => {
+app.mainNamespace().defineMiddleware("myWrap1", (args) => {
     return async (req, next) => {
-        console.log("before")
+        console.log("1 before")
         const res = await next(req)
-        console.log("after")
-        res
+        console.log("1 after")
+        return res
+    }
+});
+
+app.mainNamespace().defineMiddleware("myWrap2", (args) => {
+    return async (req, next) => {
+        console.log("2 before")
+        const res = await next(req)
+        console.log("2 after")
+        return res
     }
 });
 
 app.mainNamespace().definePipelineItem("replaceComWithIo", async (input, _, __, teo) => {
     var res = await teo.user.findMany({})
-    console.log("b")
     console.log(res)
     return input.replace(/com$/, 'io')
 })

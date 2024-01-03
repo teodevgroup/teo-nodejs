@@ -242,8 +242,9 @@ impl Namespace {
         self.teo_namespace.define_middleware(name.as_str(), move |arguments| async move {
             let middleware_function: SendMiddlewareCallback = threadsafe_callback.call_async(arguments).await.into_teo_result()?;
             let wrapped_result = move |ctx: teo::prelude::request::Ctx, next: &'static dyn Next| async move {
-                let res: Response = middleware_function.inner.call_async((ctx.clone(), SendNext::new(next))).await.into_teo_result()?;
-                return Ok(res.teo_response.clone());
+                let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async((ctx.clone(), SendNext::new(next))).await.into_teo_result()?;
+                let res = res_or_promise.to_teo_response().await.into_teo_result()?;
+                return Ok(res);
             };
             let wrapped_box = Box::new(wrapped_result);
             let wrapped_raw = Box::leak(wrapped_box);

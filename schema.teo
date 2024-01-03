@@ -48,6 +48,8 @@ model User {
 @map(.get, "/")
 declare handler myHandler(): Any
 
-declare middleware myWrap()
+declare middleware myWrap1()
 
-middlewares [myWrap]
+declare middleware myWrap2()
+
+middlewares [myWrap2, myWrap1]

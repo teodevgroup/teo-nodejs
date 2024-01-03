@@ -1,7 +1,8 @@
 use napi::bindgen_prelude::{FromNapiValue, Promise, FromNapiRef};
-use napi::{Result, JsUnknown, Status, Error};
+use napi::{Result, JsUnknown, Status, Error, Env};
 use napi::sys::{napi_env, napi_value};
 use teo::prelude::Response as TeoResponse;
+use crate::console::console_log;
 use crate::response::Response;
 
 pub enum ResponseOrPromise {

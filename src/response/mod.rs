@@ -1,7 +1,7 @@
 mod header_map;
 pub(crate) mod response_or_promise;
 
-use crate::{object::js_any_to_teo_object, result::IntoNodeJSResult};
+use crate::{object::js_any_to_teo_object, result::IntoNodeJSResult, console::console_log};
 
 use self::header_map::ReadWriteHeaderMap;
 use napi::{Result, JsUnknown, Env, bindgen_prelude::{FromNapiValue, FromNapiRef}};

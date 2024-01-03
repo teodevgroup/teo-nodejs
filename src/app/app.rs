@@ -1,6 +1,6 @@
 use teo::prelude::{App as TeoApp, Entrance, RuntimeVersion, transaction};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
-use napi::{Env, JsObject, JsString, JsFunction, Result};
+use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown};
 use crate::dynamic::{synthesize_dynamic_nodejs_classes, js_ctx_object_from_teo_transaction_ctx};
 use crate::namespace::Namespace;
 use crate::object::promise_or_ignore::PromiseOrIgnore;
@@ -35,16 +35,19 @@ impl App {
 
     /// @internal
     #[napi(js_name = "_prepare", ts_return_type="Promise<void>")]
-    pub fn _prepare(&self, env: Env) -> Result<JsObject> {
+    pub fn _prepare(&self, env: Env) -> Result<JsUnknown> {
         let static_self: &'static App = unsafe { &*(self as * const App) };
-        let promise: JsObject = env.execute_tokio_future((|| async {
-            // this load user's schema
-            static_self.teo_app.prepare_for_run().await.into_nodejs_result()?;
-            Ok(0)
-        })(), |env: &mut Env, _unknown: i32| {
-            env.get_undefined()
+        let js_function = env.create_function_from_closure("run", |ctx| {
+            let promise = ctx.env.execute_tokio_future((|| async {
+                static_self.teo_app.prepare_for_run().await.into_nodejs_result()?;
+                Ok(0)
+            })(), |env: &mut Env, _unknown: i32| {
+                env.get_undefined()
+            })?;
+            Ok(promise)
         })?;
-        Ok(promise)
+        let result: JsUnknown = js_function.call(None, &[env.get_undefined()?])?;
+        Ok(result)
     }
 
     /// Run this app.

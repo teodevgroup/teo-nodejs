@@ -55,8 +55,10 @@ export class App {
   constructor()
   /** @internal */
   static withCli(cli: boolean): App
+  /** @internal */
+  _prepare(): Promise<void>
   /** Run this app. */
-  run(): Promise<void>
+  _run(): Promise<void>
   mainNamespace(): Namespace
   /** Run before server is started. */
   setup(callback: (ctx: any) => void | Promise<void>): void

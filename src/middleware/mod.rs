@@ -32,7 +32,6 @@ impl FromNapiValue for SendMiddlewareCallback {
             })?.into_unknown();
             Ok(vec![request_ctx_unknown, wrapped_next])
         })?;
-        println!("here 3");
         let tsfn_cloned: &'static ThreadsafeFunction<(request::Ctx, SendNext), ErrorStrategy::Fatal> = &*Box::leak(Box::new(thread_safe_function));
         Ok(SendMiddlewareCallback { inner: tsfn_cloned })
     }

@@ -245,7 +245,6 @@ impl Namespace {
                 let res: Response = middleware_function.inner.call_async((ctx.clone(), SendNext::new(next))).await.into_teo_result()?;
                 return Ok(res.teo_response.clone());
             };
-            println!("here 4");
             let wrapped_box = Box::new(wrapped_result);
             let wrapped_raw = Box::leak(wrapped_box);
             let leak_static_result: &'static dyn Middleware = unsafe { &*(wrapped_raw as * const dyn Middleware) };

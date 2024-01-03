@@ -52,4 +52,4 @@ declare middleware myWrap1()
 
 declare middleware myWrap2()
 
-middlewares [myWrap2, myWrap1]
+middlewares [myWrap1, myWrap2]

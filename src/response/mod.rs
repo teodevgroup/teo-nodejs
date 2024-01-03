@@ -4,7 +4,7 @@ pub(crate) mod response_or_promise;
 use crate::{object::js_any_to_teo_object, result::IntoNodeJSResult};
 
 use self::header_map::ReadWriteHeaderMap;
-use napi::{Result, JsUnknown, Env};
+use napi::{Result, JsUnknown, Env, bindgen_prelude::{FromNapiValue, FromNapiRef}};
 use teo::prelude::response::Response as TeoResponse;
 
 #[napi(js_name = "Response")]
@@ -91,4 +91,11 @@ impl Response {
     }
 
     // body
+}
+
+impl FromNapiValue for Response {
+    unsafe fn from_napi_value(env: napi::sys::napi_env, napi_val: napi::sys::napi_value) -> Result<Self> {
+        let response: &Response = Response::from_napi_ref(env, napi_val)?;
+        Ok(Response { teo_response: response.teo_response.clone() })
+    }
 }

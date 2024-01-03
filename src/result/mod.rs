@@ -4,6 +4,17 @@ pub trait IntoNodeJSResult<T> {
     fn into_nodejs_result(self) -> napi::Result<T>;
 }
 
+impl<T> IntoNodeJSResult<T> for teo::prelude::path::Result<T> {
+    fn into_nodejs_result(self) -> napi::Result<T> {
+        match self {
+            Ok(r) => Ok(r),
+            Err(e) => {
+                Err(Error::new(napi::Status::GenericFailure, e.message()))
+            }
+        }
+    }
+}
+
 impl<T> IntoNodeJSResult<T> for teo::prelude::Result<T> {
     fn into_nodejs_result(self) -> napi::Result<T> {
         match self {

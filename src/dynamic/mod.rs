@@ -1,10 +1,10 @@
 use indexmap::IndexMap;
-use napi::{Result, Error, Env, JsObject, JsFunction, JsUnknown, Property, JsSymbol, CallContext, ValueType};
+use napi::{Result, Error, Env, JsObject, JsFunction, JsUnknown, Property, JsSymbol, CallContext, ValueType, JsString};
 use teo::prelude::{App, model, transaction, Namespace, object::Object as TeoObject, Value as TeoValue};
 use std::collections::BTreeMap;
 use inflector::Inflector;
 
-use crate::object::{js_any_to_teo_object, teo_object_to_js_any};
+use crate::object::{js_any_to_teo_object, teo_object_to_js_any, value::teo_value_to_js_any};
 
 static mut CTXS: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
 static mut CLASSES: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
@@ -374,22 +374,33 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             Ok(promise)
         })?;
         object_prototype.set_named_property("delete", delete)?;
-        // inspect for Node.js and toString
-        let inspect_func = env.create_function_from_closure("toString", |ctx| {
+        // inspect
+        let inspect_func = env.create_function_from_closure("inspect", |ctx| {
+            let require: JsFunction = ctx.env.get_global()?.get_named_property("require")?;
+            let util = require.call(None, &[ctx.env.create_string("node:util").unwrap().into_unknown()])?.coerce_to_object()?;
+            let inspect: JsFunction = util.get_named_property("inspect")?;    
             let this: JsObject = ctx.this()?;
-            let object: &mut model::Object = ctx.env.unwrap(&this)?;
-            let result = format!("{:?}", object);
-            ctx.env.create_string(&result)
+            let model_object: &mut model::Object = ctx.env.unwrap(&this)?;
+            let value_map = model_object.inner.value_map.lock().unwrap();
+            let mut object = ctx.env.create_object()?;
+            for (k, v) in value_map.iter() {
+                object.set_named_property(k.as_str(), teo_value_to_js_any(v, &ctx.env)?)?;
+            }
+            let inspect_options: JsObject = ctx.get(1)?;
+            let object_inspect: JsString = inspect.call(Some(&this), &[object, inspect_options])?.coerce_to_string()?;
+            let class_name = model_object.model().path().join(".") + " " + object_inspect.into_utf8()?.as_str()?;
+            Ok(ctx.env.create_string(&class_name)?)
         })?;
         let require: JsFunction = env.get_global()?.get_named_property("require")?;
         let util = require.call(None, &[env.create_string("node:util").unwrap().into_unknown()])?.coerce_to_object()?;
         let inspect: JsObject = util.get_named_property("inspect")?;
         let custom: JsSymbol = inspect.get_named_property("custom")?;
         object_prototype.set_property(custom, inspect_func)?;
+        // toString
         let to_string = env.create_function_from_closure("toString", |ctx| {
             let this: JsObject = ctx.this()?;
-            let object: &mut TeoObject = ctx.env.unwrap(&this)?;
-            let result = format!("{:?}", object);
+            let object: &mut model::Object = ctx.env.unwrap(&this)?;
+            let result = format!("[object {}]", object.model().path().join("."));
             ctx.env.create_string(&result)
         })?;
         object_prototype.set_named_property("toString", to_string)?;

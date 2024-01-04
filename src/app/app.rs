@@ -50,7 +50,7 @@ impl App {
         Ok(result)
     }
 
-    /// Run this app.
+    /// @internal
     #[napi(js_name = "_run", ts_return_type="Promise<void>")]
     pub fn _run(&self, env: Env) -> Result<JsObject> {
         // synthesize dynamic running classes for Node.js

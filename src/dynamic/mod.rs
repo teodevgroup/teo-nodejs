@@ -15,6 +15,7 @@ pub fn init(mut _exports: JsObject, _env: Env) -> Result<()> {
     unsafe { CLASSES = Some(Box::leak(Box::new(BTreeMap::new()))) };
     unsafe { OBJECTS = Some(Box::leak(Box::new(BTreeMap::new()))) };
     unsafe { CTXS = Some(Box::leak(Box::new(BTreeMap::new()))) };
+    
     Ok(())
 }
 

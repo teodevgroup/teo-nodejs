@@ -6,18 +6,18 @@ const Decimal = require('decimal.js')
 const app = new App()
 
 app.mainNamespace().defineMiddleware("myWrap1", (args) => {
-    return async (req, next) => {
-        console.log("1 before")
-        const res = await next(req)
+    return async (ctx, next) => {
+        console.log("1 before", ctx.request())
+        const res = await next(ctx)
         console.log("1 after")
         return res
     }
 });
 
 app.mainNamespace().defineMiddleware("myWrap2", (args) => {
-    return async (req, next) => {
+    return async (ctx, next) => {
         console.log("2 before")
-        const res = await next(req)
+        const res = await next(ctx)
         console.log("2 after")
         return res
     }

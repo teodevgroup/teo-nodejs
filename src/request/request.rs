@@ -1,10 +1,6 @@
 
-use teo::prelude::{Request as TeoRequest, request};
-use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
-use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown, Error, JsSymbol, CallContext, Property, ValueType, JsUndefined};
-use crate::dynamic::synthesize_dynamic_nodejs_classes;
-use crate::namespace::Namespace;
-use crate::result::IntoNodeJSResult;
+use teo::prelude::Request as TeoRequest;
+use napi::Env;
 
 use super::header_map::ReadOnlyHeaderMap;
 

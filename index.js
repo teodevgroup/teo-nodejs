@@ -6,6 +6,8 @@
 
 const { existsSync, readFileSync } = require('fs')
 const { join } = require('path')
+const { inspect } = require('util')
+const customInspectSymbol = Symbol.for('nodejs.util.inspect.custom')
 
 const { platform, arch } = process
 
@@ -281,6 +283,50 @@ module.exports.Enum = Enum
 App.prototype.run = async function() {
   await this._prepare();
   return this._run();
+}
+ReadOnlyHeaderMap.prototype[customInspectSymbol] = function(_, inspectOptions) {
+  let object = {}
+  for (let k of this.keys()) {
+    object[k] = this.get(k)
+  }
+  return "ReadOnlyHeaderMap " + inspect(object, inspectOptions)
+}
+HandlerMatch.prototype[customInspectSymbol] = function(_, inspectOptions) {
+  return "HandlerMatch " + inspect({
+    "path": this.path(),
+    "handlerName": this.handlerName(),
+    "captures": this.captures(),
+  }, inspectOptions)
+}
+RequestCtx.prototype[customInspectSymbol] = function(_, inspectOptions) {
+  return "RequestCtx " + inspect({
+    "request": this.request(),
+    "body": this.body(),
+    "teo": this.teo(),
+    "handlerMatch": this.handlerMatch(),
+  }, inspectOptions)
+}
+Request.prototype[customInspectSymbol] = function(_, inspectOptions) {
+  return "Request " + inspect({
+    "method": this.method(),
+    "path": this.path(),
+    "queryString": this.queryString(),
+    "contentType": this.contentType(),
+    "headers": this.headers(),
+  }, inspectOptions)
+}
+Response.prototype[customInspectSymbol] = function(_, inspectOptions) {
+  return "Response " + inspect({
+    "code": this.code(),
+    "headers": this.headers(),
+  }, inspectOptions)
+}
+ReadWriteHeaderMap.prototype[customInspectSymbol] = function(_, inspectOptions) {
+  let object = {}
+  for (let k of this.keys()) {
+    object[k] = this.get(k)
+  }
+  return "ReadWriteHeaderMap " + inspect(object, inspectOptions)
 }
 globalThis.require = require
 process.on('SIGINT', function() { process.exit(0) })

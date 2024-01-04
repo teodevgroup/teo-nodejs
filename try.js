@@ -7,18 +7,16 @@ const app = new App()
 
 app.mainNamespace().defineMiddleware("myWrap1", (args) => {
     return async (ctx, next) => {
-        console.log("1 before", ctx.request())
-        const res = await next(ctx)
-        console.log("1 after")
-        return res
+        console.log(args)
+        return await next(ctx)
     }
 });
 
 app.mainNamespace().defineMiddleware("myWrap2", (args) => {
     return async (ctx, next) => {
-        console.log("2 before")
+        console.log("2 before", ctx)
         const res = await next(ctx)
-        console.log("2 after")
+        console.log("2 after", res)
         return res
     }
 });

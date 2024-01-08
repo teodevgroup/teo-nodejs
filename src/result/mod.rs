@@ -9,7 +9,11 @@ impl<T> IntoNodeJSResult<T> for teo::prelude::path::Result<T> {
         match self {
             Ok(r) => Ok(r),
             Err(e) => {
-                Err(Error::new(napi::Status::GenericFailure, e.message()))
+                if let Some(napi_error) = e.get_meta::<napi::Error>("nodejs") {
+                    Err(napi_error.clone())
+                } else {
+                    Err(Error::new(napi::Status::GenericFailure, e.message()))
+                }
             }
         }
     }
@@ -51,6 +55,23 @@ impl<T> IntoTeoResult<T> for napi::Result<T> {
             Ok(r) => Ok(r),
             Err(e) => {
                 let mut error = teo::prelude::Error::new(e.reason.as_str());
+                error.insert_meta("nodejs", e);
+                Err(error)
+            },
+        }
+    }
+}
+
+pub trait IntoTeoPathResult<T> {
+    fn into_teo_path_result(self) -> teo::prelude::path::Result<T>;
+}
+
+impl<T> IntoTeoPathResult<T> for napi::Result<T> {
+    fn into_teo_path_result(self) -> teo::prelude::path::Result<T> {
+        match self {
+            Ok(r) => Ok(r),
+            Err(e) => {
+                let mut error = teo::prelude::path::Error::internal_server_error_message_only(e.reason.as_str());
                 error.insert_meta("nodejs", e);
                 Err(error)
             },

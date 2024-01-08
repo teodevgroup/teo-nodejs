@@ -1,10 +1,10 @@
 use indexmap::IndexMap;
-use napi::{Result, Error, Env, JsObject, JsFunction, JsUnknown, Property, JsSymbol, CallContext, ValueType, JsString};
+use napi::{Result, Error, Env, JsObject, JsFunction, JsUnknown, Property, JsSymbol, CallContext, ValueType, JsString, threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ErrorStrategy}};
 use teo::prelude::{App, model, transaction, Namespace, object::Object as TeoObject, Value as TeoValue};
 use std::collections::BTreeMap;
 use inflector::Inflector;
 
-use crate::object::{js_any_to_teo_object, teo_object_to_js_any, value::teo_value_to_js_any};
+use crate::{object::{js_any_to_teo_object, teo_object_to_js_any, value::teo_value_to_js_any}, result::{IntoNodeJSResult, IntoTeoResult, IntoTeoPathResult}};
 
 static mut CTXS: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
 static mut CLASSES: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
@@ -611,5 +611,27 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
         });
         ctx_prototype.define_properties(&[ctx_property])?;
     }
+    let transaction = env.create_function_from_closure("transaction", |ctx| {
+        let func_arg: JsFunction = ctx.get(0)?;
+        let wrapper_thread_safe: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = func_arg.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+            let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value, "")?;
+            Ok(vec![js_ctx])
+        })?;
+        let wrapper_thread_safe_longlive = &*Box::leak(Box::new(wrapper_thread_safe));
+        let this: JsObject = ctx.this()?;
+        let wrapped_teo_ctx_shortlive: &mut transaction::Ctx = ctx.env.unwrap(&this)?;
+        let wrapped_teo_ctx: &'static transaction::Ctx = unsafe { &*(wrapped_teo_ctx_shortlive as * const transaction::Ctx) };
+        let promise = ctx.env.execute_tokio_future((|| async {
+            wrapped_teo_ctx.run_transaction(|teo: transaction::Ctx| async {
+                wrapper_thread_safe_longlive.call_async(teo).await.into_teo_path_result()?;
+                Ok(())
+            }).await.into_nodejs_result()?;
+            Ok(0)
+        })(), |env: &mut Env, _unknown: i32| {
+            env.get_undefined()
+        })?;
+        Ok(promise)
+    })?;
+    ctx_prototype.set_named_property("transaction", transaction)?;
     Ok(())
 }

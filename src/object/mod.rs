@@ -15,7 +15,7 @@ use std::str::FromStr;
 use bigdecimal::BigDecimal;
 use napi::{Env, Error, JsDate, JsString, Status};
 use teo::prelude::{Value as TeoValue, Value};
-use chrono::{NaiveDateTime, NaiveTime, DateTime, Utc};
+use chrono::{NaiveDateTime, DateTime, Utc};
 use napi::{JsUnknown, JsFunction, Result, ValueType};
 use teo::prelude::object::{Object as TeoObject, ObjectInner};
 use regex::Regex;

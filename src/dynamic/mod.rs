@@ -374,6 +374,21 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             Ok(promise)
         })?;
         object_prototype.set_named_property("delete", delete)?;
+        let to_teon = env.create_function_from_closure("toTeon", |ctx| {
+            let this: JsObject = ctx.this()?;
+            let object: &mut model::Object = ctx.env.unwrap(&this)?;
+            let object = object.clone();
+            let promise = ctx.env.execute_tokio_future((|| async move {
+                match object.to_teon().await {
+                    Ok(value) => Ok(value),
+                    Err(err) => Err(Error::from_reason(err.message())),
+                }
+            })(), |env: &mut Env, value: TeoValue| {
+                Ok(teo_value_to_js_any(&value, env)?)
+            })?;
+            Ok(promise)
+        })?;
+        object_prototype.set_named_property("toTeon", to_teon)?;
         // inspect
         let inspect_func = env.create_function_from_closure("inspect", |ctx| {
             let require: JsFunction = ctx.env.get_global()?.get_named_property("require")?;

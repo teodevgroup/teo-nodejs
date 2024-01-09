@@ -163,7 +163,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (value: any, args?: {[key: string]: any}, object?: any, ctx?: any) => any | Promise<any>")]
+    #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (value: any, args: {[key: string]: any}, object?: any, ctx?: any) => any | Promise<any>")]
     pub fn define_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoObject, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoObject, TeoArgs, model::Object, transaction::Ctx)>| {
             let js_value = teo_object_to_js_any(&ctx.value.0, &ctx.env)?;

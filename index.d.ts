@@ -36,7 +36,7 @@ export class Namespace {
   defineModelPropertyDecorator(name: string, body: (property: Property) => void): void
   defineEnumDecorator(name: string, body: (e: Enum) => void): void
   defineEnumMemberDecorator(name: string, body: (member: EnumMember) => void): void
-  definePipelineItem(name: string, body: (value: any, args?: {[key: string]: any}, object?: any, ctx?: any) => any | Promise<any>): void
+  definePipelineItem(name: string, body: (value: any, args: {[key: string]: any}, object?: any, ctx?: any) => any | Promise<any>): void
   defineHandler(name: string, callback: (...args: any[]) => any): void
   defineHandlerGroup(name: string, callback: (...args: any[]) => any): void
   defineModelHandlerGroup(name: string, callback: (...args: any[]) => any): void

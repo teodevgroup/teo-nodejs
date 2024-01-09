@@ -1,18 +1,17 @@
 pub mod dateonly;
 pub mod object_id;
 pub mod file;
+pub mod range;
 
 pub use dateonly::DateOnly;
 pub use object_id::ObjectId;
 pub use file::File;
+pub use range::Range;
 
 use napi::{Env, JsFunction, JsUnknown, Result};
-use teo::prelude::{Value as TeoValue, Value, Range as TeoRange, EnumVariant as TeoEnumVariant, OptionVariant as TeoOptionVariant};
+use teo::prelude::{Value as TeoValue, Value, EnumVariant as TeoEnumVariant, OptionVariant as TeoOptionVariant};
 
-#[napi(js_name = "Range")]
-pub struct Range {
-    pub(crate) value: TeoRange
-}
+
 
 #[napi(js_name = "EnumVariant")]
 pub struct EnumVariant {

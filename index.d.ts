@@ -60,7 +60,12 @@ export class File {
   filename: string
   filenameExt?: string
 }
-export class Range { }
+export class Range {
+  upperbond(): number
+  lowerbond(): number
+  isClosed(): boolean
+  isOpen(): boolean
+}
 export class EnumVariant { }
 export class OptionVariant { }
 export class Pipeline { }

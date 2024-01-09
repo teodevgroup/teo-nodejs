@@ -1,7 +1,9 @@
 mod header_map;
 pub(crate) mod response_or_promise;
 
-use crate::{object::js_any_to_teo_object, result::IntoNodeJSResult, console::console_log};
+use std::path::PathBuf;
+
+use crate::{object::{js_any_to_teo_object, value::teo_value_to_js_any}, result::IntoNodeJSResult, console::console_log};
 
 use self::header_map::ReadWriteHeaderMap;
 use napi::{Result, JsUnknown, Env, bindgen_prelude::{FromNapiValue, FromNapiRef}};
@@ -64,7 +66,13 @@ impl Response {
 
     // error
     
-    // file
+    #[napi(js_name = "file")]
+    pub fn file(path: String) -> Self {
+        let path_buf = PathBuf::from(path);
+        Self {
+            teo_response: TeoResponse::file(path_buf)
+        }
+    }
 
     #[napi(js_name = "redirect")]
     pub fn redirect(path: String) -> Self {
@@ -90,7 +98,46 @@ impl Response {
         }
     }
 
-    // body
+    #[napi]
+    pub fn is_file(&self) -> bool {
+        self.teo_response.body().is_file()
+    }
+
+    #[napi]
+    pub fn is_text(&self) -> bool {
+        self.teo_response.body().is_text()
+    }
+
+    #[napi]
+    pub fn is_empty(&self) -> bool {
+        self.teo_response.body().is_empty()
+    }
+
+    #[napi]
+    pub fn is_teon(&self) -> bool {
+        self.teo_response.body().is_teon()
+    }
+
+    #[napi]
+    pub fn get_text(&self) -> Option<&String> {
+        self.teo_response.body().as_text()
+    }
+
+    #[napi]
+    pub fn get_teon(&self, env: Env) -> Result<JsUnknown> {
+        Ok(match self.teo_response.body().as_teon() {
+            None => env.get_undefined()?,
+            Some(value) => teo_value_to_js_any(value, &env)?
+        })
+    }
+
+    #[napi]
+    pub fn get_file(&self) -> Option<String> {
+        match self.teo_response.body().as_file() {
+            None => None,
+            Some(path_buf) => Some(path_buf.to_str().unwrap().to_string()),
+        }
+    }
 }
 
 impl FromNapiValue for Response {

@@ -1,9 +1,6 @@
-use std::ptr::null;
-use std::sync::{Arc, Mutex};
-use napi::bindgen_prelude::Promise;
-use napi::{JsFunction, Result, Env, JsObject, JsString, JsUnknown};
+use napi::{JsFunction, Result};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
-use teo::prelude::{middleware_wrap_fn, Next, Middleware};
+use teo::prelude::{Next, Middleware};
 use crate::middleware::SendMiddlewareCallback;
 use crate::request::send_next::SendNext;
 use teo::prelude::{Arguments, Namespace as TeoNamespace, handler::Group as TeoHandlerGroup, Enum as TeoEnum, Member as TeoEnumMember, Model as TeoModel, model::Field as TeoField, model::Property as TeoProperty, model::Relation as TeoRelation, object::Object as TeoObject, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
@@ -13,16 +10,15 @@ use crate::model::model::Model;
 use crate::model::relation::relation::Relation;
 use crate::model::field::field::Field;
 use crate::model::property::property::Property;
-use crate::object::promise::{TeoObjectOrPromise, self};
+use crate::object::promise::TeoObjectOrPromise;
 use crate::object::teo_object_to_js_any;
 use crate::object::arguments::teo_args_to_js_args;
 use crate::object::value::teo_value_to_js_any;
 use crate::r#enum::member::member::EnumMember;
 use crate::r#enum::r#enum::Enum;
-use crate::request::{Request, RequestCtx};
-use crate::response::Response;
+use crate::request::Request;
 use crate::response::response_or_promise::ResponseOrPromise;
-use crate::result::{IntoTeoResult, IntoNodeJSResult};
+use crate::result::IntoTeoResult;
 
 #[napi(js_name = "Namespace")]
 pub struct Namespace {

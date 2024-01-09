@@ -228,7 +228,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineMiddleware")]
+    #[napi(js_name = "defineMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (ctx: RequestCtx, next: (ctx: RequestCtx) => Promise<Response>) => Promise<Response> | Response")]
     pub fn define_middleware(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let threadsafe_callback: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
             let js_args = teo_args_to_js_args(&ctx.value, &ctx.env)?;

@@ -40,7 +40,7 @@ export class Namespace {
   defineHandler(name: string, callback: (...args: any[]) => any): void
   defineHandlerGroup(name: string, callback: (...args: any[]) => any): void
   defineModelHandlerGroup(name: string, callback: (...args: any[]) => any): void
-  defineMiddleware(name: string, callback: (...args: any[]) => any): void
+  defineMiddleware(name: string, callback: (args: {[key: string]: any}) => (ctx: RequestCtx, next: (ctx: RequestCtx) => Promise<Response>) => Promise<Response> | Response): void
 }
 export class DateOnly {
   toString(): string

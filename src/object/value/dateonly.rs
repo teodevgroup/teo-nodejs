@@ -10,12 +10,12 @@ pub struct DateOnly {
 impl DateOnly {
 
     #[napi]
-    pub fn toString(&self) -> String {
+    pub fn to_string(&self) -> String {
         self.value.format("%Y-%m-%d").to_string()
     }
 
     #[napi]
-    pub fn fromString(string: String, env: Env) -> Result<JsUnknown> {
+    pub fn from_string(string: String, env: Env) -> Result<JsUnknown> {
         match NaiveDate::parse_from_str(string.as_str(), "%Y-%m-%d") {
             Ok(value) => Ok(Self { value }.into_instance(env)?.as_object(env).into_unknown()),
             Err(e) => {

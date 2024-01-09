@@ -2,15 +2,10 @@ pub mod dateonly;
 pub mod object_id;
 
 pub use dateonly::DateOnly;
+pub use object_id::ObjectId;
 
 use napi::{Env, JsFunction, JsUnknown, Result};
 use teo::prelude::{Value as TeoValue, Value, Range as TeoRange, File as TeoFile, EnumVariant as TeoEnumVariant, OptionVariant as TeoOptionVariant};
-use bson::oid::ObjectId as BsonObjectId;
-
-#[napi(js_name = "ObjectId")]
-pub struct ObjectId {
-    pub(crate) value: BsonObjectId,
-}
 
 #[napi(js_name = "Range")]
 pub struct Range {

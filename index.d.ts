@@ -46,7 +46,10 @@ export class DateOnly {
   toString(): string
   static fromString(string: string): unknown
 }
-export class ObjectId { }
+export class ObjectId {
+  toString(): string
+  static fromString(string: string): unknown
+}
 export class Range { }
 export class File { }
 export class EnumVariant { }

@@ -42,8 +42,11 @@ export class Namespace {
   defineModelHandlerGroup(name: string, callback: (...args: any[]) => any): void
   defineMiddleware(name: string, callback: (...args: any[]) => any): void
 }
+export class DateOnly {
+  toString(): string
+  static fromString(string: string): unknown
+}
 export class ObjectId { }
-export class DateOnly { }
 export class Range { }
 export class File { }
 export class EnumVariant { }

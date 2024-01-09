@@ -1,4 +1,8 @@
-use chrono::NaiveDate;
+pub mod dateonly;
+pub mod object_id;
+
+pub use dateonly::DateOnly;
+
 use napi::{Env, JsFunction, JsUnknown, Result};
 use teo::prelude::{Value as TeoValue, Value, Range as TeoRange, File as TeoFile, EnumVariant as TeoEnumVariant, OptionVariant as TeoOptionVariant};
 use bson::oid::ObjectId as BsonObjectId;
@@ -6,11 +10,6 @@ use bson::oid::ObjectId as BsonObjectId;
 #[napi(js_name = "ObjectId")]
 pub struct ObjectId {
     pub(crate) value: BsonObjectId,
-}
-
-#[napi(js_name = "DateOnly")]
-pub struct DateOnly {
-    pub(crate) value: NaiveDate
 }
 
 #[napi(js_name = "Range")]

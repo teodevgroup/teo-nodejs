@@ -52,6 +52,9 @@ ReadWriteHeaderMap.prototype[customInspectSymbol] = function(_, inspectOptions) 
   }
   return "ReadWriteHeaderMap " + inspect(object, inspectOptions)
 }
+DateOnly.prototype[customInspectSymbol] = function(_, inspectOptions) {
+  return this.toString()
+}
 globalThis.require = require
 process.on('SIGINT', function() { process.exit(0) })
 `

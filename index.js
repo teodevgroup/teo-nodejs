@@ -254,7 +254,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { HandlerGroup, Model, Field, Property, Relation, Namespace, ObjectId, DateOnly, Range, File, EnumVariant, OptionVariant, Pipeline, InterfaceEnumVariant, App, ReadOnlyHeaderMap, RequestCtx, HandlerMatch, Request, ReadWriteHeaderMap, Response, EnumMember, Enum } = nativeBinding
+const { HandlerGroup, Model, Field, Property, Relation, Namespace, DateOnly, ObjectId, Range, File, EnumVariant, OptionVariant, Pipeline, InterfaceEnumVariant, App, ReadOnlyHeaderMap, RequestCtx, HandlerMatch, Request, ReadWriteHeaderMap, Response, EnumMember, Enum } = nativeBinding
 
 module.exports.HandlerGroup = HandlerGroup
 module.exports.Model = Model
@@ -262,8 +262,8 @@ module.exports.Field = Field
 module.exports.Property = Property
 module.exports.Relation = Relation
 module.exports.Namespace = Namespace
-module.exports.ObjectId = ObjectId
 module.exports.DateOnly = DateOnly
+module.exports.ObjectId = ObjectId
 module.exports.Range = Range
 module.exports.File = File
 module.exports.EnumVariant = EnumVariant
@@ -327,6 +327,9 @@ ReadWriteHeaderMap.prototype[customInspectSymbol] = function(_, inspectOptions) 
     object[k] = this.get(k)
   }
   return "ReadWriteHeaderMap " + inspect(object, inspectOptions)
+}
+DateOnly.prototype[customInspectSymbol] = function(_, inspectOptions) {
+  return this.toString()
 }
 globalThis.require = require
 process.on('SIGINT', function() { process.exit(0) })

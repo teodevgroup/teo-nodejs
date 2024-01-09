@@ -11,9 +11,10 @@ pub(crate) mod promise_or_ignore;
 pub(crate) mod unknown;
 
 use indexmap::IndexMap;
+use napi::bindgen_prelude::FromNapiRef;
 use std::str::FromStr;
 use bigdecimal::BigDecimal;
-use napi::{Env, Error, JsDate, JsString, Status};
+use napi::{Env, Error, JsDate, JsString, Status, NapiRaw};
 use teo::prelude::{Value as TeoValue, Value};
 use chrono::{NaiveDateTime, DateTime, Utc};
 use napi::{JsUnknown, JsFunction, Result, ValueType};
@@ -100,12 +101,12 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                 }
                 // test for object id
                 if ObjectId::instance_of(env, &object)? {
-                    let object_id: &mut ObjectId = env.unwrap(&object)?;
+                    let object_id: &ObjectId = unsafe { ObjectId::from_napi_ref(env.raw(), object.raw())? };
                     return Ok(TeoObject::from(TeoValue::ObjectId(object_id.value.clone())));
                 }
                 // test for date only
                 if DateOnly::instance_of(env, &object)? {
-                    let date_only: &mut DateOnly = env.unwrap(&object)?;
+                    let date_only: &DateOnly = unsafe { DateOnly::from_napi_ref(env.raw(), object.raw())? };
                     return Ok(TeoObject::from(TeoValue::Date(date_only.value.clone())));
                 }
                 // test for date time
@@ -129,7 +130,7 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                 }
                 // test for range
                 if Range::instance_of(env, &object)? {
-                    let range: &mut Range = env.unwrap(&object)?;
+                    let range: &Range = unsafe { Range::from_napi_ref(env.raw(), object.raw())? };
                     return Ok(TeoObject::from(TeoValue::Range(range.value.clone())));
                 }
                 // test for file
@@ -139,22 +140,22 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                 }
                 // test for enum variant
                 if EnumVariant::instance_of(env, &object)? {
-                    let enum_variant: &mut EnumVariant = env.unwrap(&object)?;
+                    let enum_variant: &EnumVariant = unsafe { EnumVariant::from_napi_ref(env.raw(), object.raw())? };
                     return Ok(TeoObject::from(TeoValue::EnumVariant(enum_variant.value.clone())));
                 }
                 // test for option variant
                 if OptionVariant::instance_of(env, &object)? {
-                    let enum_variant: &mut OptionVariant = env.unwrap(&object)?;
+                    let enum_variant: &OptionVariant = unsafe { OptionVariant::from_napi_ref(env.raw(), object.raw())? };
                     return Ok(TeoObject::from(TeoValue::OptionVariant(enum_variant.value.clone())));
                 }
                 // test for interface enum variant
                 if InterfaceEnumVariant::instance_of(env, &object)? {
-                    let enum_variant: &mut InterfaceEnumVariant = env.unwrap(&object)?;
+                    let enum_variant: &InterfaceEnumVariant = unsafe { InterfaceEnumVariant::from_napi_ref(env.raw(), object.raw())? };
                     return Ok(TeoObject::from(enum_variant.value.clone()));
                 }
                 // test for pipeline
                 if Pipeline::instance_of(env, &object)? {
-                    let pipeline: &mut Pipeline = env.unwrap(&object)?;
+                    let pipeline: &Pipeline = unsafe { Pipeline::from_napi_ref(env.raw(), object.raw())? };
                     return Ok(TeoObject::from(pipeline.value.clone()));
                 }
                 // // test for model object

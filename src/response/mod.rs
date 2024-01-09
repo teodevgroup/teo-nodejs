@@ -3,7 +3,7 @@ pub(crate) mod response_or_promise;
 
 use std::path::PathBuf;
 
-use crate::{object::{js_any_to_teo_object, value::teo_value_to_js_any}, result::IntoNodeJSResult, console::console_log};
+use crate::object::{js_any_to_teo_object, value::teo_value_to_js_any};
 
 use self::header_map::ReadWriteHeaderMap;
 use napi::{Result, JsUnknown, Env, bindgen_prelude::{FromNapiValue, FromNapiRef}};
@@ -32,9 +32,9 @@ impl Response {
     }
 
     #[napi]
-    pub fn json(value: JsUnknown, env: Env) -> Result<Self> {
+    pub fn teon(value: JsUnknown, env: Env) -> Result<Self> {
         let teo_value = js_any_to_teo_object(value, env)?.as_teon().unwrap().clone();
-        let response = TeoResponse::json(teo_value).into_nodejs_result()?;
+        let response = TeoResponse::teon(teo_value);
         Ok(Self {
             teo_response: response
         })
@@ -48,7 +48,7 @@ impl Response {
     #[napi]
     pub fn data(value: JsUnknown, env: Env) -> Result<Self> {
         let teo_value = js_any_to_teo_object(value, env)?.as_teon().unwrap().clone();
-        let response = TeoResponse::data(teo_value).into_nodejs_result()?;
+        let response = TeoResponse::data(teo_value);
         Ok(Self {
             teo_response: response
         })
@@ -58,7 +58,7 @@ impl Response {
     pub fn data_meta(data: JsUnknown, meta: JsUnknown, env: Env) -> Result<Self> {
         let teo_data = js_any_to_teo_object(data, env)?.as_teon().unwrap().clone();
         let teo_meta = js_any_to_teo_object(meta, env)?.as_teon().unwrap().clone();
-        let response = TeoResponse::data_meta(teo_data, teo_meta).into_nodejs_result()?;
+        let response = TeoResponse::data_meta(teo_data, teo_meta);
         Ok(Self {
             teo_response: response
         })
@@ -119,14 +119,14 @@ impl Response {
     }
 
     #[napi]
-    pub fn get_text(&self) -> Option<&String> {
-        self.teo_response.body().as_text()
+    pub fn get_text(&self) -> Option<String> {
+        self.teo_response.body().as_text().cloned()
     }
 
     #[napi]
     pub fn get_teon(&self, env: Env) -> Result<JsUnknown> {
         Ok(match self.teo_response.body().as_teon() {
-            None => env.get_undefined()?,
+            None => env.get_undefined()?.into_unknown(),
             Some(value) => teo_value_to_js_any(value, &env)?
         })
     }

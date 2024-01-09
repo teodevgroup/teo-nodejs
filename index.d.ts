@@ -121,14 +121,22 @@ export class ReadWriteHeaderMap {
 export class Response {
   static empty(): Response
   static string(content: string, contentType: string): Response
-  static json(value: unknown): this
+  static teon(value: unknown): this
   static html(content: string): Response
   static data(value: unknown): this
   static dataMeta(data: unknown, meta: unknown): this
+  static file(path: string): Response
   static redirect(path: string): Response
   setCode(code: number): void
   code(): number
   headers(): ReadWriteHeaderMap
+  isFile(): boolean
+  isText(): boolean
+  isEmpty(): boolean
+  isTeon(): boolean
+  getText(): string | null
+  getTeon(): unknown
+  getFile(): string | null
 }
 export class EnumMember {
   setData(key: string, value: unknown): void

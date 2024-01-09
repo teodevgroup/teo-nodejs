@@ -1,20 +1,17 @@
 pub mod dateonly;
 pub mod object_id;
+pub mod file;
 
 pub use dateonly::DateOnly;
 pub use object_id::ObjectId;
+pub use file::File;
 
 use napi::{Env, JsFunction, JsUnknown, Result};
-use teo::prelude::{Value as TeoValue, Value, Range as TeoRange, File as TeoFile, EnumVariant as TeoEnumVariant, OptionVariant as TeoOptionVariant};
+use teo::prelude::{Value as TeoValue, Value, Range as TeoRange, EnumVariant as TeoEnumVariant, OptionVariant as TeoOptionVariant};
 
 #[napi(js_name = "Range")]
 pub struct Range {
     pub(crate) value: TeoRange
-}
-
-#[napi(js_name = "File")]
-pub struct File {
-    pub(crate) value: TeoFile
 }
 
 #[napi(js_name = "EnumVariant")]
@@ -96,8 +93,8 @@ pub fn teo_value_to_js_any(value: &TeoValue, env: &Env) -> Result<JsUnknown> {
             js_regex.into_unknown()
         }
         Value::File(file) => {
-            let instance = File { value: file.clone() }.into_instance(*env)?;
-            instance.as_object(*env).into_unknown()
+            let instance = File::from(file);
+            instance.into_instance(*env)?.as_object(*env).into_unknown()
         }
     })
 }

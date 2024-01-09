@@ -4,7 +4,7 @@ use teo::prelude::{App, model, transaction, Namespace, object::Object as TeoObje
 use std::collections::BTreeMap;
 use inflector::Inflector;
 
-use crate::{object::{js_any_to_teo_object, teo_object_to_js_any, value::teo_value_to_js_any, promise::TeoObjectOrPromise, unknown::{SendJsUnknownOrPromise, SendJsUnknown}}, result::{IntoNodeJSResult, IntoTeoResult, IntoTeoPathResult}, response::response_or_promise::ResponseOrPromise};
+use crate::{object::{js_any_to_teo_object, teo_object_to_js_any, value::teo_value_to_js_any, unknown::{SendJsUnknownOrPromise, SendJsUnknown}}, result::{IntoNodeJSResult, IntoTeoResult, IntoTeoPathResult}, response::response_or_promise::ResponseOrPromise};
 
 static mut CTXS: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
 static mut CLASSES: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;

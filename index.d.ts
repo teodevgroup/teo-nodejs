@@ -50,8 +50,17 @@ export class ObjectId {
   toString(): string
   static fromString(string: string): unknown
 }
+/**
+ * File
+ * File only represent input file in form request.
+ */
+export class File {
+  filepath: string
+  contentType?: string
+  filename: string
+  filenameExt?: string
+}
 export class Range { }
-export class File { }
 export class EnumVariant { }
 export class OptionVariant { }
 export class Pipeline { }

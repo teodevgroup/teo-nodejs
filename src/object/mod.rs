@@ -19,6 +19,7 @@ use teo::prelude::{Value as TeoValue, Value};
 use chrono::{NaiveDateTime, DateTime, Utc};
 use napi::{JsUnknown, JsFunction, Result, ValueType};
 use teo::prelude::object::{Object as TeoObject, ObjectInner};
+use teo::prelude::File as TeoFile;
 use regex::Regex;
 use crate::object::array::teo_array_to_js_any;
 use crate::object::interface_enum_variant::{InterfaceEnumVariant, teo_interface_enum_variant_to_js_any};
@@ -135,8 +136,9 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                 }
                 // test for file
                 if File::instance_of(env, &object)? {
-                    let file: &mut File = env.unwrap(&object)?;
-                    return Ok(TeoObject::from(TeoValue::File(file.value.clone())));
+                    let file: &File = unsafe { File::from_napi_ref(env.raw(), object.raw())? };
+                    let teo_file = TeoFile::from(file);
+                    return Ok(TeoObject::from(TeoValue::File(teo_file)));
                 }
                 // test for enum variant
                 if EnumVariant::instance_of(env, &object)? {

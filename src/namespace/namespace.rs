@@ -160,7 +160,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (input: any, args: {[key: string]: any}, object?: any, ctx?: any) => any | Promise<any>")]
+    #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
     pub fn define_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoObject, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoObject, TeoArgs, model::Object, transaction::Ctx)>| {
             let js_value = teo_object_to_js_any(&ctx.value.0, &ctx.env)?;
@@ -180,12 +180,12 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineTransformPipelineItem", ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object?: any, ctx?: any) => any | Promise<any>")]
+    #[napi(js_name = "defineTransformPipelineItem", ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
     pub fn define_transform_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
         self.define_pipeline_item(name, callback)
     }
 
-    #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object?: any, ctx?: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
+    #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
     pub fn define_validator_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
             let js_value = teo_value_to_js_any(&ctx.value.0, &ctx.env)?;
@@ -218,7 +218,7 @@ impl Namespace {
     }
 
     /// Register a named callback.
-    #[napi(ts_args_type = "name: string, callback: (input: any, object?: any, ctx?: any) => void | Promise<void>")]
+    #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => void | Promise<void>")]
     pub fn define_callback_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
             let js_value = teo_value_to_js_any(&ctx.value.0, &ctx.env)?;
@@ -234,6 +234,39 @@ impl Namespace {
             let result: TeoObjectOrPromise = tsfn_cloned.call_async((value, args, model_object, transaction_ctx)).await.into_teo_result()?;
             result.to_teo_object().await.into_teo_result()?;
             Ok(())
+        });
+        Ok(())
+    }
+
+    #[napi(js_name = "defineComparePipelineItem<T>", ts_args_type = "name: string, callback: (oldValue: T, newValue: T, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
+    pub fn define_compare_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
+        let tsfn: ThreadsafeFunction<(TeoValue, TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
+            let js_value_old = teo_value_to_js_any(&ctx.value.0, &ctx.env)?;
+            let js_value_new = teo_value_to_js_any(&ctx.value.1, &ctx.env)?;
+            let js_args = teo_args_to_js_args(&ctx.value.2, &ctx.env)?;
+            let js_object = js_model_object_from_teo_model_object(ctx.env, ctx.value.3.clone())?;
+            let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.4.clone(), "")?;
+            Ok(vec![js_value_old, js_value_new, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
+        })?;
+        let tsfn_cloned = &*Box::leak(Box::new(tsfn));
+        self.teo_namespace.define_compare_pipeline_item(Box::leak(Box::new(name)).as_str(), move |old: TeoValue, new: TeoValue, args: TeoArgs, object: TeoObject, ctx: pipeline::Ctx| async move {
+            let result: TeoObjectOrPromise = tsfn_cloned.call_async((old, new, args, ctx.object().clone(), ctx.transaction_ctx())).await.into_teo_result()?;
+            let teo_value = result.to_teo_object().await.into_teo_result()?;
+            if let Some(teon_value) = teo_value.as_teon() {
+                Ok::<Validity, teo::prelude::Error>(match teon_value {
+                    TeoValue::String(s) => {
+                        Validity::Invalid(s.to_owned())
+                    },
+                    TeoValue::Bool(b) => if *b {
+                        Validity::Valid
+                    } else {
+                        Validity::Invalid("value is invalid".to_owned())
+                    },
+                    _ => Validity::Valid
+                })
+            } else {
+                Err::<Validity, teo::prelude::Error>(teo::prelude::Error::new("invalid validator return value"))
+            }
         });
         Ok(())
     }

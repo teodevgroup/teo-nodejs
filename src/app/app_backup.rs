@@ -1,23 +1,3 @@
-
-
-    /// Register a named callback.
-    #[napi(ts_args_type = "name: string, callback: (input: any, object?: any, ctx?: any) => void | Promise<void>")]
-    pub fn callback(&self, name: String, callback: JsFunction) -> Result<()> {
-        let tsfn: ThreadsafeFunction<(TeoValue, TeoObject, UserCtx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoObject, UserCtx)>| {
-            let js_value = teo_value_to_js_unknown(&ctx.value.0, &ctx.env);
-            let js_value_object = js_value.coerce_to_object()?;
-            let js_object = js_object_from_teo_object(ctx.env, ctx.value.1.clone())?;
-            let js_ctx = js_user_ctx_from_user_ctx(ctx.env, ctx.value.2.clone())?;
-            Ok(vec![js_value_object, js_object, js_ctx])
-        })?;
-        let tsfn_cloned = Box::leak(Box::new(tsfn));
-        self.teo_app.callback(Box::leak(Box::new(name)).as_str(), |value: TeoValue, object: TeoObject, ctx: UserCtx| async {
-            let result: WrappedTeoValue = tsfn_cloned.call_async((value, object, ctx)).await.unwrap();
-            let _teo_value = result.to_teo_value().await;
-        }).into_nodejs_result()?;
-        Ok(())
-    }
-
     #[napi(js_name = "compare<T>", ts_args_type = "name: string, callback: (oldValue: T, newValue: T, object?: any, ctx?: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
     pub fn compare(&self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoValue, TeoObject, UserCtx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoValue, TeoObject, UserCtx)>| {

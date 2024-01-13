@@ -77,8 +77,7 @@ pub fn teo_value_to_js_any(value: &TeoValue, env: &Env) -> Result<JsUnknown> {
             js_array.into_unknown()
         }
         Value::EnumVariant(enum_variant) => {
-            let instance = EnumVariant { value: enum_variant.clone() }.into_instance(*env)?;
-            instance.as_object(*env).into_unknown()
+            env.create_string(enum_variant.value.as_str())?.into_unknown()
         }
         Value::OptionVariant(option_variant) => {
             let instance = OptionVariant { value: option_variant.clone() }.into_instance(*env)?;

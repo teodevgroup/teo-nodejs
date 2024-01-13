@@ -71,7 +71,10 @@ export class Range {
   isClosed(): boolean
   isOpen(): boolean
 }
-export class EnumVariant { }
+export class EnumVariant {
+  toString(): string
+  static fromString(value: string): EnumVariant
+}
 export class OptionVariant { }
 export class Pipeline { }
 export class InterfaceEnumVariant { }

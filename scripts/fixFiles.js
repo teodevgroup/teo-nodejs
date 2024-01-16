@@ -1,5 +1,6 @@
 const { readFileSync, writeFileSync } = require('fs')
 
+
 function fixIndexJs(filename) {
   let content = readFileSync(filename).toString()
 

@@ -293,6 +293,67 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             Ok(promise)
         })?;
         class_prototype.set_named_property("create", create)?;
+        // count
+        let count = env.create_function_from_closure("count", |ctx| {
+            let teo_value = if ctx.length == 0 {
+                TeoValue::Dictionary(IndexMap::new())
+            } else {
+                let unknown: JsUnknown = ctx.get(0)?;
+                js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
+            };
+            let this: JsObject = ctx.this()?;
+            let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
+            let model_ctx_cloned = model_ctx.clone();
+            let promise = ctx.env.execute_tokio_future((|| async move {
+                Ok(model_ctx_cloned.count(&teo_value).await.unwrap())
+            })(), |_env, result: usize| {
+                Ok(result as u32)
+            })?;
+            Ok(promise)
+        })?;
+        class_prototype.set_named_property("count", count)?;
+        // aggregate
+        let aggregate = env.create_function_from_closure("aggregate", |ctx| {
+            let teo_value = if ctx.length == 0 {
+                TeoValue::Dictionary(IndexMap::new())
+            } else {
+                let unknown: JsUnknown = ctx.get(0)?;
+                js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
+            };
+            let this: JsObject = ctx.this()?;
+            let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
+            let model_ctx_cloned = model_ctx.clone();
+            let promise = ctx.env.execute_tokio_future((|| async move {
+                Ok(model_ctx_cloned.aggregate(&teo_value).await.unwrap())
+            })(), |env, object: TeoValue| {
+                teo_value_to_js_any(&object, env)
+            })?;
+            Ok(promise)
+        })?;
+        class_prototype.set_named_property("aggregate", aggregate)?;
+        // groupBy
+        let group_by = env.create_function_from_closure("groupBy", |ctx| {
+            let teo_value = if ctx.length == 0 {
+                TeoValue::Dictionary(IndexMap::new())
+            } else {
+                let unknown: JsUnknown = ctx.get(0)?;
+                js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
+            };
+            let this: JsObject = ctx.this()?;
+            let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
+            let model_ctx_cloned = model_ctx.clone();
+            let promise = ctx.env.execute_tokio_future((|| async move {
+                Ok(model_ctx_cloned.group_by(&teo_value).await.unwrap())
+            })(), |env, values: Vec<TeoValue>| {
+                let mut array = env.create_array(values.len() as u32)?;
+                for value in values {
+                    array.insert(teo_value_to_js_any(&value, env)?)?;
+                }
+                Ok(array)
+            })?;
+            Ok(promise)
+        })?;
+        class_prototype.set_named_property("groupBy", group_by)?;
         // isNew
         let is_new = Property::new("isNew")?.with_getter_closure(|env: Env, this: JsObject| {
             let object: &mut model::Object = env.unwrap(&this)?;

@@ -1,6 +1,6 @@
 use napi::{JsFunction, Result};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
-use teo::prelude::pipeline::item::validator::{ValidateResult, Validity};
+use teo::prelude::pipeline::item::validator::Validity;
 use teo::prelude::{Next, Middleware};
 use crate::middleware::SendMiddlewareCallback;
 use crate::request::send_next::SendNext;

@@ -157,7 +157,7 @@ pub(crate) fn js_model_object_from_teo_model_object(env: Env, teo_model_object: 
     Ok(js_object)
 }
 
-pub(crate) fn js_optional_object_from_teo_object(env: Env, teo_model_object: Option<model::Object>) -> Result<JsUnknown> {
+pub(crate) fn js_optional_model_object_from_teo_object(env: Env, teo_model_object: Option<model::Object>) -> Result<JsUnknown> {
     Ok(match teo_model_object {
         Some(teo_model_object) => js_model_object_from_teo_model_object(env, teo_model_object)?.into_unknown(),
         None => env.get_undefined()?.into_unknown(),
@@ -221,7 +221,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                     Err(err) => Err(Error::from_reason(err.message())),
                 }
             })(), |env, object: Option<model::Object>| {
-                js_optional_object_from_teo_object(env.clone(), object)
+                js_optional_model_object_from_teo_object(env.clone(), object)
             })?;
             Ok(promise)
         })?;
@@ -243,7 +243,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                     Err(err) => Err(Error::from_reason(err.message())),
                 }
             })(), |env, object: Option<model::Object>| {
-                js_optional_object_from_teo_object(env.clone(), object)
+                js_optional_model_object_from_teo_object(env.clone(), object)
             })?;
             Ok(promise)
         })?;
@@ -602,7 +602,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                             Err(err) => Err(Error::from_reason(err.message())),
                         }
                     })(), |env, object: Option<model::Object>| {
-                        Ok(js_optional_object_from_teo_object(env.clone(), object)?.into_unknown())
+                        Ok(js_optional_model_object_from_teo_object(env.clone(), object)?.into_unknown())
                     })?;
                     Ok(promise)
                 });

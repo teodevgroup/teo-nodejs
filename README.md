@@ -1,7 +1,7 @@
 Teo Node.js
 ==========
 
-Run Teo server and write custom URL route handlers with Node.js.
+Run Teo server and write custom URL route handlers with Node.js. 
 
 ## Installation
 

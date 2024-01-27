@@ -435,6 +435,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             Ok(promise)
         })?;
         object_prototype.set_named_property("delete", delete)?;
+        // toTeon
         let to_teon = env.create_function_from_closure("toTeon", |ctx| {
             let this: JsObject = ctx.this()?;
             let object: &mut model::Object = ctx.env.unwrap(&this)?;

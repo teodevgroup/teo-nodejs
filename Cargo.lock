@@ -3819,9 +3819,9 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.1.6"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56ae4ab1f270d0d3f402f91927dfe1e0e91fac273ce534bb384c254ad0780056"
+checksum = "8f8aacf36865e05643266e7fb4534ab01d7c1990bc7592d295ae2fa2e07a9134"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -3870,9 +3870,9 @@ dependencies = [
 
 [[package]]
 name = "teo-generator"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6dcb79a5dbe233abe9e8925547537e6bf8e1d6e3025deb7d6cf339c85cd13b81"
+checksum = "4e55d5746aaaa4d845ab0c2d977ccb82d69c9608c0b48d80c279113e77951f2c"
 dependencies = [
  "askama",
  "async-recursion",
@@ -3895,9 +3895,9 @@ dependencies = [
 
 [[package]]
 name = "teo-mongodb-connector"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2e22eee9e571810e84320b3b20c158b2cc5fdad1ec996575295a026c68393d3"
+checksum = "6cbb14afe01ad3f798beb9efca21aaef433a0dc453dcd76277558ec1dfcc5003"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -3953,9 +3953,9 @@ checksum = "519b6fb4c1499fb5d6350e28f53558cc92a1e10bd32a02781cfb30c85ceeaac1"
 
 [[package]]
 name = "teo-runtime"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13132e525adfc4b464ec871a74c2e9e7b7ff01eb5e94efe7593484317bb0b04d"
+checksum = "b188a3526cf373f3154838c03a0967e0ac3d5179e2070347fe82ccc45aedf7ee"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -3991,9 +3991,9 @@ dependencies = [
 
 [[package]]
 name = "teo-sql-connector"
-version = "0.1.5"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "160bbdc836957cd7b19601dd2340f7b9e3737e149b0dc42a8f8bc7e8936fcc25"
+checksum = "057a7f8a2a6a7c4b681d0900dae4f6fa2c4153947af7177251e06ee037cd182d"
 dependencies = [
  "array_tool",
  "async-recursion",
@@ -4039,7 +4039,7 @@ dependencies = [
 
 [[package]]
 name = "teocloud_teo"
-version = "0.1.6"
+version = "0.1.8"
 dependencies = [
  "bigdecimal",
  "bson",

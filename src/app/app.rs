@@ -66,11 +66,6 @@ impl App {
         Ok(promise)
     }
 
-    #[napi(js_name = "mainNamespace", writable = false)]
-    pub fn main_namespace(&'static self) -> Namespace {
-        Namespace { teo_namespace: self.teo_app.main_namespace_mut() }
-    }
-
     /// Run before server is started.
     #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
     pub fn setup(&self, callback: JsFunction) -> Result<()> {
@@ -99,5 +94,10 @@ impl App {
             Ok(promise_or_ignore.to_ignore().await.into_teo_result()?)
         });
         Ok(())
+    }
+
+    #[napi(js_name = "mainNamespace", writable = false)]
+    pub fn main_namespace(&'static self) -> Namespace {
+        Namespace { teo_namespace: self.teo_app.main_namespace_mut() }
     }
 }

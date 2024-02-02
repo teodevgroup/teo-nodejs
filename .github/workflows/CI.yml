@@ -38,19 +38,16 @@ jobs:
             target: i686-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            setup: |
-              sudo apt-get update 
-              sudo apt-get install --yes build-essential
-              sudo apt-get install pkg-config libssl-dev -y;
-              export OPENSSL_LIB_DIR="/usr/lib/x86_64-linux-gnu";
-              export OPENSSL_INCLUDE="/usr/include/openssl";              
+            build: |-
+              set -e &&
+              yarn build --target x86_64-unknown-linux-gnu &&
+              strip *.node         
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-            build: yarn build --target x86_64-unknown-linux-gnu
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             build: |
-              apk add pkgconfig openssl-dev;
+              apk add perl pkgconfig openssl-dev;
               set -e &&
               yarn build &&
               strip *.node

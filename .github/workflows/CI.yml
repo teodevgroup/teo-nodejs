@@ -38,6 +38,9 @@ jobs:
             target: i686-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+            setup: |
+              sudo apt-get update 
+              sudo apt-get install --yes build-essential
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: yarn build --target x86_64-unknown-linux-gnu
           - host: ubuntu-latest
@@ -45,7 +48,7 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
             setup: |
               sudo apt-get update
-              sudo apt-get install --yes --upgrade build-essential cmake protobuf-compiler libssl-dev glibc-source musl-tools
+              sudo apt-get install --yes --upgrade build-essential cmake protobuf-compiler libssl-dev glibc-source musl-tools perl
             build: yarn build
           - host: macos-latest
             target: aarch64-apple-darwin
@@ -58,26 +61,26 @@ jobs:
             target: armv7-unknown-linux-gnueabihf
             setup: |
               sudo apt-get update
-              sudo apt-get install gcc-arm-linux-gnueabihf -y
-            build: yarn build --target armv7-unknown-linux-gnueabihf
+              sudo apt-get install perl gcc-arm-linux-gnueabihf gcc-arm-linux-gnueabihf build-essential cmake protobuf-compiler libssl-dev glibc-source musl-tools -y
+            build: yarn build --target armv7-unknown-linux-gnueabihf --use-napi-cross
           - host: ubuntu-latest
             target: aarch64-linux-android
             setup: |
               sudo apt-get update
-              sudo apt-get install --yes --upgrade build-essential cmake protobuf-compiler libssl-dev glibc-source musl-tools
+              sudo apt-get install --yes --upgrade build-essential cmake protobuf-compiler libssl-dev glibc-source musl-tools perl
             build: yarn build --target aarch64-linux-android
           - host: ubuntu-latest
             target: armv7-linux-androideabi
             setup: |
               sudo apt-get update
-              sudo apt-get install --yes --upgrade build-essential cmake protobuf-compiler libssl-dev glibc-source musl-tools
+              sudo apt-get install --yes --upgrade build-essential cmake protobuf-compiler libssl-dev glibc-source musl-tools perl
             build: yarn build --target armv7-linux-androideabi
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine 
             setup: |
               sudo apt-get update
-              sudo apt-get install --yes --upgrade build-essential cmake protobuf-compiler libssl-dev glibc-source musl-tools
+              sudo apt-get install --yes --upgrade build-essential cmake protobuf-compiler libssl-dev glibc-source musl-tools perl
             build: |-
               set -e &&
               rustup target add aarch64-unknown-linux-musl &&

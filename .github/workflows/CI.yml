@@ -60,12 +60,14 @@ jobs:
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            setup: |
-              sudo apt-get update
-              sudo apt-get install --yes --upgrade pkg-config build-essential cmake protobuf-compiler libssl-dev glibc-source musl-tools perl
-              export OPENSSL_LIB_DIR="/usr/lib/aarch64-linux-gnu"
-              export OPENSSL_INCLUDE="/usr/include/openssl"
-            build: yarn build --target aarch64-unknown-linux-gnu
+            build: |
+              set -e &&
+              sudo apt-get update &&
+              sudo apt-get install perl libssl-dev pkg-config -y &&
+              export LDFLAGS="-L/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5" &&
+              export CFLAGS="-fuse-ld=lld -mcrc -B/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5 --sysroot=/usr/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot" &&
+              export CXXFLAGS="-fuse-ld=lld -mcrc -B/usr/aarch64-unknown-linux-gnu/lib/gcc/aarch64-unknown-linux-gnu/4.8.5 --sysroot=/usr/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot" &&
+              yarn build --target aarch64-unknown-linux-gnu
           - host: ubuntu-latest
             target: armv7-unknown-linux-gnueabihf
             setup: |

@@ -43,11 +43,11 @@ jobs:
             target: aarch64-pc-windows-msvc
             build: yarn build --target aarch64-pc-windows-msvc            
           - host: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
+            target: x86_64-unknown-linux-gnu        
             build: |-
               set -e &&
               sudo apt-get update &&
-              sudo apt-get install perl libssl-dev pkg-config zlib1g-dev -y &&
+              sudo apt-get install perl libssl-dev pkg-config zlib1g-dev build-essential cmake protobuf-compiler glibc-source musl-tools perl -y &&
               yarn build --target x86_64-unknown-linux-gnu &&
               strip *.node         
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian

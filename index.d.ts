@@ -89,11 +89,11 @@ export class App {
   _run(): Promise<void>
   /** Run this app. */
   run(): Promise<void>
-  mainNamespace(): Namespace
   /** Run before server is started. */
   setup(callback: (ctx: any) => void | Promise<void>): void
   /** Define a custom program. */
   program(name: string, callback: (ctx: any) => void | Promise<void>): void
+  mainNamespace(): Namespace
 }
 export class ReadOnlyHeaderMap {
   keys(): Array<string>

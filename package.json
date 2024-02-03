@@ -8,15 +8,12 @@
     "triples": {
       "additional": [
         "aarch64-apple-darwin",
-        "aarch64-linux-android",
         "aarch64-unknown-linux-gnu",
         "aarch64-unknown-linux-musl",
         "aarch64-pc-windows-msvc",
-        "armv7-unknown-linux-gnueabihf",
+        "x86_64-unknown-windows-msvc",
         "x86_64-unknown-linux-musl",
-        "x86_64-unknown-freebsd",
         "i686-pc-windows-msvc",
-        "armv7-linux-androideabi",
         "universal-apple-darwin"
       ]
     }
@@ -51,13 +48,9 @@
   },
   "packageManager": "yarn@4.1.0",
   "optionalDependencies": {
-    "@teocloud/teo-android-arm-eabi": "0.2.1",
-    "@teocloud/teo-android-arm64": "0.2.1",
     "@teocloud/teo-darwin-arm64": "0.2.1",
     "@teocloud/teo-darwin-universal": "0.2.1",
     "@teocloud/teo-darwin-x64": "0.2.1",
-    "@teocloud/teo-freebsd-x64": "0.2.1",
-    "@teocloud/teo-linux-arm-gnueabihf": "0.2.1",
     "@teocloud/teo-linux-arm64-gnu": "0.2.1",
     "@teocloud/teo-linux-arm64-musl": "0.2.1",
     "@teocloud/teo-linux-x64-gnu": "0.2.1",

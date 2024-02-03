@@ -45,14 +45,7 @@ jobs:
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu        
             build: |-
-              set -e &&
-              sudo apt-get update &&
-              sudo apt-get install perl libssl-dev pkg-config build-essential cmake protobuf-compiler glibc-source -y &&
-              export LDFLAGS="-L/usr/x86_64-unknown-linux-gnu/lib/gcc/x86_64-unknown-linux-gnu/4.8.5" &&
-              export CFLAGS="-fuse-ld=lld -mcrc -B/usr/x86_64-unknown-linux-gnu/lib/gcc/x86_64-unknown-linux-gnu/4.8.5 --sysroot=/usr/x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu/sysroot" &&
-              export CXXFLAGS="-fuse-ld=lld -mcrc -B/usr/x86_64-unknown-linux-gnu/lib/gcc/x86_64-unknown-linux-gnu/4.8.5 --sysroot=/usr/x86_64-unknown-linux-gnu/x86_64-unknown-linux-gnu/sysroot" &&
-              yarn build --target x86_64-unknown-linux-gnu &&
-              strip *.node
+              yarn build --target x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl

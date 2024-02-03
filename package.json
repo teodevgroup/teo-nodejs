@@ -46,7 +46,6 @@
     "universal": "napi universal",
     "version": "napi version"
   },
-  "packageManager": "yarn@4.1.0",
   "optionalDependencies": {
     "@teocloud/teo-darwin-arm64": "0.2.1",
     "@teocloud/teo-darwin-universal": "0.2.1",

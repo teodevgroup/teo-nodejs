@@ -21,11 +21,17 @@
       ]
     }
   },
-  "bin": "teo.js",
+  "bin": {
+    "teo": "teo.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teocloud/teo-nodejs"
+  },
   "license": "Apache-2.0",
   "dependencies": {
     "decimal.js": "^10.4.3"
-  }, 
+  },
   "devDependencies": {
     "@napi-rs/cli": "^2.14.8",
     "ava": "^5.1.1"

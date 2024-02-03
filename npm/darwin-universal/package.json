@@ -1,6 +1,6 @@
 {
   "name": "@teocloud/teo-darwin-universal",
-  "version": "0.0.51",
+  "version": "0.2.1",
   "os": [
     "darwin"
   ],
@@ -11,5 +11,9 @@
   "license": "Apache-2.0",
   "engines": {
     "node": ">= 10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teocloud/teo-nodejs"
   }
 }

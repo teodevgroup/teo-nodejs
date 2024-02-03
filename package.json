@@ -47,15 +47,6 @@
     "version": "napi version"
   },
   "optionalDependencies": {
-    "@teocloud/teo-darwin-arm64": "0.2.1",
-    "@teocloud/teo-darwin-universal": "0.2.1",
-    "@teocloud/teo-darwin-x64": "0.2.1",
-    "@teocloud/teo-linux-arm64-gnu": "0.2.1",
-    "@teocloud/teo-linux-arm64-musl": "0.2.1",
-    "@teocloud/teo-linux-x64-gnu": "0.2.1",
-    "@teocloud/teo-linux-x64-musl": "0.2.1",
-    "@teocloud/teo-win32-arm64-msvc": "0.2.1",
-    "@teocloud/teo-win32-ia32-msvc": "0.2.1",
-    "@teocloud/teo-win32-x64-msvc": "0.2.1"
+
   }
 }

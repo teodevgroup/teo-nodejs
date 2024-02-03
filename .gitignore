@@ -204,3 +204,4 @@ Cargo.lock
 package-lock.json
 
 /Cargo.lock
+/.yarn

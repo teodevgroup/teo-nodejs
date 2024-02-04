@@ -42,8 +42,8 @@
   },
   "scripts": {
     "artifacts": "napi artifacts",
-    "build": "napi build --platform --release --pipe 'node ./scripts/fixFiles.js'",
-    "build:debug": "napi build --platform --pipe 'node ./scripts/fixFiles.js'",
+    "build": "napi build --platform --release --pipe \"node ./scripts/fixFiles.js\"",
+    "build:debug": "napi build --platform --pipe \"node ./scripts/fixFiles.js\"",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "ava",
     "universal": "napi universal",

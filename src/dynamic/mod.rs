@@ -19,6 +19,7 @@ pub fn init(mut _exports: JsObject, _env: Env) -> Result<()> {
     Ok(())
 }
 
+#[allow(invalid_reference_casting)]
 fn classes_mut() -> &'static mut BTreeMap<String, napi::Ref<()>> {
     unsafe {
         let const_ptr = CLASSES.unwrap() as *const BTreeMap<String, napi::Ref<()>>;
@@ -27,6 +28,7 @@ fn classes_mut() -> &'static mut BTreeMap<String, napi::Ref<()>> {
     }
 }
 
+#[allow(invalid_reference_casting)]
 fn objects_mut() -> &'static mut BTreeMap<String, napi::Ref<()>> {
     unsafe {
         let const_ptr = OBJECTS.unwrap() as *const BTreeMap<String, napi::Ref<()>>;
@@ -35,6 +37,7 @@ fn objects_mut() -> &'static mut BTreeMap<String, napi::Ref<()>> {
     }
 }
 
+#[allow(invalid_reference_casting)]
 fn ctxs_mut() -> &'static mut BTreeMap<String, napi::Ref<()>> {
     unsafe {
         let const_ptr = CTXS.unwrap() as *const BTreeMap<String, napi::Ref<()>>;

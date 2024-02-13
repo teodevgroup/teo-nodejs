@@ -271,7 +271,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineHandler")]
+    #[napi(js_name = "defineHandler", ts_args_type = "name: string, callback: (body: any, teo: Any, request: Request) => Response | Promise<Response>")]
     pub fn define_handler(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<request::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<request::Ctx>| {
             let teo_request = ctx.value.request().clone();
@@ -290,7 +290,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineHandlerGroup")]
+    #[napi(js_name = "defineHandlerGroup", ts_args_type = "name: string, callback: (group: HandlerGroup) => void")]
     pub fn define_handler_group(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<HandlerGroup, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<HandlerGroup>| {
             let handler_group = ctx.value;
@@ -305,7 +305,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineModelHandlerGroup")]
+    #[napi(js_name = "defineModelHandlerGroup", ts_args_type = "name: string, callback: (group: HandlerGroup) => void")]
     pub fn define_model_handler_group(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<HandlerGroup, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<HandlerGroup>| {
             let handler_group = ctx.value;

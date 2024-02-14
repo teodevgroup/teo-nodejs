@@ -64,7 +64,7 @@ impl Namespace {
         Namespace{ teo_namespace: self.teo_namespace.namespace_mut_or_create_at_path(&path) }
     }
 
-    #[napi(js_name = "defineModelDecorator", ts_args_type = "name: string, body: (model: Model) => void")]
+    #[napi(js_name = "defineModelDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, model: Model) => void")]
     pub fn define_model_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoModel), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoModel)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
@@ -80,7 +80,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineModelFieldDecorator", ts_args_type = "name: string, body: (field: Field) => void")]
+    #[napi(js_name = "defineModelFieldDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, field: Field) => void")]
     pub fn define_model_field_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoField), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoField)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
@@ -96,7 +96,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineModelRelationDecorator", ts_args_type = "name: string, body: (relation: Relation) => void")]
+    #[napi(js_name = "defineModelRelationDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, relation: Relation) => void")]
     pub fn define_model_relation_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoRelation), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoRelation)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
@@ -112,7 +112,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineModelPropertyDecorator", ts_args_type = "name: string, body: (property: Property) => void")]
+    #[napi(js_name = "defineModelPropertyDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, property: Property) => void")]
     pub fn define_model_property_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoProperty), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoProperty)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
@@ -128,7 +128,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineEnumDecorator", ts_args_type = "name: string, body: (e: Enum) => void")]
+    #[napi(js_name = "defineEnumDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, e: Enum) => void")]
     pub fn define_enum_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoEnum), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoEnum)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
@@ -144,7 +144,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineEnumMemberDecorator", ts_args_type = "name: string, body: (member: EnumMember) => void")]
+    #[napi(js_name = "defineEnumMemberDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, member: EnumMember) => void")]
     pub fn define_enum_member_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoEnumMember), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoEnumMember)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;

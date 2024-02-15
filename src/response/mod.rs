@@ -31,7 +31,7 @@ impl Response {
         }
     }
 
-    #[napi]
+    #[napi(ts_return_type = "Response")]
     pub fn teon(value: JsUnknown, env: Env) -> Result<Self> {
         let teo_value = js_any_to_teo_object(value, env)?.as_teon().unwrap().clone();
         let response = TeoResponse::teon(teo_value);
@@ -45,7 +45,7 @@ impl Response {
         Self::string(content, "text/html".to_owned())
     }
 
-    #[napi]
+    #[napi(ts_return_type = "Response")]
     pub fn data(value: JsUnknown, env: Env) -> Result<Self> {
         let teo_value = js_any_to_teo_object(value, env)?.as_teon().unwrap().clone();
         let response = TeoResponse::data(teo_value);
@@ -54,7 +54,7 @@ impl Response {
         })
     }
     
-    #[napi(js_name = "dataMeta")]
+    #[napi(js_name = "dataMeta", return_type = "Response")]
     pub fn data_meta(data: JsUnknown, meta: JsUnknown, env: Env) -> Result<Self> {
         let teo_data = js_any_to_teo_object(data, env)?.as_teon().unwrap().clone();
         let teo_meta = js_any_to_teo_object(meta, env)?.as_teon().unwrap().clone();

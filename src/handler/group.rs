@@ -11,7 +11,7 @@ pub struct HandlerGroup {
 #[napi]
 impl HandlerGroup {
 
-    #[napi(js_name = "defineHandler", ts_args_type = "name: string, callback: (body: any, teo: Any, request: Request) => Response | Promise<Response>")]
+    #[napi(js_name = "defineHandler", ts_args_type = "name: string, callback: (body: any, teo: any, request: Request) => Response | Promise<Response>")]
     pub fn define_handler(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<request::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<request::Ctx>| {
             let teo_request = ctx.value.request().clone();

@@ -309,8 +309,8 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             let model_ctx_cloned = model_ctx.clone();
             let promise = ctx.env.execute_tokio_future((|| async move {
                 Ok(model_ctx_cloned.count(&teo_value).await.unwrap())
-            })(), |_env, result: usize| {
-                Ok(result as u32)
+            })(), |env, object: TeoValue| {
+                teo_value_to_js_any(&object, env)
             })?;
             Ok(promise)
         })?;

@@ -30,12 +30,12 @@ export class Namespace {
   namespaceOrCreate(name: string): Namespace
   namespaceAtPath(path: Array<string>): Namespace | null
   namespaceOrCreateAtPath(path: Array<string>): Namespace
-  defineModelDecorator(name: string, body: (model: Model) => void): void
-  defineModelFieldDecorator(name: string, body: (field: Field) => void): void
-  defineModelRelationDecorator(name: string, body: (relation: Relation) => void): void
-  defineModelPropertyDecorator(name: string, body: (property: Property) => void): void
-  defineEnumDecorator(name: string, body: (e: Enum) => void): void
-  defineEnumMemberDecorator(name: string, body: (member: EnumMember) => void): void
+  defineModelDecorator(name: string, body: (args: {[key: string]: any}, model: Model) => void): void
+  defineModelFieldDecorator(name: string, body: (args: {[key: string]: any}, field: Field) => void): void
+  defineModelRelationDecorator(name: string, body: (args: {[key: string]: any}, relation: Relation) => void): void
+  defineModelPropertyDecorator(name: string, body: (args: {[key: string]: any}, property: Property) => void): void
+  defineEnumDecorator(name: string, body: (args: {[key: string]: any}, e: Enum) => void): void
+  defineEnumMemberDecorator(name: string, body: (args: {[key: string]: any}, member: EnumMember) => void): void
   definePipelineItem(name: string, body: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>): void
   defineTransformPipelineItem(name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>): void
   defineValidatorPipelineItem(name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>): void

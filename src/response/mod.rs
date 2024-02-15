@@ -54,7 +54,7 @@ impl Response {
         })
     }
     
-    #[napi(js_name = "dataMeta", return_type = "Response")]
+    #[napi(js_name = "dataMeta", ts_return_type = "Response")]
     pub fn data_meta(data: JsUnknown, meta: JsUnknown, env: Env) -> Result<Self> {
         let teo_data = js_any_to_teo_object(data, env)?.as_teon().unwrap().clone();
         let teo_meta = js_any_to_teo_object(meta, env)?.as_teon().unwrap().clone();

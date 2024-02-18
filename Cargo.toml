@@ -7,7 +7,7 @@ version = "0.2.4"
 crate-type = ["cdylib"]
 
 [dependencies]
-teo = { version = "0.2.4", path = "../teo" }
+teo = { version = "0.2.4" }
 napi = { version = "2.14.1", default-features = false, features = ["napi5", "async", "chrono_date", "compat-mode"] }
 napi-derive = "2.14.4"
 chrono = { version = "0.4.31" }

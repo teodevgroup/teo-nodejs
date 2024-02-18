@@ -1,5 +1,5 @@
 use teo::prelude::request::Ctx as TeoRequestCtx;
-use napi::{Env, Result, JsUnknown};
+use napi::{Env, JsObject, JsUnknown, Result};
 use crate::dynamic::js_ctx_object_from_teo_transaction_ctx;
 use crate::object::value::teo_value_to_js_any;
 
@@ -27,18 +27,23 @@ impl RequestCtx {
         }
     }
 
-    #[napi]
+    #[napi(ts_return_type = "any")]
     pub fn body(&self, env: Env) -> Result<JsUnknown> {
         teo_value_to_js_any(self.teo_inner.body(), &env)
     }
 
-    #[napi]
+    #[napi(ts_return_type = "any")]
     pub fn teo(&self, env: Env) -> Result<JsUnknown> {
         Ok(js_ctx_object_from_teo_transaction_ctx(env, self.teo_inner.transaction_ctx(), "")?.into_unknown())
     }
 
     #[napi]
-    pub fn handler_match(&'static self, env: Env) -> HandlerMatch {
+    pub fn handler_match(&'static self) -> HandlerMatch {
         HandlerMatch::new(self.teo_inner.handler_match())
+    }
+
+    #[napi(ts_return_type = "any")]
+    pub fn path_arguments(&'static self, env: Env) -> Result<JsObject> {
+        self.handler_match().captures(env)
     }
 }

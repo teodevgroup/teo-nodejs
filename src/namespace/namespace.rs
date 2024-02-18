@@ -17,7 +17,7 @@ use crate::object::arguments::teo_args_to_js_args;
 use crate::object::value::teo_value_to_js_any;
 use crate::r#enum::member::member::EnumMember;
 use crate::r#enum::r#enum::Enum;
-use crate::request::Request;
+use crate::request::{Request, RequestCtx};
 use crate::response::response_or_promise::ResponseOrPromise;
 use crate::result::IntoTeoResult;
 
@@ -271,16 +271,13 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineHandler", ts_args_type = "name: string, callback: (body: any, teo: any, request: Request) => Response | Promise<Response>")]
+    #[napi(js_name = "defineHandler", ts_args_type = "name: string, callback: (ctx: RequestCtx) => Response | Promise<Response>")]
     pub fn define_handler(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<request::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<request::Ctx>| {
-            let teo_request = ctx.value.request().clone();
-            let request = Request::new(teo_request);
-            let request_instance = request.into_instance(ctx.env)?;
-            let request_unknown = request_instance.as_object(ctx.env).into_unknown();
-            let body = teo_value_to_js_any(&ctx.value.body(), &ctx.env)?;
-            let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.transaction_ctx(), "")?.into_unknown();
-            Ok(vec![body, js_ctx, request_unknown])
+            let request_ctx = RequestCtx::new(ctx.value.clone());
+            let request_ctx_instance = request_ctx.into_instance(ctx.env)?;
+            let request_ctx_unknown = request_ctx_instance.as_object(ctx.env).into_unknown();
+            Ok(vec![request_ctx_unknown])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
         self.teo_namespace.define_handler(name.as_str(), move |ctx: request::Ctx| async move {

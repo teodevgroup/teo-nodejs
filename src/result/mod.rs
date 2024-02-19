@@ -71,6 +71,7 @@ impl<T> IntoTeoPathResult<T> for napi::Result<T> {
         match self {
             Ok(r) => Ok(r),
             Err(e) => {
+                println!("herre error");
                 let mut error = teo::prelude::path::Error::internal_server_error_message_only(e.reason.as_str());
                 error.insert_meta("nodejs", e);
                 Err(error)

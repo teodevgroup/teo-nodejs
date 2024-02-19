@@ -115,7 +115,7 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                     let number: JsFunction = global.get_named_property("Number")?;
                     let milliseconds = number.new_instance(&[object])?.coerce_to_number()?.get_int64()?;
                     let ts_secs = milliseconds / 1000;
-                    let ts_ns = (milliseconds % 1000) * 1_000_000 ;
+                    let ts_ns = (milliseconds % 1000) * 1_000_000;
                     let datetime = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(ts_secs, ts_ns as u32), Utc);
                     return Ok(TeoObject::from(TeoValue::DateTime(datetime)));
                 }

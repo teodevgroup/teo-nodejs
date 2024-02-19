@@ -42,7 +42,7 @@ pub fn teo_value_to_js_any(value: &TeoValue, env: &Env) -> Result<JsUnknown> {
             let instance = DateOnly { value: date.clone() }.into_instance(*env)?;
             instance.as_object(*env).into_unknown()
         }
-        Value::DateTime(datetime) => env.create_date(datetime.timestamp() as f64)?.into_unknown(),
+        Value::DateTime(datetime) => env.create_date(datetime.timestamp_millis() as f64)?.into_unknown(),
         Value::Array(array) => {
             let mut js_array = env.create_array_with_length(array.len())?;
             for (i, value) in array.iter().enumerate() {

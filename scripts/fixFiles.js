@@ -58,6 +58,14 @@ DateOnly.prototype[customInspectSymbol] = function(_, inspectOptions) {
 ObjectId.prototype[customInspectSymbol] = function(_, inspectOptions) {
   return "ObjectId(\\\"" + this.toString() + "\\\")"
 }
+Namespace.prototype.defineHandler = function(name, callback) {
+  this._defineHandler(name, function(e, arg) {
+    if (e != null) {
+      throw e
+    }  
+    return callback(arg)
+  })
+}
 globalThis.require = require
 process.on('SIGINT', function() { process.exit(0) })
 `
@@ -72,7 +80,7 @@ function fixIndexDTs(filename) {
   let content = readFileSync(filename).toString()
   content = content.replace("_run(): Promise<void>", `_run(): Promise<void>
   /** Run this app. */
-  run(): Promise<void>`)
+  run(): Promise<void>`).replaceAll("_defineHandler", "defineHandler")
   writeFileSync(filename, content)
 }
 

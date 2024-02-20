@@ -378,5 +378,13 @@ DateOnly.prototype[customInspectSymbol] = function(_, inspectOptions) {
 ObjectId.prototype[customInspectSymbol] = function(_, inspectOptions) {
   return "ObjectId(\"" + this.toString() + "\")"
 }
+Namespace.prototype.defineHandler = function(name, callback) {
+  this._defineHandler(name, function(e, arg) {
+    if (e != null) {
+      throw e
+    }  
+    return callback(arg)
+  })
+}
 globalThis.require = require
 process.on('SIGINT', function() { process.exit(0) })

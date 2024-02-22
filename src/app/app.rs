@@ -1,4 +1,4 @@
-use teo::prelude::{App as TeoApp, Entrance, RuntimeVersion, transaction};
+use teo::prelude::{App as TeoApp, app::Ctx as TeoAppCtx, Entrance, RuntimeVersion, transaction};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown};
 use crate::dynamic::{synthesize_dynamic_nodejs_classes, js_ctx_object_from_teo_transaction_ctx};
@@ -28,7 +28,15 @@ impl App {
         let process: JsObject = global.get_named_property("process")?;
         let version: JsString = process.get_named_property("version")?;
         let version_str: String = version.into_utf8()?.as_str()?.to_owned();
+        let argv: JsObject = process.get_named_property("argv")?;
+        let mut rust_argv = vec![];
+        let len = argv.get_array_length()?;
+        for i in 0..len {
+            let name: JsString = argv.get_element(i)?;
+            rust_argv.push(name.into_utf8()?.as_str()?.to_owned());
+        }
         let entrance = if cli { Entrance::CLI } else { Entrance::APP };
+        TeoAppCtx::set_argv(rust_argv);
         let app = App { teo_app: TeoApp::new_with_entrance_and_runtime_version(Some(entrance), Some(RuntimeVersion::NodeJS(version_str))).unwrap() };
         Ok(app)
     }

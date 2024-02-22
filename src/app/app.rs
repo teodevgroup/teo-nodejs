@@ -36,8 +36,7 @@ impl App {
             rust_argv.push(name.into_utf8()?.as_str()?.to_owned());
         }
         let entrance = if cli { Entrance::CLI } else { Entrance::APP };
-        TeoAppCtx::set_argv(rust_argv);
-        let app = App { teo_app: TeoApp::new_with_entrance_and_runtime_version(Some(entrance), Some(RuntimeVersion::NodeJS(version_str))).unwrap() };
+        let app = App { teo_app: TeoApp::new_with_entrance_and_runtime_version(Some(entrance), Some(RuntimeVersion::NodeJS(version_str)), Some(rust_argv)).unwrap() };
         Ok(app)
     }
 

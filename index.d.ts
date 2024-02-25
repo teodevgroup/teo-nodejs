@@ -156,3 +156,10 @@ export class Enum {
   setData(key: string, value: unknown): void
   data(key: string): unknown
 }
+export class TeoError extends Error {
+  constructor(message: string, code?: number)
+  public title?: string
+  public code?: number
+  public fields?: { [key: string]: string }
+  public prefixes?: string[]
+}

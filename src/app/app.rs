@@ -1,4 +1,4 @@
-use teo::prelude::{App as TeoApp, app::Ctx as TeoAppCtx, Entrance, RuntimeVersion, transaction};
+use teo::prelude::{App as TeoApp, Entrance, RuntimeVersion, transaction};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown};
 use crate::dynamic::{synthesize_dynamic_nodejs_classes, js_ctx_object_from_teo_transaction_ctx};

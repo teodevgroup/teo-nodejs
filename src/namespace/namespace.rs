@@ -19,7 +19,9 @@ use crate::r#enum::member::member::EnumMember;
 use crate::r#enum::r#enum::Enum;
 use crate::request:: RequestCtx;
 use crate::response::response_or_promise::ResponseOrPromise;
-use crate::result::{IntoTeoPathResult, IntoTeoResult};
+use crate::result::IntoTeoResult;
+use teo::prelude::error_runtime_ext::ErrorRuntimeExt;
+
 
 #[napi(js_name = "Namespace")]
 pub struct Namespace {
@@ -281,8 +283,8 @@ impl Namespace {
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
         self.teo_namespace.define_handler(name.as_str(), move |ctx: request::Ctx| async move {
-            let response_unknown: ResponseOrPromise = tsfn_cloned.call_async(Ok(ctx)).await.into_teo_path_result()?;
-            Ok::<TeoResponse, teo::prelude::path::Error>(response_unknown.to_teo_response().await.into_teo_path_result()?)
+            let response_unknown: ResponseOrPromise = tsfn_cloned.call_async(Ok(ctx)).await.into_teo_result()?;
+            Ok::<TeoResponse, teo::prelude::Error>(response_unknown.to_teo_response().await.into_teo_result()?)
         });
         Ok(())
     }

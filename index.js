@@ -386,5 +386,21 @@ Namespace.prototype.defineHandler = function(name, callback) {
     return callback(arg)
   })
 }
+HandlerGroup.prototype.defineHandler = function(name, callback) {
+  this._defineHandler(name, function(e, arg) {
+    if (e != null) {
+      throw e
+    }  
+    return callback(arg)
+  })
+}
+class TeoError extends Error {
+  constructor(message, code = 500) {
+    super(message)
+    this.code = code
+  }
+}
+module.exports.TeoError = TeoError
+
 globalThis.require = require
 process.on('SIGINT', function() { process.exit(0) })

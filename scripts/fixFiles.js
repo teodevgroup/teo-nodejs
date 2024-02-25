@@ -66,6 +66,22 @@ Namespace.prototype.defineHandler = function(name, callback) {
     return callback(arg)
   })
 }
+HandlerGroup.prototype.defineHandler = function(name, callback) {
+  this._defineHandler(name, function(e, arg) {
+    if (e != null) {
+      throw e
+    }  
+    return callback(arg)
+  })
+}
+class TeoError extends Error {
+  constructor(message, code = 500) {
+    super(message)
+    this.code = code
+  }
+}
+module.exports.TeoError = TeoError
+
 globalThis.require = require
 process.on('SIGINT', function() { process.exit(0) })
 `
@@ -81,6 +97,14 @@ function fixIndexDTs(filename) {
   content = content.replace("_run(): Promise<void>", `_run(): Promise<void>
   /** Run this app. */
   run(): Promise<void>`).replaceAll("_defineHandler", "defineHandler")
+  content += `export class TeoError extends Error {
+  constructor(message: string, code?: number)
+  public title?: string
+  public code?: number
+  public fields?: { [key: string]: string }
+  public prefixes?: string[]
+}
+`
   writeFileSync(filename, content)
 }
 

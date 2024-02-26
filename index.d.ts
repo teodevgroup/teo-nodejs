@@ -160,6 +160,6 @@ export class TeoError extends Error {
   constructor(message: string, code?: number)
   public title?: string
   public code?: number
-  public fields?: { [key: string]: string }
+  public errors?: { [key: string]: string }
   public prefixes?: string[]
 }

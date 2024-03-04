@@ -8,8 +8,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 teo = { version = "0.2.10" }
-napi = { version = "2.15.1", default-features = false, features = ["napi5", "async", "chrono_date", "compat-mode"] }
-napi-derive = "2.15.1"
+napi = { version = "2.16.0", default-features = false, features = ["napi5", "async", "chrono_date", "compat-mode"] }
+napi-derive = "2.16.0"
 chrono = { version = "0.4.31" }
 bigdecimal = "=0.3.1"
 once_cell = "1.19"

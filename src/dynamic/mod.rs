@@ -473,7 +473,8 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
         })?;
         let require: JsFunction = env.get_global()?.get_named_property("require")?;
         let util = require.call(None, &[env.create_string("node:util").unwrap().into_unknown()])?.coerce_to_object()?;
-        let inspect: JsObject = util.get_named_property("inspect")?;
+        let inspect_f: JsFunction = util.get_named_property("inspect")?;
+        let inspect: JsObject = inspect_f.coerce_to_object()?;
         let custom: JsSymbol = inspect.get_named_property("custom")?;
         object_prototype.set_property(custom, inspect_func)?;
         // toString

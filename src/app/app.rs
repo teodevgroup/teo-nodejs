@@ -60,22 +60,16 @@ impl App {
     /// @internal
     #[napi(js_name = "_run", ts_return_type="Promise<void>")]
     pub fn _run(&self, env: Env) -> Result<JsObject> {
-        println!("run 1");
         // synthesize dynamic running classes for Node.js
         synthesize_dynamic_nodejs_classes(&self.teo_app, env)?;
-        println!("run 2");
         let static_self: &'static App = unsafe { &*(self as * const App) };
-        println!("run 3");
         let promise: JsObject = env.execute_tokio_future((|| async {
         // the CLI parsing and dispatch process
-        println!("run 4");
         static_self.teo_app.run_without_prepare().await.into_nodejs_result()?;
-        println!("run inner 0");
             Ok(0)
         })(), |env: &mut Env, _unknown: i32| {
             env.get_undefined()
         })?;
-        println!("run 5");
         Ok(promise)
     }
 

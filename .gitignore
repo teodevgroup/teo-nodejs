@@ -203,6 +203,5 @@ Cargo.lock
 # package lock
 package-lock.json
 
-/Cargo.lock
 /.yarn
 /.yarnrc.yml

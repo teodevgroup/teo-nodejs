@@ -3775,9 +3775,9 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.2.10"
+version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54534ec8d8c403d2900ae51d7a43a022991eeb29baf4a21cb611826f614475ff"
+checksum = "bc9e7bc9ed3a0c0488e30807d06aa3b6578f30ff3e119e66acc5c521ed67de1c"
 dependencies = [
  "actix-files",
  "actix-http",

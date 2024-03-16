@@ -193,7 +193,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
     let mut ctx_prototype: JsObject = ctx_ctor_object.get_named_property("prototype")?;
     for model in namespace.models.values() {
         let model_name = model.path().join(".");
-        let lowercase_model_name = model_name.to_lowercase();
+        let lowercase_model_name = model_name.to_camel_case();
         let ctx_property = Property::new(&lowercase_model_name)?.with_getter_closure(|env: Env, this: JsObject| {
             let model_name = model.path().join(".");
             let transaction_ctx: &mut transaction::Ctx = env.unwrap(&this)?;

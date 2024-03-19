@@ -175,7 +175,7 @@ impl Namespace {
             let model_object = ctx.object().clone();
             let transaction_ctx = ctx.transaction_ctx().clone();
             let result: TeoObjectOrPromise = tsfn_cloned.call_async((object, args, model_object, transaction_ctx)).await?;
-            result.to_teo_object().await.
+            Ok(result.to_teo_object().await?)
         });
         Ok(())
     }

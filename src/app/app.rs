@@ -4,7 +4,6 @@ use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown};
 use crate::dynamic::{synthesize_dynamic_nodejs_classes, js_ctx_object_from_teo_transaction_ctx};
 use crate::namespace::Namespace;
 use crate::object::promise_or_ignore::PromiseOrIgnore;
-use crate::result::{IntoNodeJSResult, IntoTeoResult};
 
 #[napi]
 pub struct App {
@@ -46,7 +45,7 @@ impl App {
         let static_self: &'static App = unsafe { &*(self as * const App) };
         let js_function = env.create_function_from_closure("run", |ctx| {
             let promise = ctx.env.execute_tokio_future((|| async {
-                static_self.teo_app.prepare_for_run().await.into_nodejs_result()?;
+                static_self.teo_app.prepare_for_run().await?;
                 Ok(0)
             })(), |env: &mut Env, _unknown: i32| {
                 env.get_undefined()
@@ -65,7 +64,7 @@ impl App {
         let static_self: &'static App = unsafe { &*(self as * const App) };
         let promise: JsObject = env.execute_tokio_future((|| async {
         // the CLI parsing and dispatch process
-        static_self.teo_app.run_without_prepare().await.into_nodejs_result()?;
+        static_self.teo_app.run_without_prepare().await?;
             Ok(0)
         })(), |env: &mut Env, _unknown: i32| {
             env.get_undefined()
@@ -82,8 +81,8 @@ impl App {
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));
         self.teo_app.setup(|ctx: transaction::Ctx| async {
-            let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await.into_teo_result()?;
-            Ok(promise_or_ignore.to_ignore().await.into_teo_result()?)
+            let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await?;
+            Ok(promise_or_ignore.to_ignore().await?)
         });
         Ok(())
     }
@@ -97,8 +96,8 @@ impl App {
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));
         self.teo_app.program(name.as_str(), |ctx: transaction::Ctx| async {
-            let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await.into_teo_result()?;
-            Ok(promise_or_ignore.to_ignore().await.into_teo_result()?)
+            let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await?;
+            Ok(promise_or_ignore.to_ignore().await?)
         });
         Ok(())
     }

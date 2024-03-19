@@ -4,7 +4,7 @@ use teo::prelude::{App, model, transaction, Namespace, object::Object as TeoObje
 use std::collections::BTreeMap;
 use inflector::Inflector;
 
-use crate::{object::{js_any_to_teo_object, teo_object_to_js_any, unknown::{SendJsUnknown, SendJsUnknownOrPromise}, value::teo_value_to_js_any}, result::{IntoNodeJSResult, IntoTeoResult}};
+use crate::{object::{js_any_to_teo_object, teo_object_to_js_any, unknown::{SendJsUnknown, SendJsUnknownOrPromise}, value::teo_value_to_js_any}};
 
 static mut CTXS: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
 static mut CLASSES: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
@@ -704,9 +704,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
         let wrapped_teo_ctx: &'static transaction::Ctx = unsafe { &*(wrapped_teo_ctx_shortlive as * const transaction::Ctx) };
         let promise = ctx.env.execute_tokio_future((|| async {
             let result = wrapped_teo_ctx.run_transaction(|teo: transaction::Ctx| async {
-                let retval: SendJsUnknownOrPromise = wrapper_thread_safe_longlive.call_async(teo).await.into_teo_result()?;
+                let retval: SendJsUnknownOrPromise = wrapper_thread_safe_longlive.call_async(teo).await?;
                 Ok(retval.to_send_js_unknown().await)
-            }).await.into_nodejs_result()?;
+            }).await?;
             result
         })(), |_: &mut Env, unknown: SendJsUnknown| {
             Ok(unknown.inner)

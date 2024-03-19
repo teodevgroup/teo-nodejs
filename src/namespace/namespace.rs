@@ -19,8 +19,6 @@ use crate::r#enum::member::member::EnumMember;
 use crate::r#enum::r#enum::Enum;
 use crate::request:: RequestCtx;
 use crate::response::response_or_promise::ResponseOrPromise;
-use crate::result::IntoTeoResult;
-use teo::prelude::error_runtime_ext::ErrorRuntimeExt;
 
 
 #[napi(js_name = "Namespace")]
@@ -176,8 +174,8 @@ impl Namespace {
             let object = ctx.value().clone();
             let model_object = ctx.object().clone();
             let transaction_ctx = ctx.transaction_ctx().clone();
-            let result: TeoObjectOrPromise = tsfn_cloned.call_async((object, args, model_object, transaction_ctx)).await.into_teo_result()?;
-            result.to_teo_object().await.into_teo_result()
+            let result: TeoObjectOrPromise = tsfn_cloned.call_async((object, args, model_object, transaction_ctx)).await?;
+            result.to_teo_object().await.
         });
         Ok(())
     }
@@ -198,8 +196,8 @@ impl Namespace {
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
         self.teo_namespace.define_validator_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| async move {
-            let result: TeoObjectOrPromise = tsfn_cloned.call_async((value, args, ctx.object().clone(), ctx.transaction_ctx())).await.into_teo_result()?;
-            let teo_value = result.to_teo_object().await.into_teo_result()?;
+            let result: TeoObjectOrPromise = tsfn_cloned.call_async((value, args, ctx.object().clone(), ctx.transaction_ctx())).await?;
+            let teo_value = result.to_teo_object().await?;
             if let Some(teon_value) = teo_value.as_teon() {
                 Ok::<Validity, teo::prelude::Error>(match teon_value {
                     TeoValue::String(s) => {
@@ -233,8 +231,8 @@ impl Namespace {
         self.teo_namespace.define_callback_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| async move {
             let model_object = ctx.object().clone();
             let transaction_ctx = ctx.transaction_ctx().clone();
-            let result: TeoObjectOrPromise = tsfn_cloned.call_async((value, args, model_object, transaction_ctx)).await.into_teo_result()?;
-            result.to_teo_object().await.into_teo_result()?;
+            let result: TeoObjectOrPromise = tsfn_cloned.call_async((value, args, model_object, transaction_ctx)).await?;
+            result.to_teo_object().await?;
             Ok(())
         });
         Ok(())
@@ -252,8 +250,8 @@ impl Namespace {
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
         self.teo_namespace.define_compare_pipeline_item(Box::leak(Box::new(name)).as_str(), move |old: TeoValue, new: TeoValue, args: TeoArgs, object: TeoObject, ctx: pipeline::Ctx| async move {
-            let result: TeoObjectOrPromise = tsfn_cloned.call_async((old, new, args, ctx.object().clone(), ctx.transaction_ctx())).await.into_teo_result()?;
-            let teo_value = result.to_teo_object().await.into_teo_result()?;
+            let result: TeoObjectOrPromise = tsfn_cloned.call_async((old, new, args, ctx.object().clone(), ctx.transaction_ctx())).await?;
+            let teo_value = result.to_teo_object().await?;
             if let Some(teon_value) = teo_value.as_teon() {
                 Ok::<Validity, teo::prelude::Error>(match teon_value {
                     TeoValue::String(s) => {
@@ -283,8 +281,8 @@ impl Namespace {
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
         self.teo_namespace.define_handler(name.as_str(), move |ctx: request::Ctx| async move {
-            let response_unknown: ResponseOrPromise = tsfn_cloned.call_async(Ok(ctx)).await.into_teo_result()?;
-            Ok::<TeoResponse, teo::prelude::Error>(response_unknown.to_teo_response().await.into_teo_result()?)
+            let response_unknown: ResponseOrPromise = tsfn_cloned.call_async(Ok(ctx)).await?;
+            Ok::<TeoResponse, teo::prelude::Error>(response_unknown.to_teo_response().await?)
         });
         Ok(())
     }
@@ -327,10 +325,10 @@ impl Namespace {
         })?;
         let threadsafe_callback: &'static ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = &*Box::leak(Box::new(threadsafe_callback));
         self.teo_namespace.define_middleware(name.as_str(), move |arguments| async move {
-            let middleware_function: SendMiddlewareCallback = threadsafe_callback.call_async(arguments).await.into_teo_result()?;
+            let middleware_function: SendMiddlewareCallback = threadsafe_callback.call_async(arguments).await?;
             let wrapped_result = move |ctx: teo::prelude::request::Ctx, next: &'static dyn Next| async move {
-                let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async((ctx.clone(), SendNext::new(next))).await.into_teo_result()?;
-                let res = res_or_promise.to_teo_response().await.into_teo_result()?;
+                let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async((ctx.clone(), SendNext::new(next))).await?;
+                let res = res_or_promise.to_teo_response().await?;
                 return Ok(res);
             };
             let wrapped_box = Box::new(wrapped_result);

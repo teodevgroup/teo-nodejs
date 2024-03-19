@@ -21,7 +21,7 @@ impl FromNapiValue for SendMiddlewareCallback {
                 let teo_next = ctx.value.1;
                 let teo_next = teo_next.next();
                 let promise = ctx.env.execute_tokio_future((move || async move {
-                    let result = teo_next.call(teo_request_ctx).await.into_nodejs_result()?;
+                    let result = teo_next.call(teo_request_ctx).await?;
                     Ok(result)
                 })(), |env: &mut Env, response: TeoResponse| {
                     Ok(Response {

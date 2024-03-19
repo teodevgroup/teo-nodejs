@@ -1,8 +1,7 @@
 use napi::{Result, JsFunction, threadsafe_function::{ThreadSafeCallContext, ErrorStrategy, ThreadsafeFunction}};
 use teo::prelude::{handler::Group as TeoHandlerGroup, request, Response as TeoResponse};
-use teo::prelude::error_runtime_ext::ErrorRuntimeExt;
 
-use crate::{request::RequestCtx, response::response_or_promise::ResponseOrPromise, result::IntoTeoResult};
+use crate::{request::RequestCtx, response::response_or_promise::ResponseOrPromise};
 
 #[napi(js_name = "HandlerGroup")]
 pub struct HandlerGroup {
@@ -22,8 +21,8 @@ impl HandlerGroup {
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
         self.teo_handler_group.define_handler(name.as_str(), move |ctx: request::Ctx| async move {
-            let response_unknown: ResponseOrPromise = tsfn_cloned.call_async(Ok(ctx)).await.into_teo_result()?;
-            Ok::<TeoResponse, teo::prelude::Error>(response_unknown.to_teo_response().await.into_teo_result()?)
+            let response_unknown: ResponseOrPromise = tsfn_cloned.call_async(Ok(ctx)).await?;
+            Ok::<TeoResponse, teo::prelude::Error>(response_unknown.to_teo_response().await?)
         });
         Ok(())
     }

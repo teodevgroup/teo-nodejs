@@ -422,18 +422,18 @@ class TeoError extends Error {
   }
   get errors() { return this._errors }
   messagePrefixed(prefix) {
-    return new TeoError(this.code, this.errors ? this.errorMessage : prefix + ': ' + this.errorMessage, this.errors ? Object.fromEntries(
-      Object.entries(this.errors).map(([key, value]) => [key, prefix + ": " + value)])
+    return new TeoError(this.errors ? this.errorMessage : prefix + ': ' + this.errorMessage, this.code, this.errors ? Object.fromEntries(
+      Object.entries(this.errors).map(([key, value]) => [key, prefix + ": " + value])
     ) : null)
   }
   pathPrefixed(prefix) {
-    return new TeoError(this.code, this.errorMessage, this.errors ? Object.fromEntries(
-      Object.entries(this.errors).map(([key, value]) => [prefix + "." + key, value)])
+    return new TeoError(this.errorMessage, this.code, this.errors ? Object.fromEntries(
+      Object.entries(this.errors).map(([key, value]) => [prefix + "." + key, value])
     ) : null)
   }
   mapPath(mapper) {
-    return new TeoError(this.code, this.errorMessage, this.errors ? Object.fromEntries(
-      Object.entries(this.errors).map(([key, value]) => [mapper(key), value)])
+    return new TeoError(this.errorMessage, this.code, this.errors ? Object.fromEntries(
+      Object.entries(this.errors).map(([key, value]) => [mapper(key), value])
     ) : null)    
   }
 }

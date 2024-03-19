@@ -156,10 +156,19 @@ export class Enum {
   setData(key: string, value: unknown): void
   data(key: string): unknown
 }
+interface ErrorExt {
+
+}
 export class TeoError extends Error {
-  constructor(message: string, code: number = 500)
-  public code: number
-  public errorMessage: string
-  public errors?: { [key: string]: string }
-  public get message(): string
+  constructor(message: string, code: number = 500, errors: { [key: string]: string } | null = null)
+  public get code(): number
+  public get errorMessage(): string
+  public get errors(): { [key: string]: string } | null
+  public messagePrefixed(prefix: string): TeoError
+  public pathPrefixed(prefix: string): TeoError
+  public mapPath(mapper: (string) => string): TeoError
+  static public notFound(message: string = "not found"): TeoError
+  static public invalidRequest(message: string = "value is invalid"): TeoError
+  static public internalServerError(message: string = "internal server error"): TeoError
+  static public unauthorized(message: string = "unauthorized"): TeoError
 }

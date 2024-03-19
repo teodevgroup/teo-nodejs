@@ -395,17 +395,52 @@ HandlerGroup.prototype.defineHandler = function(name, callback) {
   })
 }
 class TeoError extends Error {
-  constructor(message, code = 500) {
-    this.code = code
-    this.errorMessage = message
-    this.errors = undefined
-    super(this.errorMessage)
+  constructor(message, code = 500, errors = null) {
+    super("")
+    this.name = "TeoError"
+    this._code = code
+    this._errorMessage = message
+    this._errors = errors
+    this.message = this.buildMessage()
   }
-
-  get message() {
+  buildMessage() {
     return JSON.stringify({code: this.code, message: this.errorMessage, errors: this.errors })
   }
+  set code(newValue) { 
+    this._code = newValue 
+    this.message = this.buildMessage()
+  }
+  get code() { return this._code }
+  set errorMessage(newValue) {
+    this._errorMessage = newValue
+    this.message = this.buildMessage()
+  } 
+  get errorMessage() { return this._errorMessage }
+  set errors(newValue) {
+    this._errors = newValue
+    this.message = this.buildMessage()
+  }
+  get errors() { return this._errors }
+  messagePrefixed(prefix) {
+    return new TeoError(this.code, this.errors ? this.errorMessage : prefix + ': ' + this.errorMessage, this.errors ? Object.fromEntries(
+      Object.entries(this.errors).map(([key, value]) => [key, prefix + ": " + value)])
+    ) : null)
+  }
+  pathPrefixed(prefix) {
+    return new TeoError(this.code, this.errorMessage, this.errors ? Object.fromEntries(
+      Object.entries(this.errors).map(([key, value]) => [prefix + "." + key, value)])
+    ) : null)
+  }
+  mapPath(mapper) {
+    return new TeoError(this.code, this.errorMessage, this.errors ? Object.fromEntries(
+      Object.entries(this.errors).map(([key, value]) => [mapper(key), value)])
+    ) : null)    
+  }
 }
+TeoError.notFound = (message = "not found") => new TeoError(message, 404)
+TeoError.invalidRequest = (message = "value is invalid") => new TeoError(message, 400)
+TeoError.internalServerError = (message = "internal server error") => new TeoError(message, 500)
+TeoError.unauthorized = (message = "unauthorized") => new TeoError(message, 401)
 module.exports.TeoError = TeoError
 
 globalThis.require = require

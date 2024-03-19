@@ -157,9 +157,9 @@ export class Enum {
   data(key: string): unknown
 }
 export class TeoError extends Error {
-  constructor(message: string, code?: number)
-  public title?: string
-  public code?: number
+  constructor(message: string, code: number = 500)
+  public code: number
+  public errorMessage: string
   public errors?: { [key: string]: string }
-  public prefixes?: string[]
+  public get message(): string
 }

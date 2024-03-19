@@ -396,8 +396,14 @@ HandlerGroup.prototype.defineHandler = function(name, callback) {
 }
 class TeoError extends Error {
   constructor(message, code = 500) {
-    super(message)
     this.code = code
+    this.errorMessage = message
+    this.errors = undefined
+    super(this.errorMessage)
+  }
+
+  get message() {
+    return JSON.stringify({code: this.code, message: this.errorMessage, errors: this.errors })
   }
 }
 module.exports.TeoError = TeoError

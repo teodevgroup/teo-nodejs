@@ -76,8 +76,14 @@ HandlerGroup.prototype.defineHandler = function(name, callback) {
 }
 class TeoError extends Error {
   constructor(message, code = 500) {
-    super(message)
     this.code = code
+    this.errorMessage = message
+    this.errors = undefined
+    super(this.errorMessage)
+  }
+
+  get message() {
+    return JSON.stringify({code: this.code, message: this.errorMessage, errors: this.errors })
   }
 }
 module.exports.TeoError = TeoError
@@ -98,11 +104,11 @@ function fixIndexDTs(filename) {
   /** Run this app. */
   run(): Promise<void>`).replaceAll("_defineHandler", "defineHandler")
   content += `export class TeoError extends Error {
-  constructor(message: string, code?: number)
-  public title?: string
-  public code?: number
+  constructor(message: string, code: number = 500)
+  public code: number
+  public errorMessage: string
   public errors?: { [key: string]: string }
-  public prefixes?: string[]
+  public get message(): string
 }
 `
   writeFileSync(filename, content)

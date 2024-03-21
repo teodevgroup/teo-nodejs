@@ -161,7 +161,7 @@ impl Namespace {
 
     #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
     pub fn define_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let tsfn: ThreadsafeFunction<(TeoObject, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoObject, TeoArgs, model::Object, transaction::Ctx)>| {
+        let tsfn: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
             let js_value = teo_value_to_js_any(&ctx.value.0, &ctx.env)?;
             let js_args = teo_args_to_js_args(&ctx.value.1, &ctx.env)?;
             let js_object = js_model_object_from_teo_model_object(ctx.env, ctx.value.2.clone())?;
@@ -197,21 +197,17 @@ impl Namespace {
         self.teo_namespace.define_validator_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| async move {
             let result: TeoValueOrPromise = tsfn_cloned.call_async((value, args, ctx.object().clone(), ctx.transaction_ctx())).await?;
             let teo_value = result.to_teo_value().await?;
-            if let Some(teon_value) = teo_value.as_teon() {
-                Ok::<Validity, teo::prelude::Error>(match teon_value {
-                    TeoValue::String(s) => {
-                        Validity::Invalid(s.to_owned())
-                    },
-                    TeoValue::Bool(b) => if *b {
-                        Validity::Valid
-                    } else {
-                        Validity::Invalid("value is invalid".to_owned())
-                    },
-                    _ => Validity::Valid
-                })
-            } else {
-                Err::<Validity, teo::prelude::Error>(teo::prelude::Error::new("invalid validator return value"))
-            }
+            Ok::<Validity, teo::prelude::Error>(match teo_value {
+                TeoValue::String(s) => {
+                    Validity::Invalid(s.to_owned())
+                },
+                TeoValue::Bool(b) => if b {
+                    Validity::Valid
+                } else {
+                    Validity::Invalid("value is invalid".to_owned())
+                },
+                _ => Validity::Valid
+            })
         });
         Ok(())
     }
@@ -248,24 +244,20 @@ impl Namespace {
             Ok(vec![js_value_old, js_value_new, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_compare_pipeline_item(Box::leak(Box::new(name)).as_str(), move |old: TeoValue, new: TeoValue, args: TeoArgs, object: TeoObject, ctx: pipeline::Ctx| async move {
+        self.teo_namespace.define_compare_pipeline_item(Box::leak(Box::new(name)).as_str(), move |old: TeoValue, new: TeoValue, args: TeoArgs, object: TeoValue, ctx: pipeline::Ctx| async move {
             let result: TeoValueOrPromise = tsfn_cloned.call_async((old, new, args, ctx.object().clone(), ctx.transaction_ctx())).await?;
             let teo_value = result.to_teo_value().await?;
-            if let Some(teon_value) = teo_value.as_teon() {
-                Ok::<Validity, teo::prelude::Error>(match teon_value {
-                    TeoValue::String(s) => {
-                        Validity::Invalid(s.to_owned())
-                    },
-                    TeoValue::Bool(b) => if *b {
-                        Validity::Valid
-                    } else {
-                        Validity::Invalid("value is invalid".to_owned())
-                    },
-                    _ => Validity::Valid
-                })
-            } else {
-                Err::<Validity, teo::prelude::Error>(teo::prelude::Error::new("invalid validator return value"))
-            }
+            Ok::<Validity, teo::prelude::Error>(match teo_value {
+                TeoValue::String(s) => {
+                    Validity::Invalid(s.to_owned())
+                },
+                TeoValue::Bool(b) => if b {
+                    Validity::Valid
+                } else {
+                    Validity::Invalid("value is invalid".to_owned())
+                },
+                _ => Validity::Valid
+            })
         });
         Ok(())
     }

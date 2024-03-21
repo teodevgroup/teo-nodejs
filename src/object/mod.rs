@@ -3,7 +3,6 @@ mod model;
 mod r#struct;
 mod pipeline;
 mod interface_enum_variant;
-mod array;
 mod unused;
 pub(crate) mod promise;
 pub(crate) mod arguments;
@@ -18,33 +17,18 @@ use napi::{Env, Error, JsDate, JsString, Status, NapiRaw};
 use teo::prelude::{Value as TeoValue, Value};
 use chrono::{NaiveDateTime, DateTime, Utc};
 use napi::{JsUnknown, JsFunction, Result, ValueType};
-use teo::prelude::object::{Object as TeoObject, ObjectInner};
 use teo::prelude::File as TeoFile;
 use regex::Regex;
-use crate::object::array::teo_array_to_js_any;
-use crate::object::interface_enum_variant::{InterfaceEnumVariant, teo_interface_enum_variant_to_js_any};
-use crate::object::model::teo_model_object_to_js_any;
-use crate::object::pipeline::{Pipeline, teo_pipeline_to_js_any};
-use crate::object::r#struct::teo_struct_object_to_js_any;
-use crate::object::value::{DateOnly, EnumVariant, File, ObjectId, OptionVariant, Range, teo_value_to_js_any};
+use crate::object::interface_enum_variant::InterfaceEnumVariant;
+use crate::object::pipeline::Pipeline;
+use crate::object::value::{DateOnly, File, ObjectId, OptionVariant, Range};
 
-pub fn teo_object_to_js_any(object: &TeoObject, env: &Env) -> Result<JsUnknown> {
-    match object.inner.as_ref() {
-        ObjectInner::Teon(value) => teo_value_to_js_any(value, env),
-        ObjectInner::ModelObject(model_object) => teo_model_object_to_js_any(model_object, env),
-        ObjectInner::StructObject(struct_object) => teo_struct_object_to_js_any(struct_object, env),
-        ObjectInner::Pipeline(pipeline) => teo_pipeline_to_js_any(pipeline, env),
-        ObjectInner::InterfaceEnumVariant(interface_enum_variant) => teo_interface_enum_variant_to_js_any(interface_enum_variant, env),
-        ObjectInner::Array(array) => teo_array_to_js_any(array, env),
-    }
-}
-
-pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
+pub fn js_any_to_teo_value(any: JsUnknown, env: Env) -> Result<Value> {
     Ok(match any.get_type()? {
-        ValueType::Undefined => TeoObject::from(Value::Null),
-        ValueType::Null => TeoObject::from(Value::Null),
-        ValueType::Boolean => TeoObject::from(TeoValue::Bool(any.coerce_to_bool()?.get_value().unwrap())),
-        ValueType::Number => TeoObject::from({
+        ValueType::Undefined => Value::Null,
+        ValueType::Null => Value::Null,
+        ValueType::Boolean => TeoValue::Bool(any.coerce_to_bool()?.get_value().unwrap()),
+        ValueType::Number => {
             let js_number = any.coerce_to_number()?;
             if let Ok(n) = js_number.get_int32() {
                 TeoValue::Int(n)
@@ -55,29 +39,22 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
             } else {
                 Err(Error::new(Status::Unknown, "cannot convert number value to teon number"))?
             }
-        }),
-        ValueType::String => TeoObject::from({
+        },
+        ValueType::String => {
             let js_string = any.coerce_to_string()?;
             TeoValue::String(js_string.into_utf8()?.as_str()?.to_owned())
-        }),
+        },
         ValueType::Symbol => Err(Error::new(Status::Unknown, "cannot convert symbol to teon value"))?,
         ValueType::Object => {
             if any.is_array()? {
                 let object = any.coerce_to_object()?;
                 let len = object.get_array_length()?;
-                let mut result: Vec<TeoObject> = vec![];
+                let mut result: Vec<Value> = vec![];
                 for n in 0..len {
                     let item: JsUnknown = object.get_element(n).unwrap();
-                    result.push(js_any_to_teo_object(item, env)?);
+                    result.push(js_any_to_teo_value(item, env)?);
                 }
-                if result.is_empty() {
-                    TeoObject::from(TeoValue::Array(vec![]))
-                } else if result.first().unwrap().is_teon() {
-                    let teon_result: Vec<Value> = result.iter().map(|r| r.as_teon().unwrap().clone()).collect();
-                    TeoObject::from(teon_result)
-                } else {
-                    TeoObject::from(result)
-                }
+                Value::Array(result)
             } else if any.is_date()? {
                 let js_date = JsDate::try_from(any)?;
                 let milliseconds_since_epoch_utc = js_date.value_of()?;
@@ -87,7 +64,7 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                     timestamp_seconds,
                     (milliseconds_since_epoch_utc % 1_000 * 1_000_000) as u32,
                 ).unwrap();
-                TeoObject::from(TeoValue::DateTime(DateTime::<Utc>::from_utc(naive, Utc)))
+                TeoValue::DateTime(DateTime::<Utc>::from_utc(naive, Utc))
             } else {
                 let object = any.coerce_to_object()?;
                 // test for decimal
@@ -98,17 +75,17 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                     let js_string = object.coerce_to_string()?;
                     let js_string_utf8 = js_string.into_utf8()?;
                     let s = js_string_utf8.as_str()?;
-                    return Ok(TeoObject::from(TeoValue::Decimal(BigDecimal::from_str(s).unwrap())));
+                    return Ok(TeoValue::Decimal(BigDecimal::from_str(s).unwrap()));
                 }
                 // test for object id
                 if ObjectId::instance_of(env, &object)? {
                     let object_id: &ObjectId = unsafe { ObjectId::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoObject::from(TeoValue::ObjectId(object_id.value.clone())));
+                    return Ok(TeoValue::ObjectId(object_id.value.clone()));
                 }
                 // test for date only
                 if DateOnly::instance_of(env, &object)? {
                     let date_only: &DateOnly = unsafe { DateOnly::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoObject::from(TeoValue::Date(date_only.value.clone())));
+                    return Ok(TeoValue::Date(date_only.value.clone()));
                 }
                 // test for date time
                 if object.is_date()? {
@@ -117,7 +94,7 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                     let ts_secs = milliseconds / 1000;
                     let ts_ns = (milliseconds % 1000) * 1_000_000;
                     let datetime = DateTime::<Utc>::from_utc(NaiveDateTime::from_timestamp(ts_secs, ts_ns as u32), Utc);
-                    return Ok(TeoObject::from(TeoValue::DateTime(datetime)));
+                    return Ok(TeoValue::DateTime(datetime));
                 }
                 // test for regex
                 let reg_exp: JsFunction = global.get_named_property("RegExp")?;
@@ -127,44 +104,39 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                     let source_string: JsString = source_unknown.coerce_to_string()?;
                     let rust_string = source_string.into_utf8()?.as_str()?.to_owned();
                     let regex = Regex::new(&rust_string).unwrap();
-                    return Ok(TeoObject::from(TeoValue::Regex(regex)));
+                    return Ok(TeoValue::Regex(regex));
                 }
                 // test for range
                 if Range::instance_of(env, &object)? {
                     let range: &Range = unsafe { Range::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoObject::from(TeoValue::Range(range.value.clone())));
+                    return Ok(TeoValue::Range(range.value.clone()));
                 }
                 // test for file
                 if File::instance_of(env, &object)? {
                     let file: &File = unsafe { File::from_napi_ref(env.raw(), object.raw())? };
                     let teo_file = TeoFile::from(file);
-                    return Ok(TeoObject::from(TeoValue::File(teo_file)));
-                }
-                // test for enum variant
-                if EnumVariant::instance_of(env, &object)? {
-                    let enum_variant: &EnumVariant = unsafe { EnumVariant::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoObject::from(TeoValue::EnumVariant(enum_variant.value.clone())));
+                    return Ok(TeoValue::File(teo_file));
                 }
                 // test for option variant
                 if OptionVariant::instance_of(env, &object)? {
                     let enum_variant: &OptionVariant = unsafe { OptionVariant::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoObject::from(TeoValue::OptionVariant(enum_variant.value.clone())));
+                    return Ok(TeoValue::OptionVariant(enum_variant.value.clone()));
                 }
                 // test for interface enum variant
                 if InterfaceEnumVariant::instance_of(env, &object)? {
                     let enum_variant: &InterfaceEnumVariant = unsafe { InterfaceEnumVariant::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoObject::from(enum_variant.value.clone()));
+                    return Ok(TeoValue::InterfaceEnumVariant(enum_variant.value.clone()));
                 }
                 // test for pipeline
                 if Pipeline::instance_of(env, &object)? {
                     let pipeline: &Pipeline = unsafe { Pipeline::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoObject::from(pipeline.value.clone()));
+                    return Ok(TeoValue::Pipeline(pipeline.value.clone()));
                 }
-                // // test for model object
-                // if object.has_named_property("__teo_object__")? {
-                //     let model_object: &mut ModelObject = env.unwrap(&object)?;
-                //     return Ok(TeoObject::from(model_object.clone()));
-                // }
+                // test for model object
+                if object.has_named_property("__teo_object__")? {
+                    let model_object: &mut teo::prelude::model::Object = env.unwrap(&object)?;
+                    return Ok(Value::from(model_object.clone()));
+                }
                 // otherwise, treat as default dictionary
                 let mut map = IndexMap::new();
                 let names = object.get_property_names()?;
@@ -172,9 +144,9 @@ pub fn js_any_to_teo_object(any: JsUnknown, env: Env) -> Result<TeoObject> {
                 for i in 0..len {
                     let name: JsString = names.get_element(i)?;
                     let v: JsUnknown = object.get_property(name)?;
-                    map.insert(name.into_utf8()?.as_str()?.to_owned(), js_any_to_teo_object(v, env)?.as_teon().unwrap().clone());
+                    map.insert(name.into_utf8()?.as_str()?.to_owned(), js_any_to_teo_value(v, env)?);
                 }
-                return Ok(TeoObject::from(TeoValue::Dictionary(map)));
+                return Ok(TeoValue::Dictionary(map));
             }
         },
         ValueType::Function => Err(Error::new(Status::Unknown, "cannot convert function to teon value"))?,

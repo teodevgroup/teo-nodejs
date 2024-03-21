@@ -3,7 +3,7 @@ pub(crate) mod response_or_promise;
 
 use std::path::PathBuf;
 
-use crate::object::{js_any_to_teo_object, value::teo_value_to_js_any};
+use crate::object::{js_any_to_teo_value, value::teo_value_to_js_any};
 
 use self::header_map::ReadWriteHeaderMap;
 use napi::{Result, JsUnknown, Env, bindgen_prelude::{FromNapiValue, FromNapiRef}};
@@ -33,7 +33,7 @@ impl Response {
 
     #[napi(ts_return_type = "Response")]
     pub fn teon(value: JsUnknown, env: Env) -> Result<Self> {
-        let teo_value = js_any_to_teo_object(value, env)?.as_teon().unwrap().clone();
+        let teo_value = js_any_to_teo_value(value, env)?;
         let response = TeoResponse::teon(teo_value);
         Ok(Self {
             teo_response: response
@@ -47,7 +47,7 @@ impl Response {
 
     #[napi(ts_return_type = "Response")]
     pub fn data(value: JsUnknown, env: Env) -> Result<Self> {
-        let teo_value = js_any_to_teo_object(value, env)?.as_teon().unwrap().clone();
+        let teo_value = js_any_to_teo_value(value, env)?;
         let response = TeoResponse::data(teo_value);
         Ok(Self {
             teo_response: response
@@ -56,8 +56,8 @@ impl Response {
     
     #[napi(js_name = "dataMeta", ts_return_type = "Response")]
     pub fn data_meta(data: JsUnknown, meta: JsUnknown, env: Env) -> Result<Self> {
-        let teo_data = js_any_to_teo_object(data, env)?.as_teon().unwrap().clone();
-        let teo_meta = js_any_to_teo_object(meta, env)?.as_teon().unwrap().clone();
+        let teo_data = js_any_to_teo_value(data, env)?;
+        let teo_meta = js_any_to_teo_value(meta, env)?;
         let response = TeoResponse::data_meta(teo_data, teo_meta);
         Ok(Self {
             teo_response: response

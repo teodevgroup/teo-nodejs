@@ -1,10 +1,10 @@
 use indexmap::IndexMap;
 use napi::{Result, Error, Env, JsObject, JsFunction, JsUnknown, Property, JsSymbol, CallContext, ValueType, JsString, threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ErrorStrategy}};
-use teo::prelude::{App, model, transaction, Namespace, object::Object as TeoObject, Value as TeoValue};
+use teo::prelude::{App, model, transaction, Namespace, Value as TeoValue};
 use std::collections::BTreeMap;
 use inflector::Inflector;
 
-use crate::{object::{js_any_to_teo_object, teo_object_to_js_any, unknown::{SendJsUnknown, SendJsUnknownOrPromise}, value::teo_value_to_js_any}};
+use crate::{object::{js_any_to_teo_value, unknown::{SendJsUnknown, SendJsUnknownOrPromise}, value::teo_value_to_js_any}};
 
 static mut CTXS: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
 static mut CLASSES: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
@@ -213,7 +213,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                 TeoValue::Dictionary(IndexMap::new())
             } else {
                 let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
+                js_any_to_teo_value(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
             };
             let this: JsObject = ctx.this()?;
             let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
@@ -235,7 +235,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                 TeoValue::Dictionary(IndexMap::new())
             } else {
                 let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
+                js_any_to_teo_value(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
             };
             let this: JsObject = ctx.this()?;
             let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
@@ -257,7 +257,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                 TeoValue::Dictionary(IndexMap::new())
             } else {
                 let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
+                js_any_to_teo_value(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
             };
             let this: JsObject = ctx.this()?;
             let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
@@ -283,7 +283,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                 TeoValue::Dictionary(IndexMap::new())
             } else {
                 let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
+                js_any_to_teo_value(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
             };
             let this: JsObject = ctx.this()?;
             let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
@@ -302,7 +302,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                 TeoValue::Dictionary(IndexMap::new())
             } else {
                 let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
+                js_any_to_teo_value(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
             };
             let this: JsObject = ctx.this()?;
             let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
@@ -321,7 +321,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                 TeoValue::Dictionary(IndexMap::new())
             } else {
                 let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
+                js_any_to_teo_value(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
             };
             let this: JsObject = ctx.this()?;
             let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
@@ -340,7 +340,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                 TeoValue::Dictionary(IndexMap::new())
             } else {
                 let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
+                js_any_to_teo_value(unknown, ctx.env.clone())?.as_teon().unwrap().clone()
             };
             let this: JsObject = ctx.this()?;
             let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
@@ -372,7 +372,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
         // set
         let set = env.create_function_from_closure("set", |ctx| {
             let unknown: JsUnknown = ctx.get(0)?;
-            let input = js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone();
+            let input = js_any_to_teo_value(unknown, ctx.env.clone())?.as_teon().unwrap().clone();
             let this: JsObject = ctx.this()?;
             let object: &mut model::Object = ctx.env.unwrap(&this)?;
             let object = object.clone();
@@ -390,7 +390,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
         // update
         let update = env.create_function_from_closure("update", |ctx| {
             let unknown: JsUnknown = ctx.get(0)?;
-            let input = js_any_to_teo_object(unknown, ctx.env.clone())?.as_teon().unwrap().clone();
+            let input = js_any_to_teo_value(unknown, ctx.env.clone())?.as_teon().unwrap().clone();
             let this: JsObject = ctx.this()?;
             let object: &mut model::Object = ctx.env.unwrap(&this)?;
             let object = object.clone();
@@ -491,10 +491,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             let property = Property::new(field_name.as_str())?.with_getter_closure(|env: Env, this: JsObject| {
                 let object: &mut model::Object = env.unwrap(&this)?;
                 let value: TeoValue = object.get_value(field_name.as_str()).unwrap();
-                let teo_object = TeoObject::from(value);
-                Ok(teo_object_to_js_any(&teo_object, &env)?)
+                Ok(teo_value_to_js_any(&value, &env)?)
             }).with_setter_closure(|env: Env, this: JsObject, arg0: JsUnknown| {
-                let teo_value = js_any_to_teo_object(arg0, env.clone())?.as_teon().unwrap().clone();
+                let teo_value = js_any_to_teo_value(arg0, env.clone())?.as_teon().unwrap().clone();
                 let object: &mut model::Object = env.unwrap(&this)?;
                 object.set_value(field_name.as_str(), teo_value).unwrap();
                 Ok(())
@@ -512,7 +511,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                         TeoValue::Dictionary(IndexMap::new())
                     } else {
                         let val: JsUnknown = ctx.get(0)?;
-                        js_any_to_teo_object(val, ctx.env.clone())?.as_teon().unwrap().clone()
+                        js_any_to_teo_value(val, ctx.env.clone())?.as_teon().unwrap().clone()
                     };
                     let this: JsObject = ctx.this()?;
                     let object: &mut model::Object = ctx.env.unwrap(&this)?;
@@ -646,7 +645,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                 let name = "set".to_owned() + &field_name.to_pascal_case();
                 let set_property = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
                     let val: JsUnknown = ctx.get(0)?;
-                    let teo_value = js_any_to_teo_object(val, ctx.env.clone())?.as_teon().unwrap().clone();
+                    let teo_value = js_any_to_teo_value(val, ctx.env.clone())?.as_teon().unwrap().clone();
                     let this: JsObject = ctx.this()?;
                     let object: &mut model::Object = ctx.env.unwrap(&this)?;
                     let object_cloned = object.clone();
@@ -673,8 +672,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                             Err(err) => Err(Error::from_reason(err.message())),
                         }
                     })(), |env, v: TeoValue| {
-                        let obj = TeoObject::from(v);
-                        Ok(teo_object_to_js_any(&obj, env))
+                        Ok(teo_value_to_js_any(&v, env))
                     })?;
                     Ok(promise)
                 });

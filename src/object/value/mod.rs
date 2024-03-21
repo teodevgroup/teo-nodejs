@@ -2,16 +2,15 @@ pub mod dateonly;
 pub mod object_id;
 pub mod file;
 pub mod range;
-pub mod enum_variant;
 
 pub use dateonly::DateOnly;
 pub use object_id::ObjectId;
 pub use file::File;
 pub use range::Range;
-pub use enum_variant::EnumVariant;
 
 use napi::{Env, JsFunction, JsUnknown, Result};
 use teo::prelude::{Value as TeoValue, Value, OptionVariant as TeoOptionVariant};
+use super::{interface_enum_variant::teo_interface_enum_variant_to_js_any, model::teo_model_object_to_js_any, pipeline::teo_pipeline_to_js_any, r#struct::teo_struct_object_to_js_any};
 
 #[napi(js_name = "OptionVariant")]
 pub struct OptionVariant {
@@ -71,9 +70,6 @@ pub fn teo_value_to_js_any(value: &TeoValue, env: &Env) -> Result<JsUnknown> {
             }
             js_array.into_unknown()
         }
-        Value::EnumVariant(enum_variant) => {
-            env.create_string(enum_variant.value.as_str())?.into_unknown()
-        }
         Value::OptionVariant(option_variant) => {
             let instance = OptionVariant { value: option_variant.clone() }.into_instance(*env)?;
             instance.as_object(*env).into_unknown()
@@ -89,5 +85,10 @@ pub fn teo_value_to_js_any(value: &TeoValue, env: &Env) -> Result<JsUnknown> {
             let instance = File::from(file);
             instance.into_instance(*env)?.as_object(*env).into_unknown()
         }
+        Value::ModelObject(model_object) => teo_model_object_to_js_any(model_object, env)?,
+        Value::StructObject(struct_object) => teo_struct_object_to_js_any(struct_object, env)?,
+        Value::Pipeline(pipeline) => teo_pipeline_to_js_any(pipeline, env)?,
+        Value::InterfaceEnumVariant(interface_enum_variant) => teo_interface_enum_variant_to_js_any(interface_enum_variant, env)?,
+
     })
 }

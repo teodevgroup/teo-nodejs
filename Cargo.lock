@@ -3890,7 +3890,7 @@ dependencies = [
 
 [[package]]
 name = "teo-result"
-version = "0.2.19"
+version = "0.2.20"
 dependencies = [
  "indexmap 2.2.5",
  "napi",

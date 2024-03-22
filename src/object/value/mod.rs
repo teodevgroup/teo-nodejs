@@ -8,7 +8,7 @@ pub use object_id::ObjectId;
 pub use file::File;
 pub use range::Range;
 
-use napi::{Env, JsFunction, JsUnknown, Result};
+use napi::{Env, Error, JsFunction, JsUnknown, Result};
 use teo::prelude::{Value as TeoValue, Value, OptionVariant as TeoOptionVariant};
 use super::{interface_enum_variant::teo_interface_enum_variant_to_js_any, model::teo_model_object_to_js_any, pipeline::teo_pipeline_to_js_any, r#struct::teo_struct_object_to_js_any};
 
@@ -89,6 +89,6 @@ pub fn teo_value_to_js_any(value: &TeoValue, env: &Env) -> Result<JsUnknown> {
         Value::StructObject(struct_object) => teo_struct_object_to_js_any(struct_object, env)?,
         Value::Pipeline(pipeline) => teo_pipeline_to_js_any(pipeline, env)?,
         Value::InterfaceEnumVariant(interface_enum_variant) => teo_interface_enum_variant_to_js_any(interface_enum_variant, env)?,
-
+        _ => Err(Error::new(napi::Status::GenericFailure, "cannot convert Teo value to Python value"))?,
     })
 }

@@ -88,14 +88,14 @@ impl App {
     }
 
     /// Define a custom program.
-    #[napi(ts_args_type = "name: string, callback: (ctx: any) => void | Promise<void>")]
-    pub fn program(&self, name: String, callback: JsFunction) -> Result<()> {
+    #[napi(ts_args_type = "name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>")]
+    pub fn program(&self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));
-        self.teo_app.program(name.as_str(), |ctx: transaction::Ctx| async {
+        self.teo_app.program(name.as_str(), desc, |ctx: transaction::Ctx| async {
             let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await?;
             Ok(promise_or_ignore.to_ignore().await?)
         });

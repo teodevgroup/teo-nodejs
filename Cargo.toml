@@ -5,7 +5,7 @@ version = "0.2.22"
 
 [lib]
 crate-type = ["cdylib"]
-
+ 
 [dependencies]
 teo = { version = "0.2.22" }
 teo-result = { version = "0.2.21", features = ["napi"] }

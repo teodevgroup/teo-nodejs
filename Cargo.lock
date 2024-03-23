@@ -3766,9 +3766,9 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.2.21"
+version = "0.2.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dbdbb0f0f6ec3efc03d0db605aac5bfeca82f4eb6c6dcab5365f992ce7ccb70"
+checksum = "fa63acccfc8a989e6a58dfef5c756d633cf88dc34a95ab70c80e59cbb7d3ab24"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -3911,9 +3911,9 @@ dependencies = [
 
 [[package]]
 name = "teo-runtime"
-version = "0.2.21"
+version = "0.2.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26a94a9ec1110b66f6f319a0ff0c0c87995ff9bda4125839ddefbb9b8b4361a7"
+checksum = "cd3c125de636fd94d0bb1f973a78dc1598cb946ec5ed1b981639fb604e717aa1"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -3977,7 +3977,7 @@ dependencies = [
 
 [[package]]
 name = "teocloud_teo"
-version = "0.2.21"
+version = "0.2.22"
 dependencies = [
  "bigdecimal",
  "bson",

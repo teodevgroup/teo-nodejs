@@ -3967,6 +3967,8 @@ dependencies = [
 [[package]]
 name = "teo"
 version = "0.2.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18d6ae1f44d0ebaa350a48caba320cb2ec840f6b3d5822fae0960ee72a350735"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -4017,6 +4019,8 @@ dependencies = [
 [[package]]
 name = "teo-generator"
 version = "0.2.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07182a83d08bc5b08910d46bc7c61fcd6ba047eda8374cec469172f290eff554"
 dependencies = [
  "askama",
  "async-recursion",
@@ -4043,6 +4047,8 @@ dependencies = [
 [[package]]
 name = "teo-mongodb-connector"
 version = "0.2.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58698458091fe3cc953f706a3d422d9d669124a7cfcb64ed485bf41e032535e1"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -4066,6 +4072,8 @@ dependencies = [
 [[package]]
 name = "teo-parser"
 version = "0.2.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f331c00880dfd81acd9e806263d44d4fa9926d1b643269d6b997ff40c494a7c7"
 dependencies = [
  "array_tool",
  "bigdecimal",
@@ -4094,6 +4102,8 @@ dependencies = [
 [[package]]
 name = "teo-result"
 version = "0.2.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "296089d0e2f37d85b469d8de3df9db813bfd895e9f6285e697a393aed67f8d4d"
 dependencies = [
  "indexmap 2.2.5",
  "napi",
@@ -4105,6 +4115,8 @@ dependencies = [
 [[package]]
 name = "teo-runtime"
 version = "0.2.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "582067e7a434d9c9778b287f633114b3b22d2520f68f7cb2617aa3a2e7b0d7db"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -4141,6 +4153,8 @@ dependencies = [
 [[package]]
 name = "teo-sql-connector"
 version = "0.2.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de712633bbc352b2056be63ff6142568a2e32b0e117d557331608ffd5790a1a1"
 dependencies = [
  "array_tool",
  "async-recursion",

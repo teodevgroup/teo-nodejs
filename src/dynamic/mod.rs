@@ -357,6 +357,26 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             Ok(promise)
         })?;
         class_prototype.set_named_property("groupBy", group_by)?;
+        if namespace.database.is_some() && namespace.database.unwrap().is_sql() {
+            // sql
+            let sql = env.create_function_from_closure("sql", |ctx| {
+                let sql_string: &str = ctx.get(0)?;
+                let this: JsObject = ctx.this()?;
+                let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
+                let model_ctx_cloned = model_ctx.clone();
+                let promise = ctx.env.execute_tokio_future((|| async move {
+                    Ok(model_ctx_cloned.sql(sql_string).await.unwrap())
+                })(), |env, values: Vec<TeoValue>| {
+                    let mut array = env.create_array(values.len() as u32)?;
+                    for value in values {
+                        array.insert(teo_value_to_js_any(&value, env)?)?;
+                    }
+                    Ok(array)
+                })?;
+                Ok(promise)
+            })?;
+            class_prototype.set_named_property("sql", sql)?;
+        }
         // isNew
         let is_new = Property::new("isNew")?.with_getter_closure(|env: Env, this: JsObject| {
             let object: &mut model::Object = env.unwrap(&this)?;

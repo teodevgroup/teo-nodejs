@@ -3137,6 +3137,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "quoted-string"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a206a30ce37189d1340e7da2ee0b4d65e342590af676541c23a4f3959ba272e"
+
+[[package]]
 name = "radium"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3966,9 +3972,9 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.2.24"
+version = "0.2.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18d6ae1f44d0ebaa350a48caba320cb2ec840f6b3d5822fae0960ee72a350735"
+checksum = "78e0349e4805abd55e41f009e383514f4268deb6fbd8d911306cfcef2f035ab9"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -4018,9 +4024,9 @@ dependencies = [
 
 [[package]]
 name = "teo-generator"
-version = "0.2.24"
+version = "0.2.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "07182a83d08bc5b08910d46bc7c61fcd6ba047eda8374cec469172f290eff554"
+checksum = "66f8b28ca9d713144282d8996aabefe59cacb0332f2dda8fa941adba2ff8a3f0"
 dependencies = [
  "askama",
  "async-recursion",
@@ -4033,6 +4039,7 @@ dependencies = [
  "maplit",
  "pad",
  "pathdiff",
+ "quoted-string",
  "regex",
  "reqwest",
  "serde",
@@ -4071,9 +4078,9 @@ dependencies = [
 
 [[package]]
 name = "teo-parser"
-version = "0.2.24"
+version = "0.2.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f331c00880dfd81acd9e806263d44d4fa9926d1b643269d6b997ff40c494a7c7"
+checksum = "6f799489f4897c3bf850a790da653104c5a0006109cd2532430041850c81c1d2"
 dependencies = [
  "array_tool",
  "bigdecimal",
@@ -4114,9 +4121,9 @@ dependencies = [
 
 [[package]]
 name = "teo-runtime"
-version = "0.2.24"
+version = "0.2.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "582067e7a434d9c9778b287f633114b3b22d2520f68f7cb2617aa3a2e7b0d7db"
+checksum = "969763470b85629958c8a5c3d1a351db94537f30b94310453242ff1f7910fc6e"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -4180,7 +4187,7 @@ dependencies = [
 
 [[package]]
 name = "teocloud_teo"
-version = "0.2.24"
+version = "0.2.25"
 dependencies = [
  "bigdecimal",
  "bson",

@@ -3972,9 +3972,9 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.2.31"
+version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d85bcae8a8ebe46d581cb9c6c51886124756fb275dc12f01966b0122cd4daede"
+checksum = "66a10a643b0d150725b68c0d828d9a2a03aac2e238f2bc231879432ee0022b2c"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -4024,9 +4024,9 @@ dependencies = [
 
 [[package]]
 name = "teo-generator"
-version = "0.2.30"
+version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9482c827cfdb877382f27b05c34acdcffb09d8a5f6bf9a61f9f1bb266af0254e"
+checksum = "b4e98b909ab146fac7040cf5eeaaf0b7249366dc3c8bef88a52390fd2dde19bb"
 dependencies = [
  "askama",
  "async-recursion",
@@ -4109,9 +4109,9 @@ dependencies = [
 
 [[package]]
 name = "teo-result"
-version = "0.2.23"
+version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "296089d0e2f37d85b469d8de3df9db813bfd895e9f6285e697a393aed67f8d4d"
+checksum = "527b788af75a5f49628683d59bbfbc47bd80b6b8a44b34b199ef437307df6cf0"
 dependencies = [
  "indexmap 2.2.6",
  "napi",
@@ -4122,9 +4122,9 @@ dependencies = [
 
 [[package]]
 name = "teo-runtime"
-version = "0.2.30"
+version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e60412beeeed3a6c4a2db4547c189e9e07413ba52db652b5d201c74f4c311233"
+checksum = "969497489490593207a16cd3017061969f18cf3bb8ab4b5dbbb178c9c98b5fc5"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -4160,9 +4160,9 @@ dependencies = [
 
 [[package]]
 name = "teo-sql-connector"
-version = "0.2.31"
+version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ddf74356b9842d57bae8f582f669958c44fcb4600c97c9a1fd1940f9320d02f"
+checksum = "c59014369a6f41f78c627e5a680b47d5c03a30607c5a09a069de1a4a1f51d9bb"
 dependencies = [
  "array_tool",
  "async-recursion",
@@ -4188,7 +4188,7 @@ dependencies = [
 
 [[package]]
 name = "teocloud_teo"
-version = "0.2.31"
+version = "0.2.32"
 dependencies = [
  "bigdecimal",
  "bson",

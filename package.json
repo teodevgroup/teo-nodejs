@@ -25,7 +25,7 @@
   "bin": "teo.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/teocloud/teo-nodejs"
+    "url": "https://github.com/teodevgroup/teo-nodejs"
   },
   "license": "Apache-2.0",
   "dependencies": {

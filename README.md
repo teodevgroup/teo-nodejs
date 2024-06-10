@@ -4,11 +4,11 @@
   <a href="https://www.npmjs.com/package/@teocloud/teo"><img src="https://img.shields.io/npm/v/%40teocloud%2Fteo?style=flat-square" /></a>
   <a href="https://pypi.org/project/teo/"><img src="https://img.shields.io/pypi/v/teo?style=flat-square" /></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=yeannylam.teo-vscode"><img src="https://img.shields.io/visual-studio-marketplace/v/yeannylam.teo-vscode?style=flat-square&label=VSCode%20marketplace&color=%2300AFD7" /></a>
-  <a href="https://github.com/teocloud/teo/blob/master/LICENSE"><img src="https://img.shields.io/github/license/teocloud/teo.svg?style=flat-square" /></a>
-  <a href="https://github.com/teocloud/teo"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" /></a>
+  <a href="https://github.com/teodevgroup/teo/blob/master/LICENSE"><img src="https://img.shields.io/github/license/teocloud/teo.svg?style=flat-square" /></a>
+  <a href="https://github.com/teodevgroup/teo"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" /></a>
   <br />
   <br />
-  <div><strong>Schema-centered</strong> next-generation web framework for Rust, Node.js and Python.</div>
+  <div><strong>Schema-driven</strong> web server framework.</div>
   <br />
   <a href="https://docs.teodev.io/getting-started/quickstart">Quickstart</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -25,23 +25,24 @@
 
 ## Introduction
 
-Teo is a **schema-centered** next-generation web framework for Rust, Node.js and Python.
+Teo is **schema-driven** web server framework. The server side API is native to Rust, Node.js and Python.
 
 ## Highlights & Features
 
-* Innovative schema definition inspired by GraphQL and Prisma
+* Native to **Rust**, **Node.js** and **Python**
+* Innovative schema definition inspired by **GraphQL** and **Prisma**
 * Auto database migration
-* Supports Rust, Node.js and Python
-* Supports MySQL, PostgreSQL, SQLite and MongoDB
-* Generated ORM types and interfaces
-* Generated query clients for frontend
+* Supports **MySQL**, **PostgreSQL**, **SQLite** and **MongoDB**
+* Generated **ORM** types and interfaces
+* Generated **query clients** for frontend
 * Very efficient and performant
 * Data sanitization, transformation and validation
-* Builtin user sessions
-* Builtin permission check
-* First in last out middlewares
-* Custom routes and handlers
-* Generated customizable admin dashboard
+* Builtin user **sessions**
+* Builtin **permission** check
+* First in last out **middlewares**
+* Custom **route handlers**
+* Generated customizable **admin dashboard**
+* Plays great with AI tools
 
 ## Getting started
 
@@ -184,7 +185,7 @@ Welcome to submit issues in this repo.
 
 ## Contributing
 
-Read our [Contributing guide](https://github.com/teocloud/teo/blob/main/CONTRIBUTING.md)
+Read our [Contributing guide](https://github.com/teodevgroup/teo/blob/main/CONTRIBUTING.md)
 to set projects up and start contributing.
 
 ## License

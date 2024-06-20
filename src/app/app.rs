@@ -41,11 +41,11 @@ impl App {
 
     /// @internal
     #[napi(js_name = "_prepare", ts_return_type="Promise<void>")]
-    pub fn _prepare(&self, env: Env) -> Result<JsUnknown> {
-        let static_self: &'static App = unsafe { &*(self as * const App) };
+    pub fn _prepare(&mut self, env: Env) -> Result<JsUnknown> {
+        let static_mut_self: &'static mut App = unsafe { &mut *(self as * mut App) };
         let js_function = env.create_function_from_closure("run", |ctx| {
             let promise = ctx.env.execute_tokio_future((|| async {
-                static_self.teo_app.prepare_for_run().await?;
+                static_mut_self.teo_app.prepare_for_run().await?;
                 Ok(0)
             })(), |env: &mut Env, _unknown: i32| {
                 env.get_undefined()
@@ -74,7 +74,7 @@ impl App {
 
     /// Run before server is started.
     #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
-    pub fn setup(&self, callback: JsFunction) -> Result<()> {
+    pub fn setup(&mut self, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
@@ -89,7 +89,7 @@ impl App {
 
     /// Define a custom program.
     #[napi(ts_args_type = "name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>")]
-    pub fn program(&self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
+    pub fn program(&mut self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])

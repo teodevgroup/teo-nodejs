@@ -3972,9 +3972,7 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.2.36"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52240928fb096b2fc43a88d6ecfd50775f79f9d8d89212cef76dd4d817894d7f"
+version = "0.2.37"
 dependencies = [
  "actix-files",
  "actix-http",
@@ -4025,8 +4023,6 @@ dependencies = [
 [[package]]
 name = "teo-generator"
 version = "0.2.36"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93995e6601f1c5cd169d26d0ec2a2860d4a19812e93615d974660b9b217e8a03"
 dependencies = [
  "askama",
  "async-recursion",
@@ -4055,8 +4051,6 @@ dependencies = [
 [[package]]
 name = "teo-mongodb-connector"
 version = "0.2.24"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58698458091fe3cc953f706a3d422d9d669124a7cfcb64ed485bf41e032535e1"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -4080,8 +4074,6 @@ dependencies = [
 [[package]]
 name = "teo-parser"
 version = "0.2.28"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81eb5b56eb71fde562a04bea982b50716f0dd96a3a6ab8008028b0559336161b"
 dependencies = [
  "array_tool",
  "bigdecimal",
@@ -4109,9 +4101,7 @@ dependencies = [
 
 [[package]]
 name = "teo-result"
-version = "0.2.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "527b788af75a5f49628683d59bbfbc47bd80b6b8a44b34b199ef437307df6cf0"
+version = "0.2.37"
 dependencies = [
  "indexmap 2.2.6",
  "napi",
@@ -4123,8 +4113,6 @@ dependencies = [
 [[package]]
 name = "teo-runtime"
 version = "0.2.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "969497489490593207a16cd3017061969f18cf3bb8ab4b5dbbb178c9c98b5fc5"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -4161,8 +4149,6 @@ dependencies = [
 [[package]]
 name = "teo-sql-connector"
 version = "0.2.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c59014369a6f41f78c627e5a680b47d5c03a30607c5a09a069de1a4a1f51d9bb"
 dependencies = [
  "array_tool",
  "async-recursion",
@@ -4188,7 +4174,7 @@ dependencies = [
 
 [[package]]
 name = "teocloud_teo"
-version = "0.2.36"
+version = "0.2.37"
 dependencies = [
  "bigdecimal",
  "bson",

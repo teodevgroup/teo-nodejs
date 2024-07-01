@@ -4,7 +4,15 @@ use teo::prelude::pipeline::item::validator::Validity;
 use teo::prelude::{Next, Middleware};
 use crate::middleware::SendMiddlewareCallback;
 use crate::request::send_next::SendNext;
-use teo::prelude::{Value as TeoValue, Arguments, Namespace as TeoNamespace, handler::Group as TeoHandlerGroup, Enum as TeoEnum, Member as TeoEnumMember, Model as TeoModel, model::Field as TeoField, model::Property as TeoProperty, model::Relation as TeoRelation, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
+use teo::prelude::namespace;
+use teo::prelude::model::field;
+use teo::prelude::model::relation;
+use teo::prelude::model::property;
+use teo::prelude::interface;
+use teo::prelude::interface::field as interface_field;
+use teo::prelude::handler;
+use teo::prelude::r#enum;
+use teo::prelude::{Value as TeoValue, Arguments, handler::Group as TeoHandlerGroup, Enum as TeoEnum, Member as TeoEnumMember, Model as TeoModel, model::Field as TeoField, model::Property as TeoProperty, model::Relation as TeoRelation, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
 use crate::dynamic::{js_ctx_object_from_teo_transaction_ctx, js_model_object_from_teo_model_object};
 use crate::handler::group::HandlerGroup;
 use crate::model::model::Model;
@@ -19,10 +27,9 @@ use crate::r#enum::r#enum::Enum;
 use crate::request:: RequestCtx;
 use crate::response::response_or_promise::ResponseOrPromise;
 
-
 #[napi(js_name = "Namespace")]
 pub struct Namespace {
-    pub(crate) teo_namespace: &'static mut TeoNamespace,
+    pub(crate) namespace_builder: namespace::Builder,
 }
 
 #[napi]
@@ -30,50 +37,49 @@ impl Namespace {
 
     #[napi(js_name = "isMain")]
     pub fn is_main(&self) -> bool {
-        self.teo_namespace.is_main()
+        self.namespace_builder.is_main()
     }
 
     #[napi(js_name = "isStd")]
     pub fn is_std(&self) -> bool {
-        self.teo_namespace.is_std()
+        self.namespace_builder.is_std()
     }
 
     #[napi]
-    pub fn path(&self) -> Vec<&str> {
-        self.teo_namespace.path()
+    pub fn path(&self) -> &Vec<String> {
+        self.namespace_builder.path()
     }
 
     #[napi]
-    pub fn namespace(&'static mut self, name: String) -> Option<Namespace> {
-        self.teo_namespace.namespace_mut(name.as_str()).map(|n| Namespace { teo_namespace: n })
+    pub fn namespace(&self, name: String) -> Option<Namespace> {
+        self.namespace_builder.namespace(name.as_str()).map(|n| Namespace { namespace_builder: n })
     }
 
     #[napi]
-    pub fn namespace_or_create(&'static mut self, name: String) -> Namespace {
-        Namespace{ teo_namespace: self.teo_namespace.namespace_mut_or_create(name.as_str()) }
+    pub fn namespace_or_create(&self, name: String) -> Namespace {
+        Namespace{ namespace_builder: self.namespace_builder.namespace_or_create(name.as_str()) }
     }
 
     #[napi]
-    pub fn namespace_at_path(&'static mut self, path: Vec<&str>) -> Option<Namespace> {
-        self.teo_namespace.namespace_mut_at_path(&path).map(|n| Namespace { teo_namespace: n })
+    pub fn namespace_at_path(&self, path: Vec<String>) -> Option<Namespace> {
+        self.namespace_builder.namespace_at_path(&path).map(|n| Namespace { namespace_builder: n })
     }
 
     #[napi]
-    pub fn namespace_or_create_at_path(&'static mut self, path: Vec<&str>) -> Namespace {
-        Namespace{ teo_namespace: self.teo_namespace.namespace_mut_or_create_at_path(&path) }
+    pub fn namespace_or_create_at_path(&self, path: Vec<String>) -> Namespace {
+        Namespace{ namespace_builder: self.namespace_builder.namespace_or_create_at_path(&path) }
     }
 
     #[napi(js_name = "defineModelDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, model: Model) => void")]
     pub fn define_model_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoModel), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoModel)>| {
+        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, model::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, model::Builder)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
-            let js_model = Model { teo_model: ctx.value.1 };
+            let js_model = Model { model_builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_model_decorator(name.as_str(), |arguments, model| {
-            let static_model: &'static mut TeoModel = unsafe { &mut *(model as * mut TeoModel) };
-            let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+        self.namespace_builder.define_model_decorator(name.as_str(), |arguments, model| {
+            let _ = tsfn_cloned.call((arguments, model.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
@@ -81,15 +87,14 @@ impl Namespace {
 
     #[napi(js_name = "defineModelFieldDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, field: Field) => void")]
     pub fn define_model_field_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoField), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoField)>| {
+        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, model::field::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, field::Builder)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
             let js_model = Field { teo_field: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_model_field_decorator(name.as_str(), |arguments, model| {
-            let static_model: &'static mut TeoField = unsafe { &mut *(model as * mut TeoField) };
-            let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+        self.namespace_builder.define_model_field_decorator(name.as_str(), |arguments, field| {
+            let _ = tsfn_cloned.call((arguments, field.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
@@ -103,8 +108,8 @@ impl Namespace {
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_model_relation_decorator(name.as_str(), |arguments, model| {
-            let static_model: &'static mut TeoRelation = unsafe { &mut *(model as * mut TeoRelation) };
+        self.namespace_builder.define_model_relation_decorator(name.as_str(), |arguments, model| {
+            let static_model: &TeoRelation = unsafe { &mut *(model as * mut TeoRelation) };
             let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
@@ -119,8 +124,8 @@ impl Namespace {
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_model_property_decorator(name.as_str(), |arguments, model| {
-            let static_model: &'static mut TeoProperty = unsafe { &mut *(model as * mut TeoProperty) };
+        self.namespace_builder.define_model_property_decorator(name.as_str(), |arguments, model| {
+            let static_model: &TeoProperty = unsafe { &mut *(model as * mut TeoProperty) };
             let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
@@ -135,8 +140,8 @@ impl Namespace {
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_enum_decorator(name.as_str(), |arguments, model| {
-            let static_model: &'static mut TeoEnum = unsafe { &mut *(model as * mut TeoEnum) };
+        self.namespace_builder.define_enum_decorator(name.as_str(), |arguments, model| {
+            let static_model: &TeoEnum = unsafe { &mut *(model as * mut TeoEnum) };
             let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
@@ -151,8 +156,8 @@ impl Namespace {
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_enum_member_decorator(name.as_str(), |arguments, model| {
-            let static_model: &'static mut TeoEnumMember = unsafe { &mut *(model as * mut TeoEnumMember) };
+        self.namespace_builder.define_enum_member_decorator(name.as_str(), |arguments, model| {
+            let static_model: &TeoEnumMember = unsafe { &mut *(model as * mut TeoEnumMember) };
             let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
@@ -169,7 +174,7 @@ impl Namespace {
             Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_pipeline_item(name.as_str(), move |args: TeoArgs, ctx: pipeline::Ctx| async move {
+        self.namespace_builder.define_pipeline_item(name.as_str(), move |args: TeoArgs, ctx: pipeline::Ctx| async move {
             let object = ctx.value().clone();
             let model_object = ctx.object().clone();
             let transaction_ctx = ctx.transaction_ctx().clone();
@@ -194,7 +199,7 @@ impl Namespace {
             Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_validator_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| async move {
+        self.namespace_builder.define_validator_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| async move {
             let result: TeoValueOrPromise = tsfn_cloned.call_async((value, args, ctx.object().clone(), ctx.transaction_ctx())).await?;
             let teo_value = result.to_teo_value().await?;
             Ok::<Validity, teo::prelude::Error>(match teo_value {
@@ -223,7 +228,7 @@ impl Namespace {
             Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_callback_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| async move {
+        self.namespace_builder.define_callback_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| async move {
             let model_object = ctx.object().clone();
             let transaction_ctx = ctx.transaction_ctx().clone();
             let result: TeoValueOrPromise = tsfn_cloned.call_async((value, args, model_object, transaction_ctx)).await?;
@@ -244,7 +249,7 @@ impl Namespace {
             Ok(vec![js_value_old, js_value_new, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_compare_pipeline_item(Box::leak(Box::new(name)).as_str(), move |old: TeoValue, new: TeoValue, args: TeoArgs, object: TeoValue, ctx: pipeline::Ctx| async move {
+        self.namespace_builder.define_compare_pipeline_item(Box::leak(Box::new(name)).as_str(), move |old: TeoValue, new: TeoValue, args: TeoArgs, object: TeoValue, ctx: pipeline::Ctx| async move {
             let result: TeoValueOrPromise = tsfn_cloned.call_async((old, new, args, ctx.object().clone(), ctx.transaction_ctx())).await?;
             let teo_value = result.to_teo_value().await?;
             Ok::<Validity, teo::prelude::Error>(match teo_value {
@@ -271,7 +276,7 @@ impl Namespace {
             Ok(vec![request_ctx_unknown])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_handler(name.as_str(), move |ctx: request::Ctx| async move {
+        self.namespace_builder.define_handler(name.as_str(), move |ctx: request::Ctx| async move {
             let response_unknown: ResponseOrPromise = tsfn_cloned.call_async(Ok(ctx)).await?;
             Ok::<TeoResponse, teo::prelude::Error>(response_unknown.to_teo_response().await?)
         });
@@ -285,8 +290,8 @@ impl Namespace {
             Ok(vec![handler_group])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_handler_group(name.as_str(), |teo_handler_group: &mut TeoHandlerGroup| {
-            let static_model: &'static mut TeoHandlerGroup = unsafe { &mut *(teo_handler_group as * mut TeoHandlerGroup) };
+        self.namespace_builder.define_handler_group(name.as_str(), |teo_handler_group: &mut TeoHandlerGroup| {
+            let static_model: &TeoHandlerGroup = unsafe { &mut *(teo_handler_group as * mut TeoHandlerGroup) };
             let handler_group = HandlerGroup { teo_handler_group: static_model };
             let _ = tsfn_cloned.call(handler_group, napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
         });
@@ -300,8 +305,8 @@ impl Namespace {
             Ok(vec![handler_group])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.teo_namespace.define_model_handler_group(name.as_str(), |teo_handler_group: &mut TeoHandlerGroup| {
-            let static_model: &'static mut TeoHandlerGroup = unsafe { &mut *(teo_handler_group as * mut TeoHandlerGroup) };
+        self.namespace_builder.define_model_handler_group(name.as_str(), |teo_handler_group: &mut TeoHandlerGroup| {
+            let static_model: &TeoHandlerGroup = unsafe { &mut *(teo_handler_group as * mut TeoHandlerGroup) };
             let handler_group = HandlerGroup { teo_handler_group: static_model };
             let _ = tsfn_cloned.call(handler_group, napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
         });
@@ -315,7 +320,7 @@ impl Namespace {
             Ok(vec![js_args])
         })?;
         let threadsafe_callback: &'static ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = &*Box::leak(Box::new(threadsafe_callback));
-        self.teo_namespace.define_middleware(name.as_str(), move |arguments| async move {
+        self.namespace_builder.define_middleware(name.as_str(), move |arguments| async move {
             let middleware_function: SendMiddlewareCallback = threadsafe_callback.call_async(arguments).await?;
             let wrapped_result = move |ctx: teo::prelude::request::Ctx, next: &'static dyn Next| async move {
                 let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async((ctx.clone(), SendNext::new(next))).await?;

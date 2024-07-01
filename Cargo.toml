@@ -1,14 +1,14 @@
 [package]
 edition = "2021"
 name = "teocloud_teo"
-version = "0.2.37"
+version = "0.3.0-alpha.0"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-teo = { version = "0.2.37", path = "../teo" }
-teo-result = { version = "0.2.37", features = ["napi"], path = "../teo-result" }
+teo = { version = "0.3.0-alpha.0", path = "../teo" }
+teo-result = { version = "0.3.0-alpha.0", features = ["napi"], path = "../teo-result" }
 napi = { version = "2.16.0", default-features = false, features = ["napi5", "async", "chrono_date", "compat-mode"] }
 napi-derive = "2.16.0"
 chrono = { version = "0.4.31" }

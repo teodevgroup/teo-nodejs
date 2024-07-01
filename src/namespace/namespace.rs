@@ -6,13 +6,9 @@ use crate::middleware::SendMiddlewareCallback;
 use crate::request::send_next::SendNext;
 use teo::prelude::namespace;
 use teo::prelude::model::field;
-use teo::prelude::model::relation;
-use teo::prelude::model::property;
-use teo::prelude::interface;
-use teo::prelude::interface::field as interface_field;
 use teo::prelude::handler;
 use teo::prelude::r#enum;
-use teo::prelude::{Value as TeoValue, Arguments, handler::Group as TeoHandlerGroup, Enum as TeoEnum, Member as TeoEnumMember, Model as TeoModel, model::Field as TeoField, model::Property as TeoProperty, model::Relation as TeoRelation, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
+use teo::prelude::{Value as TeoValue, Arguments, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
 use crate::dynamic::{js_ctx_object_from_teo_transaction_ctx, js_model_object_from_teo_model_object};
 use crate::handler::group::HandlerGroup;
 use crate::model::model::Model;
@@ -74,7 +70,7 @@ impl Namespace {
     pub fn define_model_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, model::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, model::Builder)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
-            let js_model = Model { model_builder: ctx.value.1 };
+            let js_model = Model { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
@@ -89,7 +85,7 @@ impl Namespace {
     pub fn define_model_field_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, model::field::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, field::Builder)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
-            let js_model = Field { teo_field: ctx.value.1 };
+            let js_model = Field { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
@@ -102,15 +98,14 @@ impl Namespace {
 
     #[napi(js_name = "defineModelRelationDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, relation: Relation) => void")]
     pub fn define_model_relation_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoRelation), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoRelation)>| {
+        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, model::relation::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, model::relation::Builder)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
-            let js_model = Relation { teo_relation: ctx.value.1 };
+            let js_model = Relation { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.namespace_builder.define_model_relation_decorator(name.as_str(), |arguments, model| {
-            let static_model: &TeoRelation = unsafe { &mut *(model as * mut TeoRelation) };
-            let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+        self.namespace_builder.define_model_relation_decorator(name.as_str(), |arguments, relation_builder| {
+            let _ = tsfn_cloned.call((arguments, relation_builder.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
@@ -118,15 +113,14 @@ impl Namespace {
 
     #[napi(js_name = "defineModelPropertyDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, property: Property) => void")]
     pub fn define_model_property_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoProperty), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoProperty)>| {
+        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, model::property::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, model::property::Builder)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
-            let js_model = Property { teo_property: ctx.value.1 };
+            let js_model = Property { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.namespace_builder.define_model_property_decorator(name.as_str(), |arguments, model| {
-            let static_model: &TeoProperty = unsafe { &mut *(model as * mut TeoProperty) };
-            let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+        self.namespace_builder.define_model_property_decorator(name.as_str(), |arguments, property_builder| {
+            let _ = tsfn_cloned.call((arguments, property_builder.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
@@ -134,15 +128,14 @@ impl Namespace {
 
     #[napi(js_name = "defineEnumDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, e: Enum) => void")]
     pub fn define_enum_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoEnum), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoEnum)>| {
+        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, r#enum::Builder)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
-            let js_model = Enum { teo_enum: ctx.value.1 };
+            let js_model = Enum { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.namespace_builder.define_enum_decorator(name.as_str(), |arguments, model| {
-            let static_model: &TeoEnum = unsafe { &mut *(model as * mut TeoEnum) };
-            let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+        self.namespace_builder.define_enum_decorator(name.as_str(), |arguments, enum_builder| {
+            let _ = tsfn_cloned.call((arguments, enum_builder.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
@@ -150,15 +143,14 @@ impl Namespace {
 
     #[napi(js_name = "defineEnumMemberDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, member: EnumMember) => void")]
     pub fn define_enum_member_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, &mut TeoEnumMember), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, &mut TeoEnumMember)>| {
+        let tsfn: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::member::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, r#enum::member::Builder)>| {
             let arguments = teo_args_to_js_args(&ctx.value.0, &ctx.env)?;
-            let js_model = EnumMember { teo_enum_member: ctx.value.1 };
+            let js_model = EnumMember { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.namespace_builder.define_enum_member_decorator(name.as_str(), |arguments, model| {
-            let static_model: &TeoEnumMember = unsafe { &mut *(model as * mut TeoEnumMember) };
-            let _ = tsfn_cloned.call((arguments, static_model), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+        self.namespace_builder.define_enum_member_decorator(name.as_str(), |arguments, enum_member_builder| {
+            let _ = tsfn_cloned.call((arguments, enum_member_builder.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
@@ -290,9 +282,8 @@ impl Namespace {
             Ok(vec![handler_group])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.namespace_builder.define_handler_group(name.as_str(), |teo_handler_group: &mut TeoHandlerGroup| {
-            let static_model: &TeoHandlerGroup = unsafe { &mut *(teo_handler_group as * mut TeoHandlerGroup) };
-            let handler_group = HandlerGroup { teo_handler_group: static_model };
+        self.namespace_builder.define_handler_group(name.as_str(), |teo_handler_group: &handler::group::Builder| {
+            let handler_group = HandlerGroup { builder: teo_handler_group.clone() };
             let _ = tsfn_cloned.call(handler_group, napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
         });
         Ok(())
@@ -305,9 +296,8 @@ impl Namespace {
             Ok(vec![handler_group])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.namespace_builder.define_model_handler_group(name.as_str(), |teo_handler_group: &mut TeoHandlerGroup| {
-            let static_model: &TeoHandlerGroup = unsafe { &mut *(teo_handler_group as * mut TeoHandlerGroup) };
-            let handler_group = HandlerGroup { teo_handler_group: static_model };
+        self.namespace_builder.define_model_handler_group(name.as_str(), |teo_handler_group: &handler::group::Builder| {
+            let handler_group = HandlerGroup { builder: teo_handler_group.clone() };
             let _ = tsfn_cloned.call(handler_group, napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
         });
         Ok(())

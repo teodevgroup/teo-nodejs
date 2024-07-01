@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 use napi::{Result, Error, Env, JsObject, JsFunction, JsUnknown, Property, JsSymbol, CallContext, ValueType, JsString, threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ErrorStrategy}};
-use teo::prelude::{App, model, transaction, Namespace, Value as TeoValue};
+use teo::prelude::{model, traits::named::Named, transaction, App, Namespace, Value as TeoValue};
 use std::collections::BTreeMap;
 use inflector::Inflector;
 
@@ -506,8 +506,8 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
         })?;
         object_prototype.set_named_property("toString", to_string)?;
         // fields
-        for field in model.fields() {
-            let field_name = Box::leak(Box::new(field.name.clone()));
+        for field in model.fields().values() {
+            let field_name = Box::leak(Box::new(field.name().to_string()));
             let property = Property::new(field_name.as_str())?.with_getter_closure(|env: Env, this: JsObject| {
                 let object: &mut model::Object = env.unwrap(&this)?;
                 let value: TeoValue = object.get_value(field_name.as_str()).unwrap();
@@ -521,10 +521,10 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             object_prototype.define_properties(&[property])?;
         }
         // relations
-        for relation in model.relations() {
-            let name_raw = Box::leak(Box::new(relation.name.clone()));
+        for relation in model.relations().values() {
+            let name_raw = Box::leak(Box::new(relation.name().to_string()));
             let name = name_raw.as_str();
-            if relation.is_vec {
+            if relation.is_vec() {
                 // get
                 let get_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
                     let teo_value = if ctx.length == 0 {
@@ -658,10 +658,10 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             }
         }
         // properties
-        for model_property in model.properties() {
-            let field_name_raw = Box::leak(Box::new(model_property.name.clone()));
+        for model_property in model.properties().values() {
+            let field_name_raw = Box::leak(Box::new(model_property.name().to_string()));
             let field_name = field_name_raw.as_str();
-            if model_property.setter.is_some() {
+            if model_property.setter().is_some() {
                 let name = "set".to_owned() + &field_name.to_pascal_case();
                 let set_property = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
                     let val: JsUnknown = ctx.get(0)?;
@@ -681,7 +681,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
                 })?;
                 object_prototype.set_named_property(&name, set_property)?;
             }
-            if model_property.getter.is_some() {
+            if model_property.getter().is_some() {
                 let mut property = Property::new(field_name)?;
                 property = property.with_getter_closure(move |env: Env, this: JsObject| {
                     let object: &mut model::Object = env.unwrap(&this)?;

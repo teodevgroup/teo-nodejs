@@ -146,10 +146,10 @@ function fixIndexDTs(filename) {
   public messagePrefixed(prefix: string): TeoError
   public pathPrefixed(prefix: string): TeoError
   public mapPath(mapper: (string) => string): TeoError
-  static public notFound(message: string = "not found"): TeoError
-  static public invalidRequest(message: string = "value is invalid"): TeoError
-  static public internalServerError(message: string = "internal server error"): TeoError
-  static public unauthorized(message: string = "unauthorized"): TeoError  
+  public static notFound(message: string = "not found"): TeoError
+  public static invalidRequest(message: string = "value is invalid"): TeoError
+  public static internalServerError(message: string = "internal server error"): TeoError
+  public static unauthorized(message: string = "unauthorized"): TeoError  
 }
 `
   writeFileSync(filename, content)

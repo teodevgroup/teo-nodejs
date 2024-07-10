@@ -181,7 +181,7 @@ pub(crate) fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<(
 
 pub(crate) fn synthesize_dynamic_nodejs_classes_for_namespace(namespace: &'static Namespace, env: Env) -> Result<()> {
     synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace, env)?;
-    for namespace in namespace.namespaces.values() {
+    for namespace in namespace.namespaces().values() {
         synthesize_dynamic_nodejs_classes_for_namespace(namespace, env)?;
     }
     Ok(())
@@ -191,7 +191,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
     let ctx_ctor = ctx_constructor_function(env, &namespace.path().join("."))?;
     let ctx_ctor_object = ctx_ctor.coerce_to_object()?;
     let mut ctx_prototype: JsObject = ctx_ctor_object.get_named_property("prototype")?;
-    for model in namespace.models.values() {
+    for model in namespace.models().values() {
         let model_name = model.path().join(".");
         let lowercase_model_name = model_name.to_camel_case();
         let ctx_property = Property::new(&lowercase_model_name)?.with_getter_closure(|env: Env, this: JsObject| {
@@ -357,7 +357,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             Ok(promise)
         })?;
         class_prototype.set_named_property("groupBy", group_by)?;
-        if namespace.database.is_some() && namespace.database.unwrap().is_sql() {
+        if namespace.database().is_some() && namespace.database().unwrap().is_sql() {
             // sql
             let sql = env.create_function_from_closure("sql", |ctx| {
                 let sql_string: &str = ctx.get(0)?;
@@ -700,7 +700,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: 
             }
         }        
     }
-    for namespace in namespace.namespaces.values() {
+    for namespace in namespace.namespaces().values() {
         let namespace_name = namespace.path().join(".");
         let ctx_property = Property::new(&namespace_name)?.with_getter_closure(|env: Env, this: JsObject| {
             let namespace_name = namespace.path().join(".");

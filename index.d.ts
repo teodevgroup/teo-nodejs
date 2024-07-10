@@ -92,12 +92,6 @@ export class App {
   program(name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>): void
   mainNamespace(): Namespace
 }
-export class ReadOnlyHeaderMap {
-  keys(): Array<string>
-  len(): number
-  containsKey(key: string): boolean
-  get(key: string): string | null
-}
 export class RequestCtx {
   request(): Request
   body(): any
@@ -115,7 +109,8 @@ export class Request {
   path(): string
   queryString(): string
   contentType(): string
-  headers(): ReadOnlyHeaderMap
+  header(name: string): string | null
+  headers(): {[key: string]: string}
 }
 export class ReadWriteHeaderMap {
   keys(): Array<string>

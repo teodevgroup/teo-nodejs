@@ -297,7 +297,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { HandlerGroup, Model, Field, Property, Relation, Namespace, DateOnly, ObjectId, File, Range, OptionVariant, Pipeline, InterfaceEnumVariant, App, ReadOnlyHeaderMap, RequestCtx, HandlerMatch, Request, ReadWriteHeaderMap, Response, EnumMember, Enum, serveStaticFiles } = nativeBinding
+const { HandlerGroup, Model, Field, Property, Relation, Namespace, DateOnly, ObjectId, File, Range, OptionVariant, Pipeline, InterfaceEnumVariant, App, RequestCtx, HandlerMatch, Request, ReadWriteHeaderMap, Response, EnumMember, Enum, serveStaticFiles } = nativeBinding
 
 module.exports.HandlerGroup = HandlerGroup
 module.exports.Model = Model
@@ -313,7 +313,6 @@ module.exports.OptionVariant = OptionVariant
 module.exports.Pipeline = Pipeline
 module.exports.InterfaceEnumVariant = InterfaceEnumVariant
 module.exports.App = App
-module.exports.ReadOnlyHeaderMap = ReadOnlyHeaderMap
 module.exports.RequestCtx = RequestCtx
 module.exports.HandlerMatch = HandlerMatch
 module.exports.Request = Request

@@ -57,8 +57,9 @@ impl Cookie {
         self.inner.http_only()
     }
 
-    pub fn set_same_set(&mut self, same_site: &str) -> Result<()> {
-        Ok(self.inner.set_same_site(match same_site {
+    #[napi(ts_args_type = "sameSite: \"strict\" | \"lax\" | \"none\"")]
+    pub fn set_same_site(&mut self, same_site: String) -> Result<()> {
+        Ok(self.inner.set_same_site(match same_site.as_str() {
             "strict" => teo::prelude::request::SameSite::Strict,
             "lax" => teo::prelude::request::SameSite::Lax,
             "none" => teo::prelude::request::SameSite::None,

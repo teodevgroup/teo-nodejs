@@ -131,6 +131,7 @@ export class Cookie {
   path(): string | null
   secure(): boolean | null
   httpOnly(): boolean | null
+  setSameSite(sameSite: "strict" | "lax" | "none"): void
   sameSite(): "strict" | "lax" | "none"
   toString(): string
   setMaxAge(maxAge: number): void

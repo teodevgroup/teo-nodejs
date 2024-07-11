@@ -144,6 +144,7 @@ export class Cookie {
   setValue(value: string): void
   makeRemoval(): void
   makePermanent(): void
+  static fromString(string: string): this
 }
 export class ReadWriteHeaderMap {
   keys(): Array<string>

@@ -132,4 +132,13 @@ impl Cookie {
     pub fn make_permanent(&mut self) {
         self.inner.make_permanent()
     }
+
+    #[napi]
+    pub fn from_string(string: String) -> Result<Self> {
+        let result = teo::prelude::request::Cookie::parse(string);
+        match result {
+            Ok(cookie) => Ok(Self { inner: cookie }),
+            Err(_) => Err(teo_result::Error::internal_server_error_message("invalid cookie string"))?,
+        }
+    }
 }

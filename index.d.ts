@@ -114,7 +114,36 @@ export class Request {
   cookie(name: string): Cookie | null
   cookies(): Array<Cookie>
 }
-export class Cookie { }
+export class Expiration {
+  static createSession(): Expiration
+  static createDatetime(datetime: Date): this
+  isSession(): boolean
+  isDatetime(): boolean
+  datetime(): Date | null
+}
+export class Cookie {
+  constructor(name: string, value: string)
+  name(): string
+  value(): string
+  expires(): Expiration | null
+  maxAge(): number | null
+  domain(): string | null
+  path(): string | null
+  secure(): boolean | null
+  httpOnly(): boolean | null
+  sameSite(): "strict" | "lax" | "none"
+  toString(): string
+  setMaxAge(maxAge: number): void
+  setExpires(expires: Expiration): void
+  setDomain(domain: string): void
+  setPath(path: string): void
+  setSecure(secure: boolean): void
+  setHttpOnly(httpOnly: boolean): void
+  setName(name: string): void
+  setValue(value: string): void
+  makeRemoval(): void
+  makePermanent(): void
+}
 export class ReadWriteHeaderMap {
   keys(): Array<string>
   len(): number

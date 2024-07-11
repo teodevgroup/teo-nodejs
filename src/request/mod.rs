@@ -7,4 +7,5 @@ pub mod cookie;
 pub use request::Request;
 pub use handler_match::HandlerMatch;
 pub use ctx::RequestCtx;
-pub use cookie::Cookie;
+pub use cookie::cookie::Cookie;
+pub use cookie::expiration::Expiration;

@@ -111,7 +111,10 @@ export class Request {
   contentType(): string
   header(name: string): string | null
   headers(): {[key: string]: string}
+  cookie(name: string): Cookie | null
+  cookies(): Array<Cookie>
 }
+export class Cookie { }
 export class ReadWriteHeaderMap {
   keys(): Array<string>
   len(): number
@@ -138,6 +141,8 @@ export class Response {
   getText(): string | null
   getTeon(): unknown
   getFile(): string | null
+  addCookie(cookie: Cookie): void
+  cookies(): Array<Cookie>
 }
 export class EnumMember {
   setData(key: string, value: unknown): void

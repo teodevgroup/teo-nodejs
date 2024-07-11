@@ -1,6 +1,8 @@
 use teo::prelude::Request as TeoRequest;
 use napi::{Env, JsObject, Result};
 
+use super::Cookie;
+
 #[napi(js_name = "Request")]
 pub struct Request {
     pub(crate) teo_request: TeoRequest,
@@ -44,5 +46,15 @@ impl Request {
             object.set_named_property(k.as_str(), v.to_str().unwrap().to_owned())?;
         }
         Ok(object)
+    }
+
+    #[napi]
+    pub fn cookie(&self, name: String) -> Option<Cookie> {
+        self.teo_request.cookie(&name).map(|c| Cookie { inner: c })
+    }
+
+    #[napi]
+    pub fn cookies(&self) -> Result<Vec<Cookie>> {
+        Ok(self.teo_request.cookies()?.iter().map(|c| Cookie { inner: c.clone() }).collect())
     }
 }

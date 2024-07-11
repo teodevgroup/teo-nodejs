@@ -3,7 +3,7 @@ pub(crate) mod response_or_promise;
 
 use std::path::PathBuf;
 
-use crate::object::{js_any_to_teo_value, value::teo_value_to_js_any};
+use crate::{object::{js_any_to_teo_value, value::teo_value_to_js_any}, request::Cookie};
 
 use self::header_map::ReadWriteHeaderMap;
 use napi::{Result, JsUnknown, Env, bindgen_prelude::{FromNapiValue, FromNapiRef}};
@@ -137,6 +137,16 @@ impl Response {
             None => None,
             Some(path_buf) => Some(path_buf.to_str().unwrap().to_string()),
         }
+    }
+
+    #[napi(js_name = "addCookie")]
+    pub fn add_cookie(&self, cookie: &Cookie) {
+        self.teo_response.add_cookie(cookie.inner.clone())
+    }
+
+    #[napi]
+    pub fn cookies(&self) -> Vec<Cookie> {
+        self.teo_response.cookies().into_iter().map(|c| Cookie { inner: c }).collect()
     }
 }
 

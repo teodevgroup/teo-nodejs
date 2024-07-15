@@ -102,6 +102,6 @@ impl App {
 
     #[napi(js_name = "mainNamespace", writable = false)]
     pub fn main_namespace(&self) -> Namespace {
-        Namespace { namespace_builder: self.teo_app.namespace_builder().clone() }
+        Namespace { namespace_builder: self.teo_app.main_namespace().clone() }
     }
 }

@@ -176,7 +176,7 @@ pub(crate) fn js_ctx_object_from_teo_transaction_ctx(env: Env, transaction_ctx: 
 }
 
 pub(crate) fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<()> {
-    synthesize_dynamic_nodejs_classes_for_namespace(app.main_namespace(), env)
+    synthesize_dynamic_nodejs_classes_for_namespace(app.compiled_main_namespace(), env)
 }
 
 pub(crate) fn synthesize_dynamic_nodejs_classes_for_namespace(namespace: &'static Namespace, env: Env) -> Result<()> {

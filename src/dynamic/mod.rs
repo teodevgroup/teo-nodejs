@@ -1,5 +1,5 @@
 use indexmap::IndexMap;
-use napi::{Result, Error, Env, JsObject, JsFunction, JsUnknown, Property, JsSymbol, CallContext, ValueType, JsString, threadsafe_function::{ThreadSafeCallContext, ThreadsafeFunction, ErrorStrategy}};
+use napi::{threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction}, CallContext, Env, Error, JsFunction, JsObject, JsString, JsSymbol, JsUnknown, Property, Result, ValueType};
 use teo::prelude::{model, traits::named::Named, transaction, App, Namespace, Value as TeoValue};
 use std::collections::BTreeMap;
 use inflector::Inflector;
@@ -32,6 +32,8 @@ impl JSClassLookupMap {
     fn objects(&self) -> &BTreeMap<String, napi::Ref<()>> {
         &self.objects
     }
+
+    // Building methods
 
     fn insert_ctx(&mut self, key: String, value: napi::Ref<()>) {
         self.ctxs.insert(key, value);
@@ -79,6 +81,30 @@ impl JSClassLookupMap {
         Ok(self.ctx_constructor(name, env)?.unwrap())
     }
 
+    fn ctx_prototype_or_create(&mut self, key: &str, env: Env) -> Result<JsObject> {
+        let ctx_ctor = self.ctx_constructor_or_create(key, env)?;
+        let ctx_ctor_object = ctx_ctor.coerce_to_object()?;
+        let prototype: JsObject = ctx_ctor_object.get_named_property("prototype")?;
+        Ok(prototype)
+    }
+
+    fn ctx_prototype(&self, key: &str, env: Env) -> Result<Option<JsObject>> {
+        match self.ctxs.get(key).map(|r| {
+            let ctor: Result<JsFunction> = env.get_reference_value(r);
+            ctor
+        }) {
+            None => Ok(None),
+            Some(result) => match result {
+                Ok(ctor) => {
+                    let ctor_object = ctor.coerce_to_object()?;
+                    let prototype: JsObject = ctor_object.get_named_property("prototype")?;
+                    Ok(Some(prototype))
+                }
+                Err(e) => Err(e),
+            },
+        }
+    }
+
     fn class_constructor(&self, key: &str, env: Env) -> Result<Option<JsFunction>> {
         match self.classes.get(key).map(|r| {
             let function: Result<JsFunction> = env.get_reference_value(r);
@@ -111,6 +137,30 @@ impl JSClassLookupMap {
         let r = env.create_reference(ctor_object)?;
         self.classes.insert(name.to_owned(), r);
         Ok(self.class_constructor(name, env)?.unwrap())
+    }
+
+    fn class_prototype_or_create(&mut self, key: &str, env: Env) -> Result<JsObject> {
+        let class_ctor = self.class_constructor_or_create(key, env)?;
+        let class_ctor_object = class_ctor.coerce_to_object()?;
+        let prototype: JsObject = class_ctor_object.get_named_property("prototype")?;
+        Ok(prototype)
+    }
+
+    fn class_prototype(&self, key: &str, env: Env) -> Result<Option<JsObject>> {
+        match self.classes.get(key).map(|r| {
+            let ctor: Result<JsFunction> = env.get_reference_value(r);
+            ctor
+        }) {
+            None => Ok(None),
+            Some(result) => match result {
+                Ok(ctor) => {
+                    let ctor_object = ctor.coerce_to_object()?;
+                    let prototype: JsObject = ctor_object.get_named_property("prototype")?;
+                    Ok(Some(prototype))
+                }
+                Err(e) => Err(e),
+            },
+        }
     }
 
     fn object_constructor(&self, key: &str, env: Env) -> Result<Option<JsFunction>> {
@@ -146,56 +196,69 @@ impl JSClassLookupMap {
         self.objects.insert(name.to_owned(), r);
         Ok(self.object_constructor(name, env)?.unwrap())
     }
-}
 
-fn get_model_object_prototype(env: Env, name: &str) -> JsObject {
-    let js_function = get_model_object_constructor(env, name);
-    let js_object = js_function.coerce_to_object().unwrap();
-    let prototype: JsObject = js_object.get_named_property("prototype").unwrap();
-    prototype
-}
+    fn object_prototype_or_create(&mut self, key: &str, env: Env) -> Result<JsObject> {
+        let object_ctor = self.object_constructor_or_create(key, env)?;
+        let object_ctor_object = object_ctor.coerce_to_object()?;
+        let prototype: JsObject = object_ctor_object.get_named_property("prototype")?;
+        Ok(prototype)
+    }
 
-fn get_model_class_prototype(env: Env, name: &str) -> JsObject {
-    let js_function = get_model_class_constructor(env, name);
-    let js_object = js_function.coerce_to_object().unwrap();
-    let prototype: JsObject = js_object.get_named_property("prototype").unwrap();
-    prototype
-}
+    fn object_prototype(&self, key: &str, env: Env) -> Result<Option<JsObject>> {
+        match self.objects.get(key).map(|r| {
+            let ctor: Result<JsFunction> = env.get_reference_value(r);
+            ctor
+        }) {
+            None => Ok(None),
+            Some(result) => match result {
+                Ok(ctor) => {
+                    let ctor_object = ctor.coerce_to_object()?;
+                    let prototype: JsObject = ctor_object.get_named_property("prototype")?;
+                    Ok(Some(prototype))
+                }
+                Err(e) => Err(e),
+            },
+        }
+    }
 
-fn get_ctx_prototype(env: Env, name: &str) -> JsObject {
-    let js_function = get_ctx_constructor(env, name);
-    let js_object = js_function.coerce_to_object().unwrap();
-    let prototype: JsObject = js_object.get_named_property("prototype").unwrap();
-    prototype
-}
+    // Query methods
 
-pub(crate) fn js_model_class_object_from_teo_model_ctx(env: Env, model_ctx: model::Ctx, name: &str) -> Result<JsObject> {
-    let mut js_object = env.create_object()?;
-    js_object.set_named_property("__proto__", get_model_class_prototype(env.clone(), name))?;
-    env.wrap(&mut js_object, model_ctx)?;
-    Ok(js_object)
-}
+    fn teo_model_ctx_to_js_model_class_object(&self, env: Env, model_ctx: model::Ctx, name: &str) -> Result<JsObject> {
+        let Some(class_prototype) = self.class_prototype(name, env)? else {
+            return Err(Error::from_reason("Class prototype not found"));
+        };
+        let mut js_object = env.create_object()?;
+        js_object.set_named_property("__proto__", class_prototype)?;
+        env.wrap(&mut js_object, model_ctx)?;
+        Ok(js_object)
+    }
 
-pub(crate) fn js_model_object_from_teo_model_object(env: Env, teo_model_object: model::Object) -> Result<JsObject> {
-    let mut js_object = env.create_object()?;
-    js_object.set_named_property("__proto__", get_model_object_prototype(env.clone(), &teo_model_object.model().path().join(".")))?;
-    env.wrap(&mut js_object, teo_model_object)?;
-    Ok(js_object)
-}
+    fn teo_model_object_to_js_model_object_object(&self, env: Env, teo_model_object: model::Object) -> Result<JsObject> {
+        let Some(object_prototype) = self.object_prototype(&teo_model_object.model().path().join("."), env)? else {
+            return Err(Error::from_reason("Object prototype not found"));
+        };
+        let mut js_object = env.create_object()?;
+        js_object.set_named_property("__proto__", object_prototype)?;
+        env.wrap(&mut js_object, teo_model_object)?;
+        Ok(js_object)
+    }
 
-pub(crate) fn js_optional_model_object_from_teo_object(env: Env, teo_model_object: Option<model::Object>) -> Result<JsUnknown> {
-    Ok(match teo_model_object {
-        Some(teo_model_object) => js_model_object_from_teo_model_object(env, teo_model_object)?.into_unknown(),
-        None => env.get_undefined()?.into_unknown(),
-    })
-}
+    fn teo_optional_model_object_to_js_optional_model_object_object(&self, env: Env, teo_model_object: Option<model::Object>) -> Result<JsUnknown> {
+        Ok(match teo_model_object {
+            Some(teo_model_object) => self.teo_model_object_to_js_model_object_object(env, teo_model_object)?.into_unknown(),
+            None => env.get_undefined()?.into_unknown(),
+        })
+    }
 
-pub(crate) fn js_ctx_object_from_teo_transaction_ctx(env: Env, transaction_ctx: transaction::Ctx, name: &str) -> Result<JsObject> {
-    let mut js_object = env.create_object()?;
-    let prototype = get_ctx_prototype(env.clone(), name);
-    js_object.set_named_property("__proto__", prototype)?;
-    env.wrap(&mut js_object, transaction_ctx)?;
-    Ok(js_object)
+    fn teo_transaction_ctx_to_js_ctx_object(&self, env: Env, transaction_ctx: transaction::Ctx, name: &str) -> Result<JsObject> {
+        let Some(ctx_prototype) = self.ctx_prototype(name, env)? else {
+            return Err(Error::from_reason("Ctx prototype not found"));
+        };
+        let mut js_object = env.create_object()?;
+        js_object.set_named_property("__proto__", ctx_prototype)?;
+        env.wrap(&mut js_object, transaction_ctx)?;
+        Ok(js_object)
+    }
 }
 
 pub(crate) fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<()> {

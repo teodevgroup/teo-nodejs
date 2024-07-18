@@ -3,79 +3,148 @@ use napi::{Result, Error, Env, JsObject, JsFunction, JsUnknown, Property, JsSymb
 use teo::prelude::{model, traits::named::Named, transaction, App, Namespace, Value as TeoValue};
 use std::collections::BTreeMap;
 use inflector::Inflector;
-
 use crate::object::{js_any_to_teo_value, unknown::{SendJsUnknown, SendJsUnknownOrPromise}, value::teo_value_to_js_any};
 
-static mut CTXS: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
-static mut CLASSES: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
-static mut OBJECTS: Option<&'static BTreeMap<String, napi::Ref<()>>> = None;
-
-#[module_exports]
-pub fn init(mut _exports: JsObject, _env: Env) -> Result<()> {
-    unsafe { CLASSES = Some(Box::leak(Box::new(BTreeMap::new()))) };
-    unsafe { OBJECTS = Some(Box::leak(Box::new(BTreeMap::new()))) };
-    unsafe { CTXS = Some(Box::leak(Box::new(BTreeMap::new()))) };
-    
-    Ok(())
+struct JSClassLookupMap {
+    ctxs: BTreeMap<String, napi::Ref<()>>,
+    classes: BTreeMap<String, napi::Ref<()>>,
+    objects: BTreeMap<String, napi::Ref<()>>,
 }
 
-#[allow(invalid_reference_casting)]
-fn classes_mut() -> &'static mut BTreeMap<String, napi::Ref<()>> {
-    unsafe {
-        let const_ptr = CLASSES.unwrap() as *const BTreeMap<String, napi::Ref<()>>;
-        let mut_ptr = const_ptr as *mut BTreeMap<String, napi::Ref<()>>;
-        &mut *mut_ptr
-    }
-}
+impl JSClassLookupMap {
 
-#[allow(invalid_reference_casting)]
-fn objects_mut() -> &'static mut BTreeMap<String, napi::Ref<()>> {
-    unsafe {
-        let const_ptr = OBJECTS.unwrap() as *const BTreeMap<String, napi::Ref<()>>;
-        let mut_ptr = const_ptr as *mut BTreeMap<String, napi::Ref<()>>;
-        &mut *mut_ptr
-    }
-}
-
-#[allow(invalid_reference_casting)]
-fn ctxs_mut() -> &'static mut BTreeMap<String, napi::Ref<()>> {
-    unsafe {
-        let const_ptr = CTXS.unwrap() as *const BTreeMap<String, napi::Ref<()>>;
-        let mut_ptr = const_ptr as *mut BTreeMap<String, napi::Ref<()>>;
-        &mut *mut_ptr
-    }
-}
-
-pub fn get_model_class_constructor(env: Env, name: &str) -> JsFunction {
-    unsafe {
-        if let Some(object_ref) = CLASSES.unwrap().get(name) {
-            let object: JsFunction = env.get_reference_value(object_ref).unwrap();
-            object
-        } else {
-            model_class_constructor_function(env, name).unwrap()
+    fn new() -> Self {
+        Self {
+            ctxs: BTreeMap::new(),
+            classes: BTreeMap::new(),
+            objects: BTreeMap::new(),
         }
     }
-}
 
-pub fn get_model_object_constructor(env: Env, name: &str) -> JsFunction {
-    unsafe {
-        if let Some(object_ref) = OBJECTS.unwrap().get(name) {
-            let object: JsFunction = env.get_reference_value(object_ref).unwrap();
-            object
-        } else {
-            model_object_constructor_function(env, name).unwrap()
+    fn ctxs(&self) -> &BTreeMap<String, napi::Ref<()>> {
+        &self.ctxs
+    }
+
+    fn classes(&self) -> &BTreeMap<String, napi::Ref<()>> {
+        &self.classes
+    }
+
+    fn objects(&self) -> &BTreeMap<String, napi::Ref<()>> {
+        &self.objects
+    }
+
+    fn insert_ctx(&mut self, key: String, value: napi::Ref<()>) {
+        self.ctxs.insert(key, value);
+    }
+
+    fn insert_class(&mut self, key: String, value: napi::Ref<()>) {
+        self.classes.insert(key, value);
+    }
+
+    fn insert_object(&mut self, key: String, value: napi::Ref<()>) {
+        self.objects.insert(key, value);
+    }
+
+    fn ctx_constructor(&self, key: &str, env: Env) -> Result<Option<JsFunction>> {
+        match self.ctxs.get(key).map(|r| {
+            let function: Result<JsFunction> = env.get_reference_value(r);
+            function
+        }) {
+            None => Ok(None),
+            Some(result) => match result {
+                Ok(function) => Ok(Some(function)),
+                Err(e) => Err(e),
+            },
         }
     }
-}
 
-pub fn get_ctx_constructor(env: Env, name: &str) -> JsFunction {
-    unsafe {
-        if let Some(object_ref) = CTXS.unwrap().get(name) {
-            let object: JsFunction = env.get_reference_value(object_ref).unwrap();
-            object
-        } else {
-            ctx_constructor_function(env, name).unwrap()
+    fn ctx_constructor_or_create(&mut self, key: &str, env: Env) -> Result<JsFunction> {
+        let existing = self.ctx_constructor(key, env)?;
+        if existing.is_some() {
+            return Ok(existing.unwrap())
         }
+        self.create_ctx_constructor(key, env)
+    }
+
+    fn create_ctx_constructor(&mut self, name: &str, env: Env) -> Result<JsFunction> {
+        let ctor = env.create_function_from_closure((name.to_owned() + "Ctx").as_str(), |ctx| {
+            ctx.env.get_undefined()
+        })?;
+        let mut prototype = env.create_object()?;
+        prototype.set_named_property("__teo_ctx__", env.get_boolean(true)?)?;
+        let mut ctor_object = ctor.coerce_to_object()?;
+        ctor_object.set_named_property("prototype", prototype)?;
+        let r = env.create_reference(ctor_object)?;
+        self.ctxs.insert(name.to_owned(), r);
+        Ok(self.ctx_constructor(name, env)?.unwrap())
+    }
+
+    fn class_constructor(&self, key: &str, env: Env) -> Result<Option<JsFunction>> {
+        match self.classes.get(key).map(|r| {
+            let function: Result<JsFunction> = env.get_reference_value(r);
+            function
+        }) {
+            None => Ok(None),
+            Some(result) => match result {
+                Ok(function) => Ok(Some(function)),
+                Err(e) => Err(e),
+            },
+        }
+    }
+
+    fn class_constructor_or_create(&mut self, key: &str, env: Env) -> Result<JsFunction> {
+        let existing = self.class_constructor(key, env)?;
+        if existing.is_some() {
+            return Ok(existing.unwrap())
+        }
+        self.create_class_constructor(key, env)
+    }
+
+    fn create_class_constructor(&mut self, name: &str, env: Env) -> Result<JsFunction> {
+        let ctor = env.create_function_from_closure(name, |ctx| {
+            ctx.env.get_undefined()
+        })?;
+        let mut prototype = env.create_object()?;
+        prototype.set_named_property("__teo_class__", env.get_boolean(true)?)?;
+        let mut ctor_object = ctor.coerce_to_object()?;
+        ctor_object.set_named_property("prototype", prototype)?;
+        let r = env.create_reference(ctor_object)?;
+        self.classes.insert(name.to_owned(), r);
+        Ok(self.class_constructor(name, env)?.unwrap())
+    }
+
+    fn object_constructor(&self, key: &str, env: Env) -> Result<Option<JsFunction>> {
+        match self.objects.get(key).map(|r| {
+            let function: Result<JsFunction> = env.get_reference_value(r);
+            function
+        }) {
+            None => Ok(None),
+            Some(result) => match result {
+                Ok(function) => Ok(Some(function)),
+                Err(e) => Err(e),
+            },
+        }
+    }
+
+    fn object_constructor_or_create(&mut self, key: &str, env: Env) -> Result<JsFunction> {
+        let existing = self.object_constructor(key, env)?;
+        if existing.is_some() {
+            return Ok(existing.unwrap())
+        }
+        self.create_object_constructor(key, env)
+    }
+
+    fn create_object_constructor(&mut self, name: &str, env: Env) -> Result<JsFunction> {
+        let ctor = env.create_function_from_closure(&name, |ctx| {
+            ctx.env.get_undefined()
+        })?;
+        let mut prototype = env.create_object()?;
+        prototype.set_named_property("__teo_object__", env.get_boolean(true)?)?;
+        let mut ctor_object = ctor.coerce_to_object()?;
+        ctor_object.set_named_property("prototype", prototype)?;
+        let r = env.create_reference(ctor_object)?;
+        self.objects.insert(name.to_owned(), r);
+        Ok(self.object_constructor(name, env)?.unwrap())
     }
 }
 
@@ -98,52 +167,6 @@ fn get_ctx_prototype(env: Env, name: &str) -> JsObject {
     let js_object = js_function.coerce_to_object().unwrap();
     let prototype: JsObject = js_object.get_named_property("prototype").unwrap();
     prototype
-}
-
-fn ctx_constructor_function(env: Env, path: &str) -> Result<JsFunction> {
-    let ctor = env.create_function_from_closure((path.to_owned() + "Ctx").as_str(), |ctx| {
-        ctx.env.get_undefined()
-    })?;
-    let mut prototype = env.create_object()?;
-    prototype.set_named_property("__teo_ctx__", env.get_boolean(true)?)?;
-    let mut ctor_object = ctor.coerce_to_object()?;
-    ctor_object.set_named_property("prototype", prototype)?;
-    let r = env.create_reference(ctor_object)?;
-    ctxs_mut().insert(path.to_owned(), r);
-    let ref_get = unsafe { CTXS.unwrap().get(path).unwrap() };
-    let object: JsFunction = env.get_reference_value(ref_get)?;
-    Ok(object)
-}
-
-fn model_class_constructor_function(env: Env, name: &str) -> Result<JsFunction> {
-    let ctor = env.create_function_from_closure(name, |ctx| {
-        ctx.env.get_undefined()
-    })?;
-    let mut prototype = env.create_object()?;
-    prototype.set_named_property("__teo_class__", env.get_boolean(true)?)?;
-    let mut ctor_object = ctor.coerce_to_object()?;
-    ctor_object.set_named_property("prototype", prototype)?;
-    let r = env.create_reference(ctor_object)?;
-    classes_mut().insert(name.to_owned(), r);
-    let ref_get = unsafe { CLASSES.unwrap().get(name).unwrap() };
-    let object: JsFunction = env.get_reference_value(ref_get)?;
-    Ok(object)
-}
-
-fn model_object_constructor_function(env: Env, name: &str) -> Result<JsFunction> {
-    let ctor = env.create_function_from_closure(&name, |ctx| {
-        // let this = ctx.this_unchecked();
-        ctx.env.get_undefined()
-    })?;
-    let mut prototype = env.create_object()?;
-    prototype.set_named_property("__teo_object__", env.get_boolean(true)?)?;
-    let mut ctor_object = ctor.coerce_to_object()?;
-    ctor_object.set_named_property("prototype", prototype)?;
-    let r = env.create_reference(ctor_object)?;
-    objects_mut().insert(name.to_owned(), r);
-    let ref_get = unsafe { OBJECTS.unwrap().get(name).unwrap() };
-    let object: JsFunction = env.get_reference_value(ref_get)?;
-    Ok(object)
 }
 
 pub(crate) fn js_model_class_object_from_teo_model_ctx(env: Env, model_ctx: model::Ctx, name: &str) -> Result<JsObject> {
@@ -176,18 +199,18 @@ pub(crate) fn js_ctx_object_from_teo_transaction_ctx(env: Env, transaction_ctx: 
 }
 
 pub(crate) fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<()> {
-    synthesize_dynamic_nodejs_classes_for_namespace(app.compiled_main_namespace(), env)
+    synthesize_dynamic_nodejs_classes_for_namespace(app, app.compiled_main_namespace(), env)
 }
 
-pub(crate) fn synthesize_dynamic_nodejs_classes_for_namespace(namespace: &'static Namespace, env: Env) -> Result<()> {
-    synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace, env)?;
+pub(crate) fn synthesize_dynamic_nodejs_classes_for_namespace(app: &App, namespace: &'static Namespace, env: Env) -> Result<()> {
+    synthesize_direct_dynamic_nodejs_classes_for_namespace(app, namespace, env)?;
     for namespace in namespace.namespaces().values() {
-        synthesize_dynamic_nodejs_classes_for_namespace(namespace, env)?;
+        synthesize_dynamic_nodejs_classes_for_namespace(app, namespace, env)?;
     }
     Ok(())
 }
 
-pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(namespace: &'static Namespace, env: Env) -> Result<()> {
+pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(app: &App, namespace: &'static Namespace, env: Env) -> Result<()> {
     let ctx_ctor = ctx_constructor_function(env, &namespace.path().join("."))?;
     let ctx_ctor_object = ctx_ctor.coerce_to_object()?;
     let mut ctx_prototype: JsObject = ctx_ctor_object.get_named_property("prototype")?;

@@ -1,7 +1,7 @@
 use teo::prelude::{App as TeoApp, Entrance, RuntimeVersion, transaction};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown};
-use crate::dynamic::{synthesize_dynamic_nodejs_classes, js_ctx_object_from_teo_transaction_ctx};
+use crate::dynamic::{synthesize_dynamic_nodejs_classes, JSClassLookupMap};
 use crate::namespace::Namespace;
 use crate::object::promise_or_ignore::PromiseOrIgnore;
 
@@ -72,9 +72,10 @@ impl App {
 
     /// Run before server is started.
     #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
-    pub fn setup(&mut self, callback: JsFunction) -> Result<()> {
+    pub fn setup(&'static self, callback: JsFunction) -> Result<()> {
+        let map = JSClassLookupMap::from_app(&self.teo_app);
         let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
-            let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.clone(), "")?;
+            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));
@@ -87,9 +88,10 @@ impl App {
 
     /// Define a custom program.
     #[napi(ts_args_type = "name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>")]
-    pub fn program(&mut self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
+    pub fn program(&'static self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
+        let map = JSClassLookupMap::from_app(&self.teo_app);
         let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
-            let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.clone(), "")?;
+            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
         })?;
         let tsfn_cloned = Box::leak(Box::new(tsfn));
@@ -101,7 +103,10 @@ impl App {
     }
 
     #[napi(js_name = "mainNamespace", writable = false)]
-    pub fn main_namespace(&self) -> Namespace {
-        Namespace { namespace_builder: self.teo_app.main_namespace().clone() }
+    pub fn main_namespace(&'static self) -> Namespace {
+        Namespace { 
+            namespace_builder: self.teo_app.main_namespace().clone(),
+            app: &self.teo_app,
+        }
     }
 }

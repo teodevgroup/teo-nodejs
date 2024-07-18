@@ -2,14 +2,13 @@ use napi::{JsFunction, Result};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
 use teo::prelude::pipeline::item::validator::Validity;
 use teo::prelude::{Next, Middleware};
+use crate::dynamic::JSClassLookupMap;
 use crate::middleware::SendMiddlewareCallback;
 use crate::request::send_next::SendNext;
 use teo::prelude::namespace;
 use teo::prelude::model::field;
 use teo::prelude::handler;
-use teo::prelude::r#enum;
-use teo::prelude::{Value as TeoValue, Arguments, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
-use crate::dynamic::{js_ctx_object_from_teo_transaction_ctx, js_model_object_from_teo_model_object};
+use teo::prelude::{r#enum, App as TeoApp, Value as TeoValue, Arguments, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
 use crate::handler::group::HandlerGroup;
 use crate::model::model::Model;
 use crate::model::relation::relation::Relation;
@@ -26,6 +25,7 @@ use crate::response::response_or_promise::ResponseOrPromise;
 #[napi(js_name = "Namespace")]
 pub struct Namespace {
     pub(crate) namespace_builder: namespace::Builder,
+    pub(crate) app: &'static TeoApp,
 }
 
 #[napi]
@@ -48,22 +48,34 @@ impl Namespace {
 
     #[napi]
     pub fn namespace(&self, name: String) -> Option<Namespace> {
-        self.namespace_builder.namespace(name.as_str()).map(|n| Namespace { namespace_builder: n })
+        self.namespace_builder.namespace(name.as_str()).map(|n| Namespace { 
+            namespace_builder: n,
+            app: self.app,
+        })
     }
 
     #[napi]
     pub fn namespace_or_create(&self, name: String) -> Namespace {
-        Namespace{ namespace_builder: self.namespace_builder.namespace_or_create(name.as_str()) }
+        Namespace{ 
+            namespace_builder: self.namespace_builder.namespace_or_create(name.as_str()),
+            app: self.app,
+        }
     }
 
     #[napi]
     pub fn namespace_at_path(&self, path: Vec<String>) -> Option<Namespace> {
-        self.namespace_builder.namespace_at_path(&path).map(|n| Namespace { namespace_builder: n })
+        self.namespace_builder.namespace_at_path(&path).map(|n| Namespace { 
+            namespace_builder: n,
+            app: self.app
+        })
     }
 
     #[napi]
     pub fn namespace_or_create_at_path(&self, path: Vec<String>) -> Namespace {
-        Namespace{ namespace_builder: self.namespace_builder.namespace_or_create_at_path(&path) }
+        Namespace {
+            namespace_builder: self.namespace_builder.namespace_or_create_at_path(&path),
+            app: self.app,
+        }
     }
 
     #[napi(js_name = "defineModelDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, model: Model) => void")]
@@ -157,12 +169,13 @@ impl Namespace {
     }
 
     #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
-    pub fn define_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
+    pub fn define_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
             let js_value = teo_value_to_js_any(&ctx.value.0, &ctx.env)?;
             let js_args = teo_args_to_js_args(&ctx.value.1, &ctx.env)?;
-            let js_object = js_model_object_from_teo_model_object(ctx.env, ctx.value.2.clone())?;
-            let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.3.clone(), "")?;
+            let map = JSClassLookupMap::from_app(self.app);
+            let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
+            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
             Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
@@ -177,17 +190,18 @@ impl Namespace {
     }
 
     #[napi(js_name = "defineTransformPipelineItem", ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
-    pub fn define_transform_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
+    pub fn define_transform_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
         self.define_pipeline_item(name, callback)
     }
 
     #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
-    pub fn define_validator_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
+    pub fn define_validator_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
             let js_value = teo_value_to_js_any(&ctx.value.0, &ctx.env)?;
             let js_args = teo_args_to_js_args(&ctx.value.1, &ctx.env)?;
-            let js_object = js_model_object_from_teo_model_object(ctx.env, ctx.value.2.clone())?;
-            let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.3.clone(), "")?;
+            let map = JSClassLookupMap::from_app(self.app);
+            let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
+            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
             Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
@@ -211,12 +225,13 @@ impl Namespace {
 
     /// Register a named callback.
     #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => void | Promise<void>")]
-    pub fn define_callback_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
+    pub fn define_callback_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
             let js_value = teo_value_to_js_any(&ctx.value.0, &ctx.env)?;
             let js_args = teo_args_to_js_args(&ctx.value.1, &ctx.env)?;
-            let js_object = js_model_object_from_teo_model_object(ctx.env, ctx.value.2.clone())?;
-            let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.3.clone(), "")?;
+            let map = JSClassLookupMap::from_app(self.app);
+            let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
+            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
             Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
@@ -231,13 +246,14 @@ impl Namespace {
     }
 
     #[napi(js_name = "defineComparePipelineItem<T>", ts_args_type = "name: string, callback: (oldValue: T, newValue: T, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
-    pub fn define_compare_pipeline_item(&mut self, name: String, callback: JsFunction) -> Result<()> {
+    pub fn define_compare_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
             let js_value_old = teo_value_to_js_any(&ctx.value.0, &ctx.env)?;
             let js_value_new = teo_value_to_js_any(&ctx.value.1, &ctx.env)?;
             let js_args = teo_args_to_js_args(&ctx.value.2, &ctx.env)?;
-            let js_object = js_model_object_from_teo_model_object(ctx.env, ctx.value.3.clone())?;
-            let js_ctx = js_ctx_object_from_teo_transaction_ctx(ctx.env, ctx.value.4.clone(), "")?;
+            let map = JSClassLookupMap::from_app(self.app);
+            let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.3.clone())?;
+            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.4.clone(), "")?;
             Ok(vec![js_value_old, js_value_new, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));

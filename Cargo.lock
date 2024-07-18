@@ -4063,7 +4063,7 @@ dependencies = [
  "teo-generator",
  "teo-mongodb-connector",
  "teo-parser",
- "teo-result 0.3.0-alpha.0",
+ "teo-result",
  "teo-runtime",
  "teo-sql-connector",
  "tokio",
@@ -4093,7 +4093,7 @@ dependencies = [
  "serde",
  "serde_json",
  "teo-parser",
- "teo-result 0.3.0-alpha.0",
+ "teo-result",
  "teo-runtime",
  "tokio",
  "toml_edit 0.22.12",
@@ -4117,7 +4117,7 @@ dependencies = [
  "regex",
  "snailquote",
  "teo-parser",
- "teo-result 0.3.0-alpha.0",
+ "teo-result",
  "teo-runtime",
  "tokio",
 ]
@@ -4147,27 +4147,16 @@ dependencies = [
  "snailquote",
  "strum",
  "strum_macros",
- "teo-result 0.3.0-alpha.0",
+ "teo-result",
 ]
 
 [[package]]
 name = "teo-result"
 version = "0.3.0-alpha.0"
-dependencies = [
- "indexmap 2.2.6",
- "reqwest",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "teo-result"
-version = "0.3.0-alpha.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94b6a50106fc2d35c1b6879b0b2e928dfecc2bac00ac84b2ec75449d1745ef67"
 dependencies = [
  "indexmap 2.2.6",
  "napi",
+ "reqwest",
  "serde",
  "serde_json",
 ]
@@ -4207,7 +4196,7 @@ dependencies = [
  "serde",
  "serde_json",
  "teo-parser",
- "teo-result 0.3.0-alpha.0",
+ "teo-result",
  "tokio",
  "uuid",
 ]
@@ -4231,7 +4220,7 @@ dependencies = [
  "regex",
  "snailquote",
  "teo-parser",
- "teo-result 0.3.0-alpha.0",
+ "teo-result",
  "teo-runtime",
  "tokio",
  "url",
@@ -4253,7 +4242,7 @@ dependencies = [
  "once_cell",
  "regex",
  "teo",
- "teo-result 0.3.0-alpha.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "teo-result",
  "time",
  "tokio",
 ]

@@ -8,13 +8,6 @@ App.prototype.run = async function() {
   await this._prepare();
   return this._run();
 }
-ReadOnlyHeaderMap.prototype[customInspectSymbol] = function(_, inspectOptions) {
-  let object = {}
-  for (let k of this.keys()) {
-    object[k] = this.get(k)
-  }
-  return "ReadOnlyHeaderMap " + inspect(object, inspectOptions)
-}
 HandlerMatch.prototype[customInspectSymbol] = function(_, inspectOptions) {
   return "HandlerMatch " + inspect({
     "path": this.path(),

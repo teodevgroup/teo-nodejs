@@ -1,10 +1,10 @@
 use napi::{threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext}, bindgen_prelude::FromNapiValue, JsFunction, Env};
-use teo::prelude::{request, Response as TeoResponse};
+use teo::prelude::{request, Response as TeoResponse, App as TeoApp};
 
 use crate::{request::{send_next::SendNext, RequestCtx}, response::Response};
 
 pub struct SendMiddlewareCallback {
-    pub(crate) inner: &'static ThreadsafeFunction<(request::Ctx, SendNext), ErrorStrategy::Fatal>
+    pub(crate) inner: &'static ThreadsafeFunction<(request::Ctx, SendNext), ErrorStrategy::Fatal>,
 }
 
 unsafe impl Send for SendMiddlewareCallback { }

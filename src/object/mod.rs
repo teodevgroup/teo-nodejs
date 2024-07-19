@@ -1,5 +1,4 @@
 pub(crate) mod value;
-mod model;
 mod r#struct;
 mod pipeline;
 mod interface_enum_variant;

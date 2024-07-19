@@ -1,22 +1,23 @@
-use teo::prelude::request::Ctx as TeoRequestCtx;
+use teo::prelude::{request::Ctx as TeoRequestCtx, App as TeoApp};
 use napi::{Env, JsObject, JsUnknown, Result};
-use crate::dynamic::js_ctx_object_from_teo_transaction_ctx;
-use crate::object::value::teo_value_to_js_any;
+use crate::{dynamic::JSClassLookupMap, object::value::teo_value_to_js_any};
 
 use super::{Request, HandlerMatch};
 
 #[napi(js_name = "RequestCtx")]
 pub struct RequestCtx {
     teo_inner: TeoRequestCtx,
+    app: &'static TeoApp,
 }
 
 /// HTTP request.
 #[napi]
 impl RequestCtx {
 
-    pub(crate) fn new(teo_inner: TeoRequestCtx) -> Self {
+    pub(crate) fn new(teo_inner: TeoRequestCtx, app: &'static TeoApp) -> Self {
         Self {
-            teo_inner
+            teo_inner,
+            app,
         }
     }
 
@@ -29,12 +30,13 @@ impl RequestCtx {
 
     #[napi(ts_return_type = "any")]
     pub fn body(&self, env: Env) -> Result<JsUnknown> {
-        teo_value_to_js_any(self.teo_inner.body(), &env)
+        teo_value_to_js_any(self.app, self.teo_inner.body(), &env)
     }
 
     #[napi(ts_return_type = "any")]
     pub fn teo(&self, env: Env) -> Result<JsUnknown> {
-        Ok(js_ctx_object_from_teo_transaction_ctx(env, self.teo_inner.transaction_ctx(), "")?.into_unknown())
+        let map = JSClassLookupMap::from_app(self.app);
+        Ok(map.teo_transaction_ctx_to_js_ctx_object(env, self.teo_inner.transaction_ctx(), "")?.into_unknown())
     }
 
     #[napi]

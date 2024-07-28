@@ -421,7 +421,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 Ok(model_ctx_cloned.count(&teo_value).await.unwrap())
             })(), move |env, object: TeoValue| {
                 teo_value_to_js_any(
-                    app_data.clone(),
+                    app_data,
                     &object,
                     env
                 )
@@ -444,7 +444,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 Ok(model_ctx_cloned.aggregate(&teo_value).await.unwrap())
             })(), |env, object: TeoValue| {
                 teo_value_to_js_any(
-                    app_data.clone(),
+                    app_data,
                     &object, 
                     env
                 )
@@ -468,7 +468,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             })(), |env, values: Vec<TeoValue>| {
                 let mut array = env.create_array(values.len() as u32)?;
                 for value in values {
-                    array.insert(teo_value_to_js_any(app_data.clone(), &value, env)?)?;
+                    array.insert(teo_value_to_js_any(app_data, &value, env)?)?;
                 }
                 Ok(array)
             })?;
@@ -487,7 +487,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 })(), |env, values: Vec<TeoValue>| {
                     let mut array = env.create_array(values.len() as u32)?;
                     for value in values {
-                        array.insert(teo_value_to_js_any(app_data.clone(), &value, env)?)?;
+                        array.insert(teo_value_to_js_any(app_data, &value, env)?)?;
                     }
                     Ok(array)
                 })?;
@@ -587,7 +587,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                     Err(err) => Err(Error::from_reason(err.message())),
                 }
             })(), move |env: &mut Env, value: TeoValue| {
-                Ok(teo_value_to_js_any(app_data.clone(), &value, env)?)
+                Ok(teo_value_to_js_any(app_data, &value, env)?)
             })?;
             Ok(promise)
         })?;
@@ -603,7 +603,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             let mut object = ctx.env.create_object()?;
             let app_data = model_object.namespace().app_data();
             for (k, v) in value_map.iter() {
-                object.set_named_property(k.as_str(), teo_value_to_js_any(app_data.clone(), v, &ctx.env)?)?;
+                object.set_named_property(k.as_str(), teo_value_to_js_any(app_data, v, &ctx.env)?)?;
             }
             let inspect_options: JsObject = ctx.get(1)?;
             let object_inspect: JsString = inspect.call(Some(&this), &[object, inspect_options])?.coerce_to_string()?;
@@ -630,7 +630,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             let property = Property::new(field_name.as_str())?.with_getter_closure(|env: Env, this: JsObject| {
                 let object: &mut model::Object = env.unwrap(&this)?;
                 let value: TeoValue = object.get_value(field_name.as_str()).unwrap();
-                Ok(teo_value_to_js_any(app_data.clone(), &value, &env)?)
+                Ok(teo_value_to_js_any(app_data, &value, &env)?)
             }).with_setter_closure(|env: Env, this: JsObject, arg0: JsUnknown| {
                 let teo_value = js_any_to_teo_value(arg0, env.clone())?;
                 let object: &mut model::Object = env.unwrap(&this)?;
@@ -813,7 +813,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                             Err(err) => Err(Error::from_reason(err.message())),
                         }
                     })(), |env, v: TeoValue| {
-                        Ok(teo_value_to_js_any(app_data.clone(), &v, env))
+                        Ok(teo_value_to_js_any(app_data, &v, env))
                     })?;
                     Ok(promise)
                 });

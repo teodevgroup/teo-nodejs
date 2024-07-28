@@ -9,9 +9,8 @@ pub use file::File;
 pub use range::Range;
 
 use napi::{Env, Error, JsFunction, JsUnknown, Result};
-use teo::{app::App, prelude::{app::data::AppData, model, OptionVariant as TeoOptionVariant, Value}};
+use teo::prelude::{app::data::AppData, model, OptionVariant as TeoOptionVariant, Value};
 use crate::dynamic::JSClassLookupMap;
-
 use super::{interface_enum_variant::teo_interface_enum_variant_to_js_any, pipeline::teo_pipeline_to_js_any, r#struct::teo_struct_object_to_js_any};
 
 #[napi(js_name = "OptionVariant")]
@@ -19,7 +18,7 @@ pub struct OptionVariant {
     pub(crate) value: TeoOptionVariant
 }
 
-pub fn teo_value_to_js_any(app_data: AppData, value: &Value, env: &Env) -> Result<JsUnknown> {
+pub fn teo_value_to_js_any(app_data: &AppData, value: &Value, env: &Env) -> Result<JsUnknown> {
     Ok(match value {
         Value::Null => env.get_null()?.into_unknown(),
         Value::Bool(bool) => env.get_boolean(*bool)?.into_unknown(),
@@ -47,7 +46,7 @@ pub fn teo_value_to_js_any(app_data: AppData, value: &Value, env: &Env) -> Resul
         Value::Array(array) => {
             let mut js_array = env.create_array_with_length(array.len())?;
             for (i, value) in array.iter().enumerate() {
-                let v = teo_value_to_js_any(app, value, env)?;
+                let v = teo_value_to_js_any(app_data, value, env)?;
                 js_array.set_element(i as u32, &v)?;
             }
             js_array.into_unknown()
@@ -55,7 +54,7 @@ pub fn teo_value_to_js_any(app_data: AppData, value: &Value, env: &Env) -> Resul
         Value::Dictionary(dictionary) => {
             let mut js_object = env.create_object()?;
             for (k, value) in dictionary.iter() {
-                let v = teo_value_to_js_any(app, value, env)?;
+                let v = teo_value_to_js_any(app_data, value, env)?;
                 js_object.set_named_property(k, &v)?;
             }
             js_object.into_unknown()
@@ -63,14 +62,14 @@ pub fn teo_value_to_js_any(app_data: AppData, value: &Value, env: &Env) -> Resul
         Value::Range(range) => {
             let instance = Range { 
                 value: range.clone(),
-                app,
+                app_data: app_data.clone(),
             }.into_instance(*env)?;
             instance.as_object(*env).into_unknown()
         }
         Value::Tuple(tuple) => {
             let mut js_array = env.create_array_with_length(tuple.len())?;
             for (i, value) in tuple.iter().enumerate() {
-                let v = teo_value_to_js_any(app, value, env)?;
+                let v = teo_value_to_js_any(app_data, value, env)?;
                 js_array.set_element(i as u32, &v)?;
             }
             js_array.into_unknown()
@@ -98,7 +97,7 @@ pub fn teo_value_to_js_any(app_data: AppData, value: &Value, env: &Env) -> Resul
     })
 }
 
-pub fn teo_model_object_to_js_any(app_data: AppData, model_object: &model::Object, env: &Env) -> Result<JsUnknown> {
+pub fn teo_model_object_to_js_any(app_data: &AppData, model_object: &model::Object, env: &Env) -> Result<JsUnknown> {
     let map = JSClassLookupMap::from_app_data(app_data);
     let js_object = map.teo_model_object_to_js_model_object_object(*env, model_object.clone())?;
     Ok(js_object.into_unknown())

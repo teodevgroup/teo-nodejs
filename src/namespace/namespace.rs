@@ -166,9 +166,9 @@ impl Namespace {
     #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
     pub fn define_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
-            let js_value = teo_value_to_js_any(self, &ctx.value.0, &ctx.env)?;
+            let js_value = teo_value_to_js_any(self.namespace_builder.app_data().clone(), &ctx.value.0, &ctx.env)?;
             let js_args = teo_args_to_js_args(&ctx.value.1, &ctx.env)?;
-            let map = JSClassLookupMap::from_app(self.app);
+            let map = JSClassLookupMap::from_app_data(self.namespace_builder.app_data());
             let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
             let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
             Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])

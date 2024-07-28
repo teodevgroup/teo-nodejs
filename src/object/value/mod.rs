@@ -18,7 +18,7 @@ pub struct OptionVariant {
     pub(crate) value: TeoOptionVariant
 }
 
-pub fn teo_value_to_js_any(app_data: &AppData, value: &Value, env: &Env) -> Result<JsUnknown> {
+pub fn teo_value_to_js_any_no_app_data(value: &Value, env: &Env) -> Result<JsUnknown> {
     Ok(match value {
         Value::Null => env.get_null()?.into_unknown(),
         Value::Bool(bool) => env.get_boolean(*bool)?.into_unknown(),
@@ -46,7 +46,7 @@ pub fn teo_value_to_js_any(app_data: &AppData, value: &Value, env: &Env) -> Resu
         Value::Array(array) => {
             let mut js_array = env.create_array_with_length(array.len())?;
             for (i, value) in array.iter().enumerate() {
-                let v = teo_value_to_js_any(app_data, value, env)?;
+                let v = teo_value_to_js_any_no_app_data(value, env)?;
                 js_array.set_element(i as u32, &v)?;
             }
             js_array.into_unknown()
@@ -54,7 +54,7 @@ pub fn teo_value_to_js_any(app_data: &AppData, value: &Value, env: &Env) -> Resu
         Value::Dictionary(dictionary) => {
             let mut js_object = env.create_object()?;
             for (k, value) in dictionary.iter() {
-                let v = teo_value_to_js_any(app_data, value, env)?;
+                let v = teo_value_to_js_any_no_app_data(value, env)?;
                 js_object.set_named_property(k, &v)?;
             }
             js_object.into_unknown()
@@ -62,14 +62,13 @@ pub fn teo_value_to_js_any(app_data: &AppData, value: &Value, env: &Env) -> Resu
         Value::Range(range) => {
             let instance = Range { 
                 value: range.clone(),
-                app_data: app_data.clone(),
             }.into_instance(*env)?;
             instance.as_object(*env).into_unknown()
         }
         Value::Tuple(tuple) => {
             let mut js_array = env.create_array_with_length(tuple.len())?;
             for (i, value) in tuple.iter().enumerate() {
-                let v = teo_value_to_js_any(app_data, value, env)?;
+                let v = teo_value_to_js_any_no_app_data(value, env)?;
                 js_array.set_element(i as u32, &v)?;
             }
             js_array.into_unknown()
@@ -89,11 +88,41 @@ pub fn teo_value_to_js_any(app_data: &AppData, value: &Value, env: &Env) -> Resu
             let instance = File::from(file);
             instance.into_instance(*env)?.as_object(*env).into_unknown()
         }
-        Value::ModelObject(model_object) => teo_model_object_to_js_any(app_data, model_object, env)?,
         Value::StructObject(struct_object) => teo_struct_object_to_js_any(struct_object, env)?,
         Value::Pipeline(pipeline) => teo_pipeline_to_js_any(pipeline, env)?,
         Value::InterfaceEnumVariant(interface_enum_variant) => teo_interface_enum_variant_to_js_any(interface_enum_variant, env)?,
         _ => Err(Error::new(napi::Status::GenericFailure, "cannot convert Teo value to JavaScript value"))?,
+    })
+}
+
+pub fn teo_value_to_js_any(app_data: &AppData, value: &Value, env: &Env) -> Result<JsUnknown> {
+    Ok(match value {
+        Value::Tuple(tuple) => {
+            let mut js_array = env.create_array_with_length(tuple.len())?;
+            for (i, value) in tuple.iter().enumerate() {
+                let v = teo_value_to_js_any(app_data, value, env)?;
+                js_array.set_element(i as u32, &v)?;
+            }
+            js_array.into_unknown()
+        },
+        Value::Array(array) => {
+            let mut js_array = env.create_array_with_length(array.len())?;
+            for (i, value) in array.iter().enumerate() {
+                let v = teo_value_to_js_any(app_data, value, env)?;
+                js_array.set_element(i as u32, &v)?;
+            }
+            js_array.into_unknown()
+        }
+        Value::Dictionary(dictionary) => {
+            let mut js_object = env.create_object()?;
+            for (k, value) in dictionary.iter() {
+                let v = teo_value_to_js_any(app_data, value, env)?;
+                js_object.set_named_property(k, &v)?;
+            }
+            js_object.into_unknown()
+        }
+        Value::ModelObject(model_object) => teo_model_object_to_js_any(app_data, model_object, env)?,
+        _ => teo_value_to_js_any_no_app_data(value, env)?,
     })
 }
 

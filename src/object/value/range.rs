@@ -1,12 +1,12 @@
 use napi::{JsNumber, Result, Env};
-use teo::prelude::{Range as TeoRange, App};
+use teo::prelude::{app::data::AppData, App, Range as TeoRange};
 
 use super::teo_value_to_js_any;
 
 #[napi(js_name = "Range")]
 pub struct Range {
     pub(crate) value: TeoRange,
-    pub(crate) app: &'static App,
+    pub(crate) app_data: AppData,
 }
 
 #[napi]

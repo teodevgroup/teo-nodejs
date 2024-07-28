@@ -24,8 +24,7 @@ use crate::response::response_or_promise::ResponseOrPromise;
 
 #[napi(js_name = "Namespace")]
 pub struct Namespace {
-    pub(crate) namespace_builder: namespace::Builder,
-    pub(crate) app: &'static TeoApp,
+    pub(crate) namespace_builder: namespace::Builder
 }
 
 #[napi]
@@ -50,7 +49,6 @@ impl Namespace {
     pub fn namespace(&self, name: String) -> Option<Namespace> {
         self.namespace_builder.namespace(name.as_str()).map(|n| Namespace { 
             namespace_builder: n,
-            app: self.app,
         })
     }
 
@@ -58,7 +56,6 @@ impl Namespace {
     pub fn namespace_or_create(&self, name: String) -> Namespace {
         Namespace{ 
             namespace_builder: self.namespace_builder.namespace_or_create(name.as_str()),
-            app: self.app,
         }
     }
 
@@ -66,7 +63,6 @@ impl Namespace {
     pub fn namespace_at_path(&self, path: Vec<String>) -> Option<Namespace> {
         self.namespace_builder.namespace_at_path(&path).map(|n| Namespace { 
             namespace_builder: n,
-            app: self.app
         })
     }
 
@@ -74,7 +70,6 @@ impl Namespace {
     pub fn namespace_or_create_at_path(&self, path: Vec<String>) -> Namespace {
         Namespace {
             namespace_builder: self.namespace_builder.namespace_or_create_at_path(&path),
-            app: self.app,
         }
     }
 
@@ -171,7 +166,7 @@ impl Namespace {
     #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
     pub fn define_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
-            let js_value = teo_value_to_js_any(&ctx.value.0, &ctx.env)?;
+            let js_value = teo_value_to_js_any(self, &ctx.value.0, &ctx.env)?;
             let js_args = teo_args_to_js_args(&ctx.value.1, &ctx.env)?;
             let map = JSClassLookupMap::from_app(self.app);
             let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;

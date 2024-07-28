@@ -6,7 +6,6 @@ use crate::{request::RequestCtx, response::response_or_promise::ResponseOrPromis
 #[napi(js_name = "HandlerGroup")]
 pub struct HandlerGroup {
     pub(crate) builder: handler::group::Builder,
-    pub(crate) app: &'static TeoApp,
 }
 
 #[napi]

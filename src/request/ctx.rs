@@ -7,17 +7,15 @@ use super::{Request, HandlerMatch};
 #[napi(js_name = "RequestCtx")]
 pub struct RequestCtx {
     teo_inner: TeoRequestCtx,
-    app: &'static TeoApp,
 }
 
 /// HTTP request.
 #[napi]
 impl RequestCtx {
 
-    pub(crate) fn new(teo_inner: TeoRequestCtx, app: &'static TeoApp) -> Self {
+    pub(crate) fn new(teo_inner: TeoRequestCtx) -> Self {
         Self {
             teo_inner,
-            app,
         }
     }
 

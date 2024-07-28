@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 use napi::{threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction}, CallContext, Env, Error, JsFunction, JsObject, JsString, JsSymbol, JsUnknown, Property, Result, ValueType};
-use teo::prelude::{model, traits::named::Named, transaction, App, Namespace, Value as TeoValue};
+use teo::prelude::{app::data::AppData, model, traits::named::Named, transaction, App, Namespace, Value as TeoValue};
 use std::{collections::BTreeMap, sync::Arc};
 use inflector::Inflector;
 use crate::object::{js_any_to_teo_value, unknown::{SendJsUnknown, SendJsUnknownOrPromise}, value::teo_value_to_js_any};
@@ -13,9 +13,9 @@ pub(crate) struct JSClassLookupMap {
 
 impl JSClassLookupMap {
 
-    pub(crate) fn from_app(app: &'static App) -> &'static Self {
+    pub(crate) fn from_app_data(app_data: AppData) -> &'static Self {
         unsafe { 
-            let pointer = app.dynamic_classes_pointer() as * mut Self;
+            let pointer = app_data.dynamic_classes_pointer() as * mut Self;
             &*pointer as &JSClassLookupMap
         }
     }

@@ -73,7 +73,7 @@ impl App {
     /// Run before server is started.
     #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
     pub fn setup(&'static self, callback: JsFunction) -> Result<()> {
-        let map = JSClassLookupMap::from_app(&self.teo_app);
+        let map = JSClassLookupMap::from_app_data(self.teo_app.app_data());
         let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
@@ -89,7 +89,7 @@ impl App {
     /// Define a custom program.
     #[napi(ts_args_type = "name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>")]
     pub fn program(&'static self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
-        let map = JSClassLookupMap::from_app(&self.teo_app);
+        let map = JSClassLookupMap::from_app_data(self.teo_app.app_data());
         let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
@@ -106,7 +106,6 @@ impl App {
     pub fn main_namespace(&'static self) -> Namespace {
         Namespace { 
             namespace_builder: self.teo_app.main_namespace().clone(),
-            app: &self.teo_app,
         }
     }
 }

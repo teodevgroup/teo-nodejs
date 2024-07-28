@@ -13,8 +13,8 @@ pub(crate) struct JSClassLookupMap {
 
 impl JSClassLookupMap {
 
-    pub(crate) fn from_app_data(app_data: AppData) -> &'static Self {
-        unsafe { 
+    pub(crate) fn from_app_data(app_data: &AppData) -> &'static Self {
+        unsafe {
             let pointer = app_data.dynamic_classes_pointer() as * mut Self;
             &*pointer as &JSClassLookupMap
         }
@@ -273,10 +273,10 @@ pub(crate) fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<(
     let mut map = JSClassLookupMap::new();
     synthesize_dynamic_nodejs_classes_for_namespace(&mut map, static_app, static_app.compiled_main_namespace(), env)?;
     let raw_map_pointer = Box::into_raw(Box::new(map));
-    app.set_dynamic_classes_pointer(raw_map_pointer as * mut ());
-    app.set_dynamic_classes_clean_up(Arc::new(|app: &App| {
+    app.app_data().set_dynamic_classes_pointer(raw_map_pointer as * mut ());
+    app.app_data().set_dynamic_classes_clean_up(Arc::new(|app_data: AppData| {
         unsafe {
-            let raw_pointer = app.dynamic_classes_pointer() as * mut JSClassLookupMap;
+            let raw_pointer = app_data.dynamic_classes_pointer() as * mut JSClassLookupMap;
             let _ = Box::from_raw(raw_pointer);
         }
     }));
@@ -295,6 +295,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
     let ctx_ctor = map.ctx_constructor_or_create(&namespace.path().join("."), env)?;
     let ctx_ctor_object = ctx_ctor.coerce_to_object()?;
     let mut ctx_prototype: JsObject = ctx_ctor_object.get_named_property("prototype")?;
+    let app_data: &'static AppData = app.app_data();
     for model in namespace.models().values() {
         let model_name = model.path().join(".");
         let lowercase_model_name = model_name.to_camel_case();
@@ -302,7 +303,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             let model_name = model.path().join(".");
             let transaction_ctx: &mut transaction::Ctx = env.unwrap(&this)?;
             let model_ctx = transaction_ctx.model_ctx_for_model_at_path(&model.path()).unwrap();
-            let app_map = JSClassLookupMap::from_app(app);
+            let app_map = JSClassLookupMap::from_app_data(app_data);
             app_map.teo_model_ctx_to_js_model_class_object(env, model_ctx, &model_name)
         });
         ctx_prototype.define_properties(&[ctx_property])?;
@@ -418,8 +419,12 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             let model_ctx_cloned = model_ctx.clone();
             let promise = ctx.env.execute_tokio_future((|| async move {
                 Ok(model_ctx_cloned.count(&teo_value).await.unwrap())
-            })(), |env, object: TeoValue| {
-                teo_value_to_js_any(&object, env)
+            })(), move |env, object: TeoValue| {
+                teo_value_to_js_any(
+                    model_ctx.transaction_ctx().connection_ctx().namespace().app_data(), 
+                    &object, 
+                    env
+                )
             })?;
             Ok(promise)
         })?;
@@ -438,7 +443,11 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             let promise = ctx.env.execute_tokio_future((|| async move {
                 Ok(model_ctx_cloned.aggregate(&teo_value).await.unwrap())
             })(), |env, object: TeoValue| {
-                teo_value_to_js_any(&object, env)
+                teo_value_to_js_any(
+                    model_ctx.transaction_ctx().connection_ctx().namespace().app_data(), 
+                    &object, 
+                    env
+                )
             })?;
             Ok(promise)
         })?;
@@ -459,7 +468,8 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             })(), |env, values: Vec<TeoValue>| {
                 let mut array = env.create_array(values.len() as u32)?;
                 for value in values {
-                    array.insert(teo_value_to_js_any(&value, env)?)?;
+                    let app_data = model_ctx.transaction_ctx().connection_ctx().namespace().app_data();
+                    array.insert(teo_value_to_js_any(&app_data, &value, env)?)?;
                 }
                 Ok(array)
             })?;
@@ -477,8 +487,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                     Ok(model_ctx_cloned.sql(sql_string).await.unwrap())
                 })(), |env, values: Vec<TeoValue>| {
                     let mut array = env.create_array(values.len() as u32)?;
+                    let app_data = model_ctx.transaction_ctx().connection_ctx().namespace().app_data();
                     for value in values {
-                        array.insert(teo_value_to_js_any(&value, env)?)?;
+                        array.insert(teo_value_to_js_any(app_data, &value, env)?)?;
                     }
                     Ok(array)
                 })?;
@@ -577,8 +588,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                     Ok(value) => Ok(value),
                     Err(err) => Err(Error::from_reason(err.message())),
                 }
-            })(), |env: &mut Env, value: TeoValue| {
-                Ok(teo_value_to_js_any(&value, env)?)
+            })(), move |env: &mut Env, value: TeoValue| {
+                app_data = model_ctx.transaction_ctx().connection_ctx().namespace().app_data();
+                Ok(teo_value_to_js_any(&app_data, &value, env)?)
             })?;
             Ok(promise)
         })?;
@@ -592,8 +604,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             let model_object: &mut model::Object = ctx.env.unwrap(&this)?;
             let value_map = model_object.inner.value_map.lock().unwrap();
             let mut object = ctx.env.create_object()?;
+            let app_data = model_object.namespace().app_data();
             for (k, v) in value_map.iter() {
-                object.set_named_property(k.as_str(), teo_value_to_js_any(v, &ctx.env)?)?;
+                object.set_named_property(k.as_str(), teo_value_to_js_any(app_data.clone(), v, &ctx.env)?)?;
             }
             let inspect_options: JsObject = ctx.get(1)?;
             let object_inspect: JsString = inspect.call(Some(&this), &[object, inspect_options])?.coerce_to_string()?;

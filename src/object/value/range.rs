@@ -1,5 +1,5 @@
 use napi::{JsNumber, Result, Env};
-use teo::prelude::{app::data::AppData, App, Range as TeoRange};
+use teo::prelude::{app::data::AppData, Range as TeoRange};
 
 use super::teo_value_to_js_any;
 
@@ -15,14 +15,14 @@ impl Range {
     #[napi]
     pub fn upperbond(&self, env: Env) -> Result<JsNumber> {
         let value = self.value.end.as_ref();
-        let any = teo_value_to_js_any(self.app, value, &env)?;
+        let any = teo_value_to_js_any(&self.app_data, value, &env)?;
         Ok(any.coerce_to_number()?)
     }
 
     #[napi]
     pub fn lowerbond(&self, env: Env) -> Result<JsNumber> {
         let value = self.value.start.as_ref();
-        let any = teo_value_to_js_any(self.app, value, &env)?;
+        let any = teo_value_to_js_any(&self.app_data, value, &env)?;
         Ok(any.coerce_to_number()?)
     }
 

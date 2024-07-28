@@ -20,7 +20,7 @@ impl Property {
     #[napi]
     pub fn data(&self, key: String, env: Env) -> Result<JsUnknown> {
         Ok(match self.builder.data().get(key.as_str()) {
-            Some(object) => teo_value_to_js_any(object, &env)?,
+            Some(object) => teo_value_to_js_any(self.builder.app_data(), object, &env)?,
             None => env.get_undefined()?.into_unknown(),
         })
     }

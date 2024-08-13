@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "lib": ["es2015"],
+    "target": "es2016",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "./__test_build__",
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext"
+  }
+}

@@ -205,3 +205,5 @@ package-lock.json
 
 /.yarn
 /.yarnrc.yml
+
+/__test_build__

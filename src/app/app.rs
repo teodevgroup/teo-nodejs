@@ -16,24 +16,30 @@ impl App {
 
     /// Create a Teo app.
     #[napi(constructor)]
-    pub fn new(env: Env) -> Result<Self> {
-        Self::with_cli(env, false)
+    pub fn new(env: Env, argv: Option<Vec<String>>) -> Result<Self> {
+        Self::with_cli(env, false, argv)
     }
 
     /// @internal
     #[napi(factory)]
-    pub fn with_cli(env: Env, cli: bool) -> Result<Self> {
+    pub fn with_cli(env: Env, cli: bool, argv: Option<Vec<String>>) -> Result<Self> {
         let global = env.get_global()?;
         let process: JsObject = global.get_named_property("process")?;
         let version: JsString = process.get_named_property("version")?;
         let version_str: String = version.into_utf8()?.as_str()?.to_owned();
-        let argv: JsObject = process.get_named_property("argv")?;
-        let mut rust_argv = vec![];
-        let len = argv.get_array_length()?;
-        for i in 0..len {
-            let name: JsString = argv.get_element(i)?;
-            rust_argv.push(name.into_utf8()?.as_str()?.to_owned());
-        }
+        let rust_argv = match argv {
+            Some(argv) => argv,
+            None => {
+                let node_argv: JsObject = process.get_named_property("argv")?;
+                let mut result = vec![];
+                let len = node_argv.get_array_length()?;
+                for i in 0..len {
+                    let name: JsString = node_argv.get_element(i)?;
+                    result.push(name.into_utf8()?.as_str()?.to_owned());
+                }
+                result
+            }
+        };
         let entrance = if cli { Entrance::CLI } else { Entrance::APP };
         let app = App { teo_app: TeoApp::new_with_entrance_and_runtime_version(Some(entrance), Some(RuntimeVersion::NodeJS(version_str)), Some(rust_argv)).unwrap() };
         Ok(app)

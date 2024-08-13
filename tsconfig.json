@@ -8,6 +8,7 @@
     "skipLibCheck": true,
     "outDir": "./__test_build__",
     "moduleResolution": "NodeNext",
-    "module": "NodeNext"
+    "module": "NodeNext",
+    "types": ["node"]
   }
 }

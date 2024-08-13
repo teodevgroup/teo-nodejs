@@ -77,9 +77,9 @@ export class Pipeline { }
 export class InterfaceEnumVariant { }
 export class App {
   /** Create a Teo app. */
-  constructor()
+  constructor(argv?: Array<string> | undefined | null)
   /** @internal */
-  static withCli(cli: boolean): App
+  static withCli(cli: boolean, argv?: Array<string> | undefined | null): App
   /** @internal */
   _prepare(): Promise<void>
   /** @internal */

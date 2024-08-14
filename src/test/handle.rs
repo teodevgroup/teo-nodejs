@@ -2,6 +2,8 @@ use teo::{app::App as TeoApp, test::{purge_and_seed::purge_and_seed, server::{ma
 use crate::app::app::App;
 use napi::Result;
 
+use super::test_request::TestRequest;
+
 #[napi]
 pub struct Handle {
     app: TeoApp,
@@ -31,20 +33,20 @@ impl Handle {
     }
 
     #[napi]
-    pub async fn call_and_read_response(&self) -> Result<()> {
+    pub async fn call_and_read_response(&self, request: &TestRequest) -> Result<()> {
         let actix_app = make_actix_app_without_prepare(&self.app).await?;
-
+        Ok(())
     }
 
     #[napi]
-    pub async fn call_and_read_json_body(&self) -> Result<()> {
+    pub async fn call_and_read_json_body(&self, request: &TestRequest) -> Result<()> {
         let actix_app = make_actix_app_without_prepare(&self.app).await?;
-
+        Ok(())
     }
 
     #[napi]
-    pub async fn call_and_read_string_body(&self) -> Result<()> {
+    pub async fn call_and_read_string_body(&self, request: &TestRequest) -> Result<()> {
         let actix_app = make_actix_app_without_prepare(&self.app).await?;
-
+        Ok(())
     }
 }

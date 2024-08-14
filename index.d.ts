@@ -183,6 +183,17 @@ export class Enum {
   setData(key: string, value: unknown): void
   data(key: string): unknown
 }
+export class Handle {
+  constructor(app: App)
+  setup(): void
+  purgeAndSeed(): Promise<void>
+  prepareAppForTest(): Promise<void>
+  callAndReadResponse(request: TestRequest): Promise<void>
+  callAndReadJsonBody(request: TestRequest): Promise<void>
+  callAndReadStringBody(request: TestRequest): Promise<void>
+}
+export class TestRequest { }
+export class TestResponse { }
 export class TeoError extends Error {
   constructor(message: string, code: number = 500, errors: { [key: string]: string } | null = null)
   public get code(): number

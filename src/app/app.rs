@@ -7,7 +7,7 @@ use crate::object::promise_or_ignore::PromiseOrIgnore;
 
 #[napi]
 pub struct App {
-    teo_app: TeoApp,
+    pub(crate) teo_app: TeoApp,
 }
 
 /// A Teo app.

@@ -1,0 +1,4 @@
+#[napi]
+pub struct TestResponse {
+
+}

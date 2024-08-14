@@ -102,7 +102,7 @@ export class RequestCtx {
 export class HandlerMatch {
   path(): Array<string>
   handlerName(): string
-  captures(): object
+  captures(): {[key: string]: string}
 }
 export class Request {
   method(): string

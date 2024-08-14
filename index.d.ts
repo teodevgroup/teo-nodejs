@@ -192,7 +192,10 @@ export class Handle {
   callAndReadJsonBody(request: TestRequest): Promise<void>
   callAndReadStringBody(request: TestRequest): Promise<void>
 }
-export class TestRequest { }
+export class TestRequest {
+  constructor(desc: { method?: string, path?: string, body?: string })
+  insertHeader(key: string, value: string): void
+}
 export class TestResponse { }
 export class TeoError extends Error {
   constructor(message: string, code: number = 500, errors: { [key: string]: string } | null = null)

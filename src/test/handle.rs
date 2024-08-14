@@ -1,7 +1,6 @@
-use teo::{app::App as TeoApp, test::{purge_and_seed::purge_and_seed, server::{make_actix_app_without_prepare, prepare_app_for_test}}};
+use teo::{app::App as TeoApp, prelude::request, test::{purge_and_seed::purge_and_seed, server::{make_actix_app_without_prepare, prepare_app_for_test}}};
 use crate::app::app::App;
-use napi::Result;
-
+use napi::{Env, JsObject, Result};
 use super::test_request::TestRequest;
 
 #[napi]

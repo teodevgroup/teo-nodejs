@@ -20,6 +20,7 @@ bson = { version = "2.9.0", features = ["chrono-0_4", "serde_with"] }
 indexmap = "2.1.0"
 time = "0.3.36"
 regex = "1.10.2"
+actix-web = "4.8.0"
 
 [build-dependencies]
 napi-build = "2.1.0"

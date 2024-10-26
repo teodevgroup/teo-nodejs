@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use actix_web::http::Method;
 use napi::{JsObject, Result};
 
 #[napi]
@@ -32,8 +35,10 @@ impl TestRequest {
 
     pub(crate) fn to_actix_test_request(&self) -> actix_web::test::TestRequest {
         let mut request = actix_web::test::TestRequest::with_uri(&self.path);
+        request = request.method(Method::from_str(self.method.as_str()).unwrap());
+        request = request.set_payload(self.body.clone());
         for (key, value) in &self.headers {
-            request = request.header(key, value);
+            request = request.append_header((key.as_str(), value.as_str()));
         }
         request
     }

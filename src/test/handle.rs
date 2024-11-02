@@ -1,4 +1,5 @@
 use actix_web::test;
+use std::sync::Arc;
 use teo::{app::App as TeoApp, prelude::request, test::{purge_and_seed::purge_and_seed, server::{make_actix_app_without_prepare, prepare_app_for_test}}};
 use crate::app::app::App;
 use napi::{Env, JsObject, Result};
@@ -32,13 +33,13 @@ impl Handle {
         Ok(prepare_app_for_test(&self.app).await?)
     }
 
-    // #[napi]
-    // pub async fn call_and_read_response(&self, request: &TestRequest) -> Result<()> {
-    //     let service = test::init_service(make_actix_app_without_prepare(&self.app).await?).await;
-    //     let test_request = request.to_actix_test_request().to_request();
-    //     let response = test::call_service(&service, test_request).await;
-    //     Ok(())
-    // }
+    #[napi]
+    pub async fn call_and_read_response(&self, request: &TestRequest) -> Result<()> {
+        let service = test::init_service(make_actix_app_without_prepare(&self.app).await?).await;
+        let test_request = request.to_actix_test_request().to_request();
+        let response = test::call_service(&service, test_request).await;
+        Ok(())
+    }
 
     // #[napi]
     // pub async fn call_and_read_json_body(&self, request: &TestRequest) -> Result<()> {

@@ -11,7 +11,7 @@ pub struct HandlerGroup {
 #[napi]
 impl HandlerGroup {
 
-    #[napi(js_name = "_defineHandler", ts_args_type = "name: string, callback: (ctx: RequestCtx) => Response | Promise<Response>")]
+    #[napi(js_name = "_defineHandler", ts_args_type = "name: string, callback: (request: Request) => Response | Promise<Response>")]
     pub fn define_handler(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<teo::prelude::Request, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<teo::prelude::Request>| {
             let request_ctx = Request::new(ctx.value);

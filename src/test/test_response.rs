@@ -13,14 +13,17 @@ impl TestResponse {
         }
     }
 
+    #[napi]
     pub fn status(&self) -> u16 {
         self.teo_test_response.status().as_u16()
     }
 
+    #[napi]
     pub fn version(&self) -> String {
         format!("{:?}", self.teo_test_response.version())
     }
 
+    #[napi]
     pub fn body(&self) -> String {
         self.teo_test_response.body_as_string()
     }
@@ -57,7 +60,7 @@ impl TestResponse {
         Ok(result)
     }
 
-    #[napi(js_name = "header_keys", ts_return_type = "string[]")]
+    #[napi(js_name = "headerKeys", ts_return_type = "string[]")]
     pub fn header_keys(&self) -> Vec<&str> {
         let header_map = self.teo_test_response.headers();
         let mut result = vec![];
@@ -67,7 +70,8 @@ impl TestResponse {
         result
     }
 
-    pub fn headers_length(&self) -> usize {
-        self.teo_test_response.headers().len()
+    #[napi]
+    pub fn headers_length(&self) -> i64 {
+        self.teo_test_response.headers().len() as i64
     }
 }

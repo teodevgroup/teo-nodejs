@@ -336,14 +336,6 @@ HandlerMatch.prototype[customInspectSymbol] = function(_, inspectOptions) {
     "captures": this.captures(),
   }, inspectOptions)
 }
-RequestCtx.prototype[customInspectSymbol] = function(_, inspectOptions) {
-  return "RequestCtx " + inspect({
-    "request": this.request(),
-    "body": this.body(),
-    "teo": this.teo(),
-    "handlerMatch": this.handlerMatch(),
-  }, inspectOptions)
-}
 Request.prototype[customInspectSymbol] = function(_, inspectOptions) {
   return "Request " + inspect({
     "method": this.method(),
@@ -351,6 +343,9 @@ Request.prototype[customInspectSymbol] = function(_, inspectOptions) {
     "queryString": this.queryString(),
     "contentType": this.contentType(),
     "headers": this.headers(),
+    "bodyObject": this.bodyObject(),
+    "teo": this.teo(),
+    "handlerMatch": this.handlerMatch(),
   }, inspectOptions)
 }
 Response.prototype[customInspectSymbol] = function(_, inspectOptions) {

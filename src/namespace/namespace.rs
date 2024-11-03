@@ -282,7 +282,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "_defineHandler", ts_args_type = "name: string, callback: (ctx: RequestCtx) => Response | Promise<Response>")]
+    #[napi(js_name = "_defineHandler", ts_args_type = "name: string, callback: (request: Request) => Response | Promise<Response>")]
     pub fn define_handler(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let tsfn: ThreadsafeFunction<TeoRequest, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<TeoRequest>| {
             let request_ctx = Request::new(ctx.value);
@@ -326,7 +326,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineRequestMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (ctx: RequestCtx, next: (ctx: RequestCtx) => Promise<Response>) => Promise<Response> | Response")]
+    #[napi(js_name = "defineRequestMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
     pub fn define_request_middleware(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let app_data = unsafe { &*(Box::leak(Box::new(self.namespace_builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
         let threadsafe_callback: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
@@ -349,7 +349,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineHandlerMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (ctx: RequestCtx, next: (ctx: RequestCtx) => Promise<Response>) => Promise<Response> | Response")]
+    #[napi(js_name = "defineHandlerMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
     pub fn define_handler_middleware(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let app_data = unsafe { &*(Box::leak(Box::new(self.namespace_builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
         let threadsafe_callback: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {

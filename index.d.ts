@@ -188,6 +188,9 @@ export class Enum {
 }
 export class TestServer {
   constructor(app: App)
+  setup(): Promise<void>
+  reset(): Promise<void>
+  process(request: TestRequest): Promise<TestResponse>
 }
 export class TestRequest {
   constructor(props: { method?: string, uri: string, headers?: { [key: string]: string }, body?: string })

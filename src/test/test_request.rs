@@ -107,4 +107,14 @@ impl TestRequest {
     pub fn set_body(&mut self, body: String) {
         self.body = body;
     }
+
+    pub(crate) fn to_hyper_request(&self) -> hyper::Request<String> {
+        let mut request = hyper::Request::builder()
+            .method(self.method.clone())
+            .uri(self.uri.clone());
+        for (key, value) in self.headers.iter() {
+            request = request.header(key.clone(), value.clone());
+        }
+        request.body(self.body.clone()).unwrap()
+    }
 }

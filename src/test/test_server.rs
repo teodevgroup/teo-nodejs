@@ -2,6 +2,8 @@ use napi::Result;
 
 use crate::app::app::App;
 
+use super::{TestRequest, TestResponse};
+
 #[napi]
 pub struct TestServer {
     server: teo::server::server::Server,
@@ -22,7 +24,14 @@ impl TestServer {
     }
 
     #[napi]
-    pub async fn reset_data(&self) -> Result<()> {
+    pub async fn reset(&self) -> Result<()> {
         Ok(self.server.reset_app_for_unit_test().await?)
+    }
+
+    #[napi]
+    pub async fn process(&self, request: &TestRequest) -> Result<TestResponse> {
+        let hyper_request = request.to_hyper_request();
+        let response = self.server.process_test_request_with_hyper_request(hyper_request).await?;
+        Ok(TestResponse::new(response))
     }
 }

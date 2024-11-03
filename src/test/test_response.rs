@@ -1,4 +1,4 @@
-#[napi]
-pub struct TestResponse {
+// #[napi]
+// pub struct TestResponse {
 
-}
+// }

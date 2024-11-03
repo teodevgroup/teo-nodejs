@@ -14,5 +14,4 @@ pub mod request;
 pub mod response;
 pub mod r#enum;
 pub mod console;
-pub mod functions;
 pub mod test;

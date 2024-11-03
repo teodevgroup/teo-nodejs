@@ -17,5 +17,4 @@ impl SendNext {
 }
 
 unsafe impl Send for SendNext {}
-
 unsafe impl Sync for SendNext {}

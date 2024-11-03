@@ -3,14 +3,14 @@ use teo::prelude::handler::r#match::HandlerMatch as TeoHandlerMatch;
 
 #[napi(js_name = "HandlerMatch")]
 pub struct HandlerMatch {
-    inner: &'static TeoHandlerMatch,
+    inner: TeoHandlerMatch,
 }
 
 /// Handler match.
 #[napi]
 impl HandlerMatch {
 
-    pub(crate) fn new(inner: &'static TeoHandlerMatch) -> Self {
+    pub(crate) fn new(inner: TeoHandlerMatch) -> Self {
         Self {
             inner
         }

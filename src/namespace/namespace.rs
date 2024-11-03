@@ -3,6 +3,7 @@ use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, Threadsafe
 use teo::prelude::app::data::AppData;
 use teo::prelude::pipeline::item::validator::Validity;
 use teo::prelude::{Next, Middleware};
+use teo::prelude::Request as TeoRequest;
 use crate::dynamic::JSClassLookupMap;
 use crate::middleware::SendMiddlewareCallback;
 use crate::request::send_next::SendNext;
@@ -20,7 +21,7 @@ use crate::object::arguments::teo_args_to_js_args;
 use crate::object::value::teo_value_to_js_any;
 use crate::r#enum::member::member::EnumMember;
 use crate::r#enum::r#enum::Enum;
-use crate::request:: RequestCtx;
+use crate::request::Request;
 use crate::response::response_or_promise::ResponseOrPromise;
 
 #[napi(js_name = "Namespace")]
@@ -283,14 +284,14 @@ impl Namespace {
 
     #[napi(js_name = "_defineHandler", ts_args_type = "name: string, callback: (ctx: RequestCtx) => Response | Promise<Response>")]
     pub fn define_handler(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let tsfn: ThreadsafeFunction<request::Ctx, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<request::Ctx>| {
-            let request_ctx = RequestCtx::new(ctx.value.clone());
+        let tsfn: ThreadsafeFunction<TeoRequest, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<TeoRequest>| {
+            let request_ctx = Request::new(ctx.value);
             let request_ctx_instance = request_ctx.into_instance(ctx.env)?;
             let request_ctx_unknown = request_ctx_instance.as_object(ctx.env).into_unknown();
             Ok(vec![request_ctx_unknown])
         })?;
         let tsfn_cloned = &*Box::leak(Box::new(tsfn));
-        self.namespace_builder.define_handler(name.as_str(), move |ctx: request::Ctx| async move {
+        self.namespace_builder.define_handler(name.as_str(), move |ctx: TeoRequest| async move {
             let response_unknown: ResponseOrPromise = tsfn_cloned.call_async(Ok(ctx)).await?;
             Ok::<TeoResponse, teo::prelude::Error>(response_unknown.to_teo_response().await?)
         });
@@ -325,17 +326,40 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (ctx: RequestCtx, next: (ctx: RequestCtx) => Promise<Response>) => Promise<Response> | Response")]
-    pub fn define_middleware(&mut self, name: String, callback: JsFunction) -> Result<()> {
+    #[napi(js_name = "defineRequestMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (ctx: RequestCtx, next: (ctx: RequestCtx) => Promise<Response>) => Promise<Response> | Response")]
+    pub fn define_request_middleware(&mut self, name: String, callback: JsFunction) -> Result<()> {
         let app_data = unsafe { &*(Box::leak(Box::new(self.namespace_builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
         let threadsafe_callback: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
             let js_args = teo_args_to_js_args(app_data, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         let threadsafe_callback: &'static ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = &*Box::leak(Box::new(threadsafe_callback));
-        self.namespace_builder.define_middleware(name.as_str(), move |arguments| async move {
+        self.namespace_builder.define_request_middleware(name.as_str(), move |arguments| async move {
             let middleware_function: SendMiddlewareCallback = threadsafe_callback.call_async(arguments).await?;
-            let wrapped_result = move |ctx: teo::prelude::request::Ctx, next: &'static dyn Next| async move {
+            let wrapped_result = move |ctx: TeoRequest, next: &'static dyn Next| async move {
+                let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async((ctx.clone(), SendNext::new(next))).await?;
+                let res = res_or_promise.to_teo_response().await?;
+                return Ok(res);
+            };
+            let wrapped_box = Box::new(wrapped_result);
+            let wrapped_raw = Box::leak(wrapped_box);
+            let leak_static_result: &'static dyn Middleware = unsafe { &*(wrapped_raw as * const dyn Middleware) };
+            return Ok(leak_static_result);
+        });
+        Ok(())
+    }
+
+    #[napi(js_name = "defineHandlerMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (ctx: RequestCtx, next: (ctx: RequestCtx) => Promise<Response>) => Promise<Response> | Response")]
+    pub fn define_handler_middleware(&mut self, name: String, callback: JsFunction) -> Result<()> {
+        let app_data = unsafe { &*(Box::leak(Box::new(self.namespace_builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let threadsafe_callback: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
+            let js_args = teo_args_to_js_args(app_data, &ctx.value, &ctx.env)?;
+            Ok(vec![js_args])
+        })?;
+        let threadsafe_callback: &'static ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = &*Box::leak(Box::new(threadsafe_callback));
+        self.namespace_builder.define_handler_middleware(name.as_str(), move |arguments| async move {
+            let middleware_function: SendMiddlewareCallback = threadsafe_callback.call_async(arguments).await?;
+            let wrapped_result = move |ctx: TeoRequest, next: &'static dyn Next| async move {
                 let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async((ctx.clone(), SendNext::new(next))).await?;
                 let res = res_or_promise.to_teo_response().await?;
                 return Ok(res);

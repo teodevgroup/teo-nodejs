@@ -1058,6 +1058,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
 
 [[package]]
+name = "deferred-box"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23dbf124f6ccda65359f1aa3d0994e42e607207fab06cdc18e61afe0de4e3130"
+
+[[package]]
 name = "deranged"
 version = "0.3.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1639,6 +1645,12 @@ name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
+name = "history-box"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1740859e5c6481094e0225a67667f32b09ff6c0c35c246f1b6c38b31c061ec8e"
 
 [[package]]
 name = "hmac"
@@ -4163,9 +4175,11 @@ dependencies = [
  "cookie 0.18.1",
  "cuid",
  "cuid2",
+ "deferred-box",
  "educe 0.5.11",
  "futures",
  "futures-util",
+ "history-box",
  "http-body-util",
  "hyper",
  "hyper-util",

@@ -1,5 +1,5 @@
 import test from 'ava'
 
-test('test pass', async (t) => {
+test('placeholder', async (t) => {
     t.is(true, true)
 })

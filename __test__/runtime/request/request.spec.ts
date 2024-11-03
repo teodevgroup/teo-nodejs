@@ -12,11 +12,12 @@ test.beforeEach(async () => {
     await server.reset()
 })
 
-test('test pass', async (t) => {
+test('path', async (t) => {
     const test_request = new TestRequest({
         method: 'POST',
         uri: '/',
+        body: JSON.stringify({}),
     })
     const response = await server.process(test_request)
-    console.log(response.body())
+    t.is(JSON.parse(response.body())['path'], '/')
 })

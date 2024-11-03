@@ -41,7 +41,7 @@ impl App {
             }
         };
         let entrance = if cli { Entrance::CLI } else { Entrance::APP };
-        let app = App { teo_app: TeoApp::new_with_entrance_and_runtime_version(Some(entrance), Some(RuntimeVersion::NodeJS(version_str)), Some(rust_argv)).unwrap() };
+        let app = App { teo_app: TeoApp::new_with_entrance_and_runtime_version(Some(entrance), Some(RuntimeVersion::NodeJS(version_str)), Some(rust_argv))? };
         Ok(app)
     }
 

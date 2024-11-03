@@ -24,19 +24,21 @@ impl TestRequest {
         };
         let uri: String = props.get_named_property("uri")?;
         let mut headers: HeaderMap = HeaderMap::new();
-        let headers_object: JsObject = props.get_named_property("headers")?;
-        let names = headers_object.get_property_names()?;
-        let len = names.get_array_length()?;
-        for i in 0..len {
-            let name: JsString = names.get_element(i)?;
-            let v: JsString = headers_object.get_property(name)?;
-            headers.insert(match HeaderName::try_from(name.into_utf8()?.as_str()?.to_owned()) {
-                Ok(value) => value,
-                Err(_) => return Err(teo_result::Error::internal_server_error_message("cannot parse header name").into()),
-            }, match HeaderValue::from_str(&v.into_utf8()?.as_str()?.to_owned()) {
-                Ok(value) => value,
-                Err(_) => return Err(teo_result::Error::internal_server_error_message("cannot parse header value").into()),
-            });
+        let headers_object: Option<JsObject> = props.get_named_property("headers")?;
+        if let Some(headers_object) = headers_object {
+            let names = headers_object.get_property_names()?;
+            let len = names.get_array_length()?;
+            for i in 0..len {
+                let name: JsString = names.get_element(i)?;
+                let v: JsString = headers_object.get_property(name)?;
+                headers.insert(match HeaderName::try_from(name.into_utf8()?.as_str()?.to_owned()) {
+                    Ok(value) => value,
+                    Err(_) => return Err(teo_result::Error::internal_server_error_message("cannot parse header name").into()),
+                }, match HeaderValue::from_str(&v.into_utf8()?.as_str()?.to_owned()) {
+                    Ok(value) => value,
+                    Err(_) => return Err(teo_result::Error::internal_server_error_message("cannot parse header value").into()),
+                });
+            }
         }
         let body: Option<String> = props.get_named_property("body")?;
         let body = body.unwrap_or_default();

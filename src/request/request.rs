@@ -13,8 +13,28 @@ pub struct Request {
 impl Request {
 
     #[napi]
+    pub fn version(&self) -> String {
+        format!("{:?}", self.teo_request.version())
+    }
+
+    #[napi]
     pub fn method(&self) -> &str {
-        self.teo_request.method()
+        self.teo_request.method().as_str()
+    }
+
+    #[napi]
+    pub fn uri(&self) -> String {
+        self.teo_request.uri_string()
+    }
+
+    #[napi]
+    pub fn scheme(&self) -> Option<&str> {
+        self.teo_request.scheme_str()
+    }
+
+    #[napi]
+    pub fn host(&self) -> Option<&str> {
+        self.teo_request.host()
     }
 
     #[napi]
@@ -22,14 +42,13 @@ impl Request {
         self.teo_request.path()
     }
 
-    #[napi(js_name = "queryString")]
-    pub fn query_string(&self) -> &str {
-        self.teo_request.query_string()
+    pub fn query(&self) -> Option<&str> {
+        self.teo_request.query()
     }
 
     #[napi(js_name = "contentType")]
-    pub fn content_type(&self) -> &str {
-        self.teo_request.content_type()
+    pub fn content_type(&self) -> Result<Option<&str>> {
+        Ok(self.teo_request.content_type()?)
     }
 
     #[napi]

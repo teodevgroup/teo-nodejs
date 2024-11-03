@@ -104,17 +104,18 @@ export class Request {
   scheme(): string | null
   host(): string | null
   path(): string
+  query(): string | null
   contentType(): string | null
   containsHeader(name: string): boolean
   headerValue(name: string): string | null
   headerValues(name: string): Array<string>
-  header_keys(): string[]
+  headerKeys(): string[]
   cookie(name: string): Cookie | null
   cookies(): Array<Cookie>
   handlerMatch(): HandlerMatch
   captures(): {[key: string]: string}
-  body(): any
-  setBodyValue(value: unknown): void
+  bodyObject(): any
+  setBodyObject(value: unknown): void
   teo(): any
 }
 export class Expiration {

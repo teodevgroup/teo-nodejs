@@ -1,41 +1,41 @@
-import { App, RequestCtx, Response } from "../../.."
+import { App, Request, Response } from "../../.."
 import schemaPathArgs from "../../helpers/schemaPathArgs"
 
 export default function loadApp() {
     const app = new App(schemaPathArgs(__filename, "schema.teo"))
-    app.mainNamespace().defineHandler("inspect", (ctx: RequestCtx) => {
-        const contentType = ctx.request().header("content-type")
+    app.mainNamespace().defineHandler("inspect", (request: Request) => {
+        const contentType = request.headerValue("content-type")
         return Response.teon({
-            "path": ctx.request().path(),
-            "queryString": ctx.request().queryString(),
+            "path": request.path(),
+            "query": request.query(),
             "contentTypeFromHeader": contentType,
-            "contentType": ctx.request().contentType(),
-            "method": ctx.request().method(),
+            "contentType": request.contentType(),
+            "method": request.method(),
         })
     })
-    app.mainNamespace().defineHandler("echo", (ctx: RequestCtx) => {
-        const captures = ctx.handlerMatch().captures()
+    app.mainNamespace().defineHandler("echo", (request: Request) => {
+        const captures = request.captures()
         const echo = captures["data"]
         return Response.string(echo, "text/plain")
     })
-    app.mainNamespace().defineHandler("echoMore", (ctx: RequestCtx) => {
-        const captures = ctx.handlerMatch().captures()
+    app.mainNamespace().defineHandler("echoMore", (request: Request) => {
+        const captures = request.captures()
         const echo = captures["data"]
         return Response.string(echo, "text/plain")
     })
-    app.mainNamespace().defineHandler("echoJsonBody", (ctx: RequestCtx) => {
-        return Response.teon(ctx.body())
+    app.mainNamespace().defineHandler("echoJsonBody", (request: Request) => {
+        return Response.teon(request.bodyObject())
     })
-    app.mainNamespace().defineHandler("echoFormBody", (ctx: RequestCtx) => {
-        const filepath = ctx.body()['avatar'].filepath
+    app.mainNamespace().defineHandler("echoFormBody", (request: Request) => {
+        const filepath = request.bodyObject()['avatar'].filepath
         return Response.teon({
-            "name": ctx.body()['name'],
+            "name": request.bodyObject()['name'],
             "avatar": filepath
         })
     })
-    app.mainNamespace().defineHandler("echoCookie", (ctx: RequestCtx) => {
+    app.mainNamespace().defineHandler("echoCookie", (request: Request) => {
         return Response.teon({
-            "cookies": ctx.request().cookies().map((cookie) => ({
+            "cookies": request.cookies().map((cookie) => ({
                 "name": cookie.name(), 
                 "value": cookie.value(),
             }))

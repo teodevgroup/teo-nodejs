@@ -50,6 +50,7 @@ impl Request {
         self.teo_request.path()
     }
 
+    #[napi]
     pub fn query(&self) -> Option<&str> {
         self.teo_request.query()
     }
@@ -91,7 +92,7 @@ impl Request {
         Ok(result)
     }
 
-    #[napi(js_name = "header_keys", ts_return_type = "string[]")]
+    #[napi(js_name = "headerKeys", ts_return_type = "string[]")]
     pub fn header_keys(&self) -> Vec<&str> {
         let header_map = self.teo_request.headers();
         let mut result = vec![];
@@ -131,12 +132,12 @@ impl Request {
     }
 
     #[napi(ts_return_type = "any")]
-    pub fn body(&self, env: Env) -> Result<JsUnknown> {
+    pub fn body_object(&self, env: Env) -> Result<JsUnknown> {
         teo_value_to_js_any(self.teo_request.transaction_ctx().connection_ctx().namespace().app_data(), self.teo_request.body_value()?, &env)
     }
 
     #[napi]
-    pub fn set_body_value(&self, value: JsUnknown, env: Env) -> Result<()> {
+    pub fn set_body_object(&self, value: JsUnknown, env: Env) -> Result<()> {
         let teo_value = js_any_to_teo_value(value, env)?;
         self.teo_request.set_body_value(teo_value);
         Ok(())

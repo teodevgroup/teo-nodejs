@@ -297,7 +297,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { HandlerGroup, Model, Field, Property, Relation, Namespace, DateOnly, ObjectId, File, Range, OptionVariant, Pipeline, InterfaceEnumVariant, App, HandlerMatch, Request, Expiration, Cookie, ReadWriteHeaderMap, Response, EnumMember, Enum, TestRequest } = nativeBinding
+const { HandlerGroup, Model, Field, Property, Relation, Namespace, DateOnly, ObjectId, File, Range, OptionVariant, Pipeline, InterfaceEnumVariant, App, HandlerMatch, Request, Expiration, Cookie, ReadWriteHeaderMap, Response, EnumMember, Enum, TestServer, TestRequest, TestResponse } = nativeBinding
 
 module.exports.HandlerGroup = HandlerGroup
 module.exports.Model = Model
@@ -321,7 +321,9 @@ module.exports.ReadWriteHeaderMap = ReadWriteHeaderMap
 module.exports.Response = Response
 module.exports.EnumMember = EnumMember
 module.exports.Enum = Enum
+module.exports.TestServer = TestServer
 module.exports.TestRequest = TestRequest
+module.exports.TestResponse = TestResponse
 
 App.prototype.run = async function() {
   await this._prepare();

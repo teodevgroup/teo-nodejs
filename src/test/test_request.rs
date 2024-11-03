@@ -1,6 +1,6 @@
 use std::str::FromStr;
 use hyper::{header::{HeaderName, HeaderValue}, HeaderMap, Method};
-use napi::{JsObject, JsString, JsUnknown, Result};
+use napi::{JsObject, JsString, Result};
 
 #[napi]
 pub struct TestRequest {

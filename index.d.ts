@@ -186,6 +186,9 @@ export class Enum {
   setData(key: string, value: unknown): void
   data(key: string): unknown
 }
+export class TestServer {
+  constructor(app: App)
+}
 export class TestRequest {
   constructor(props: { method?: string, uri: string, headers?: { [key: string]: string }, body?: string })
   method(): string
@@ -196,6 +199,12 @@ export class TestRequest {
   appendHeader(key: string, value: string): void
   body(): string
   setBody(body: string): void
+}
+export class TestResponse {
+  containsHeader(name: string): boolean
+  headerValue(name: string): string | null
+  headerValues(name: string): Array<string>
+  header_keys(): string[]
 }
 export class TeoError extends Error {
   constructor(message: string, code: number = 500, errors: { [key: string]: string } | null = null)

@@ -1,3 +1,5 @@
+use napi::Result;
+
 use crate::app::app::App;
 
 #[napi]
@@ -12,5 +14,15 @@ impl TestServer {
         Self { 
             server: teo::server::server::Server::new(app.teo_app.clone())
         }
+    }
+
+    #[napi]
+    pub async fn setup(&self) -> Result<()> {
+        Ok(self.server.setup_app_for_unit_test().await?)
+    }
+
+    #[napi]
+    pub async fn reset_data(&self) -> Result<()> {
+        Ok(self.server.reset_app_for_unit_test().await?)
     }
 }

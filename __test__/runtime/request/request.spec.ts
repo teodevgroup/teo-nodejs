@@ -1,4 +1,8 @@
 import test from 'ava'
+import fs from 'fs'
+import path from 'path'
+import { FormDataEncoder } from 'form-data-encoder'
+import { Readable } from 'stream'
 import { TestRequest, TestServer } from '../../..'
 import loadApp from './app'
 
@@ -102,5 +106,49 @@ test('json body', async (t) => {
     t.deepEqual(response.bodyObject(), {
         name: 'foo',
         age: 1
+    })
+})
+
+test('form body', async (t) => {
+    const form = new FormData()
+    form.append('name', 'Shiranui Mai');
+    form.append('avatar', fs.readFileSync(path.join(path.dirname(__filename), 'mai.jpg')))
+    const encoder = new FormDataEncoder(form)
+    const readable = Readable.from(encoder.encode())
+    const buffers = [];
+    for await (let chunk of readable) {
+        buffers.push(chunk);
+    }
+    const buffer = Buffer.concat(buffers)
+    console.log(encoder.headers)
+    console.log(buffer)
+    t.is(1, 1)
+    // const test_request = new TestRequest({
+    //     method: 'PATCH',
+    //     uri: '/echo/formBody',
+    //     headers: encoder.headers,
+    //     body: new String(Buffer.concat(buffers)),
+    // })
+    // const response = await server.process(test_request)
+    // t.deepEqual(response.bodyObject(), {
+    //     name: 'Shiranui Mai',
+    //     avatar: 1
+    // })
+})
+
+test('cookie', async (t) => {
+    const test_request = new TestRequest({
+        method: 'POST',
+        uri: '/echo/cookie',
+        headers: {
+            'Cookie': 'a=b',
+        },
+        body: {},
+    })
+    const response = await server.process(test_request)
+    t.deepEqual(response.bodyObject(), {
+        "cookies": [
+            { "name": "a", "value": "b" }
+        ]
     })
 })

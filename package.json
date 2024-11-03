@@ -36,6 +36,7 @@
     "@napi-rs/cli": "^2.18.4",
     "@types/node": "^22.8.7",
     "ava": "^6.2.0",
+    "form-data-encoder": "^4.0.2",
     "glob": "^11.0.0",
     "tsimp": "^2.0.11",
     "typescript": "^5.5.4"

@@ -186,6 +186,17 @@ export class Enum {
   setData(key: string, value: unknown): void
   data(key: string): unknown
 }
+export class TestRequest {
+  constructor(props: { method?: string, uri: string, headers?: { [key: string]: string }, body?: string })
+  method(): string
+  setMethod(method: string): void
+  uri(): string
+  setUri(uri: string): void
+  insertHeader(key: string, value: string): void
+  appendHeader(key: string, value: string): void
+  body(): string
+  setBody(body: string): void
+}
 export class TeoError extends Error {
   constructor(message: string, code: number = 500, errors: { [key: string]: string } | null = null)
   public get code(): number

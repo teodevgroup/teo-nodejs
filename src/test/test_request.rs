@@ -1,6 +1,7 @@
 use std::str::FromStr;
 use hyper::{header::{HeaderName, HeaderValue}, HeaderMap, Method};
-use napi::{JsObject, JsString, Result};
+use napi::{Env, JsObject, JsString, JsUnknown, Result};
+use crate::object::js_any_to_teo_value;
 
 #[napi]
 pub struct TestRequest {
@@ -12,8 +13,8 @@ pub struct TestRequest {
 
 #[napi]
 impl TestRequest {
-    #[napi(constructor, ts_args_type = "props: { method?: string, uri: string, headers?: { [key: string]: string }, body?: string }")]
-    pub fn new(props: JsObject) -> Result<Self> {
+    #[napi(constructor, ts_args_type = "props: { method?: string, uri: string, headers?: { [key: string]: string }, body?: any }")]
+    pub fn new(props: JsObject, env: Env) -> Result<Self> {
         let method: Option<String> = props.get_named_property("method")?;
         let method = match method {
             Some(method) => match Method::from_str(&method) {
@@ -40,8 +41,21 @@ impl TestRequest {
                 });
             }
         }
-        let body: Option<String> = props.get_named_property("body")?;
-        let body = body.unwrap_or_default();
+        let body: Option<JsUnknown> = props.get_named_property("body")?;
+        let body = match body {
+            Some(body) => {
+                let teo_value = js_any_to_teo_value(body, env)?;
+                if teo_value.is_string() {
+                    teo_value.as_str().unwrap().to_string()
+                } else {
+                    match serde_json::to_string(&teo_value) {
+                        Ok(body) => body,
+                        Err(_) => Err(teo_result::Error::internal_server_error_message("cannot serialize body into JSON"))?,
+                    }
+                }
+            },
+            None => String::new(),
+        };
         Ok(Self {
             method,
             uri,

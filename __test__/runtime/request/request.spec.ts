@@ -16,8 +16,18 @@ test('path', async (t) => {
     const test_request = new TestRequest({
         method: 'POST',
         uri: '/',
-        body: JSON.stringify({}),
+        body: {},
     })
     const response = await server.process(test_request)
-    t.is(JSON.parse(response.body())['path'], '/')
+    t.is(response.bodyObject()['path'], '/')
+})
+
+test('query', async (t) => {
+    const test_request = new TestRequest({
+        method: 'POST',
+        uri: '/?foo=bar',
+        body: {},
+    })
+    const response = await server.process(test_request)
+    t.is(response.bodyObject()['query'], 'foo=bar')
 })

@@ -62,6 +62,9 @@ HandlerGroup.prototype.defineHandler = function(name, callback) {
     return callback(arg)
   })
 }
+TestResponse.prototype.bodyObject = function() {
+  return JSON.parse(this.body())
+}
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")
@@ -126,6 +129,10 @@ function fixIndexDTs(filename) {
   content = content.replace("_run(): Promise<void>", `_run(): Promise<void>
   /** Run this app. */
   run(): Promise<void>`).replaceAll("_defineHandler", "defineHandler")
+  content = content.replace(`  version(): string
+  body(): string`, `  version(): string
+  body(): string
+  bodyObject(): any`)
   content += `export class TeoError extends Error {
   constructor(message: string, code: number = 500, errors: { [key: string]: string } | null = null)
   public get code(): number

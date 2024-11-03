@@ -226,17 +226,32 @@ switch (platform) {
         }
         break
       case 'arm':
-        localFileExisted = existsSync(
-          join(__dirname, 'teo.linux-arm-gnueabihf.node')
-        )
-        try {
-          if (localFileExisted) {
-            nativeBinding = require('./teo.linux-arm-gnueabihf.node')
-          } else {
-            nativeBinding = require('@teocloud/teo-linux-arm-gnueabihf')
+        if (isMusl()) {
+          localFileExisted = existsSync(
+            join(__dirname, 'teo.linux-arm-musleabihf.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./teo.linux-arm-musleabihf.node')
+            } else {
+              nativeBinding = require('@teocloud/teo-linux-arm-musleabihf')
+            }
+          } catch (e) {
+            loadError = e
           }
-        } catch (e) {
-          loadError = e
+        } else {
+          localFileExisted = existsSync(
+            join(__dirname, 'teo.linux-arm-gnueabihf.node')
+          )
+          try {
+            if (localFileExisted) {
+              nativeBinding = require('./teo.linux-arm-gnueabihf.node')
+            } else {
+              nativeBinding = require('@teocloud/teo-linux-arm-gnueabihf')
+            }
+          } catch (e) {
+            loadError = e
+          }
         }
         break
       case 'riscv64':
@@ -382,6 +397,9 @@ HandlerGroup.prototype.defineHandler = function(name, callback) {
     }  
     return callback(arg)
   })
+}
+TestResponse.prototype.bodyObject = function() {
+  return JSON.parse(this.body())
 }
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {

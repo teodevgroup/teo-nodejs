@@ -1,7 +1,6 @@
 use std::str::FromStr;
 use hyper::{header::{HeaderName, HeaderValue}, HeaderMap, Method};
-use napi::{Env, JsObject, JsString, JsUnknown, Result};
-use crate::object::js_any_to_teo_value;
+use napi::{Env, JsFunction, JsObject, JsString, JsUnknown, Result, ValueType};
 
 #[napi]
 pub struct TestRequest {
@@ -44,13 +43,17 @@ impl TestRequest {
         let body: Option<JsUnknown> = props.get_named_property("body")?;
         let body = match body {
             Some(body) => {
-                let teo_value = js_any_to_teo_value(body, env)?;
-                if teo_value.is_string() {
-                    teo_value.as_str().unwrap().to_string()
-                } else {
-                    match serde_json::to_string(&teo_value) {
-                        Ok(body) => body,
-                        Err(_) => Err(teo_result::Error::internal_server_error_message("cannot serialize body into JSON"))?,
+                let value_type = body.get_type()?;
+                match value_type {
+                    ValueType::String => {
+                        let js_string = body.coerce_to_string()?;
+                        js_string.into_utf8()?.as_str()?.to_owned()
+                    },
+                    _ => {
+                        let global = env.get_global()?;
+                        let json: JsObject = global.get_named_property("JSON")?;
+                        let stringify: JsFunction = json.get_named_property("stringify")?;
+                        stringify.call(None, &[body])?.coerce_to_string()?.into_utf8()?.as_str()?.to_owned()
                     }
                 }
             },

@@ -112,28 +112,28 @@ test('json body', async (t) => {
 test('form body', async (t) => {
     const form = new FormData()
     form.append('name', 'Shiranui Mai');
-    form.append('avatar', fs.readFileSync(path.join(path.dirname(__filename), 'mai.jpg')))
+    form.append('avatar', await fs.openAsBlob(path.join(path.dirname(__filename), 'mai.jpg')), 'mai.jpg')
     const encoder = new FormDataEncoder(form)
     const readable = Readable.from(encoder.encode())
-    const buffers = [];
+    const buffers = []
     for await (let chunk of readable) {
-        buffers.push(chunk);
+        buffers.push(chunk)
     }
-    const buffer = Buffer.concat(buffers)
-    console.log(encoder.headers)
-    console.log(buffer)
-    t.is(1, 1)
-    // const test_request = new TestRequest({
-    //     method: 'PATCH',
-    //     uri: '/echo/formBody',
-    //     headers: encoder.headers,
-    //     body: new String(Buffer.concat(buffers)),
-    // })
-    // const response = await server.process(test_request)
-    // t.deepEqual(response.bodyObject(), {
-    //     name: 'Shiranui Mai',
-    //     avatar: 1
-    // })
+    const buffer = Buffer.from(Buffer.concat(buffers))
+    const test_request = new TestRequest({
+        method: 'PATCH',
+        uri: '/echo/formBody',
+        headers: encoder.headers,
+        body: buffer,
+    })
+    const response = await server.process(test_request)
+    const responseBody = response.bodyObject()
+    const responseKeys = Object.keys(responseBody)
+    t.is(responseKeys.length, 2)
+    t.assert(responseKeys.includes('name'))
+    t.assert(responseKeys.includes('avatar'))
+    t.is(responseBody['name'], 'Shiranui Mai')
+    t.assert((responseBody['avatar'] as string).endsWith('.jpg'))
 })
 
 test('cookie', async (t) => {

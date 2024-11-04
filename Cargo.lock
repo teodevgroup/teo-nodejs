@@ -3896,6 +3896,7 @@ dependencies = [
  "bcrypt",
  "bigdecimal",
  "bson",
+ "bytes",
  "chrono",
  "colored",
  "cookie",
@@ -3964,7 +3965,9 @@ version = "0.3.0-alpha.1"
 dependencies = [
  "bigdecimal",
  "bson",
+ "bytes",
  "chrono",
+ "http-body-util",
  "hyper",
  "indexmap 2.6.0",
  "inflector-plus",

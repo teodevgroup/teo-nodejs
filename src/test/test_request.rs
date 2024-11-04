@@ -1,13 +1,15 @@
 use std::str::FromStr;
 use hyper::{header::{HeaderName, HeaderValue}, HeaderMap, Method};
-use napi::{Env, JsFunction, JsObject, JsString, JsUnknown, Result, ValueType};
+use napi::{bindgen_prelude::Buffer, Env, JsBuffer, JsFunction, JsObject, JsString, JsUnknown, Result, ValueType};
+use http_body_util::Full;
+use bytes::Bytes;
 
 #[napi]
 pub struct TestRequest {
     method: Method,
     uri: String,
     headers: HeaderMap,
-    body: String,
+    body: Bytes,
 }
 
 #[napi]
@@ -47,17 +49,26 @@ impl TestRequest {
                 match value_type {
                     ValueType::String => {
                         let js_string = body.coerce_to_string()?;
-                        js_string.into_utf8()?.as_str()?.to_owned()
+                        Bytes::copy_from_slice(js_string.into_utf8()?.as_slice())
                     },
                     _ => {
                         let global = env.get_global()?;
-                        let json: JsObject = global.get_named_property("JSON")?;
-                        let stringify: JsFunction = json.get_named_property("stringify")?;
-                        stringify.call(None, &[body])?.coerce_to_string()?.into_utf8()?.as_str()?.to_owned()
+                        // detect buffer
+                        let buffer_class: JsFunction = global.get_named_property("Buffer")?;
+                        if body.instanceof(buffer_class)? {
+                            let buf: JsBuffer = props.get_named_property("body")?;
+                            Bytes::copy_from_slice(AsRef::<[u8]>::as_ref(&buf.into_value()?))
+                        } else {
+                            // anything else, convert to JSON string
+                            let json: JsObject = global.get_named_property("JSON")?;
+                            let stringify: JsFunction = json.get_named_property("stringify")?;
+                            let json_string: JsString = stringify.call(None, &[body])?.coerce_to_string()?;
+                            Bytes::copy_from_slice(json_string.into_utf8()?.as_slice())
+                        }
                     }
                 }
             },
-            None => String::new(),
+            None => Bytes::new(),
         };
         Ok(Self {
             method,
@@ -118,22 +129,23 @@ impl TestRequest {
     }
 
     #[napi]
-    pub fn body(&self) -> &str {
-        self.body.as_str()
+    pub fn body(&self) -> Buffer {
+        Buffer::from(Vec::<u8>::from(self.body.clone()))
     }
 
     #[napi]
-    pub fn set_body(&mut self, body: String) {
-        self.body = body;
+    pub fn set_body(&mut self, body: Buffer) {
+        let body_vec: Vec<u8> = Vec::<u8>::from(body);
+        self.body = Bytes::copy_from_slice(&body_vec);
     }
 
-    pub(crate) fn to_hyper_request(&self) -> hyper::Request<String> {
+    pub(crate) fn to_hyper_request(&self) -> hyper::Request<Full<Bytes>> {
         let mut request = hyper::Request::builder()
             .method(self.method.clone())
             .uri(self.uri.clone());
         for (key, value) in self.headers.iter() {
             request = request.header(key.clone(), value.clone());
         }
-        request.body(self.body.clone()).unwrap()
+        request.body(Full::new(self.body.clone())).unwrap()
     }
 }

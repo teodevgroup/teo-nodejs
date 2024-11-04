@@ -201,8 +201,8 @@ export declare class TestRequest {
   setUri(uri: string): void
   insertHeader(key: string, value: string): void
   appendHeader(key: string, value: string): void
-  body(): string
-  setBody(body: string): void
+  body(): Buffer
+  setBody(body: Buffer): void
 }
 export declare class TestResponse {
   status(): number

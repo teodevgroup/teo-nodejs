@@ -81,7 +81,7 @@ test('captures', async (t) => {
         uri: '/echo/foo',
     })
     const response = await server.process(test_request)
-    t.is(response.body(), 'foo')
+    t.is(response.bodyAsString(), 'foo')
 })
 
 test('combined captures', async (t) => {
@@ -90,7 +90,7 @@ test('combined captures', async (t) => {
         uri: '/echo/foo/bar/echo',
     })
     const response = await server.process(test_request)
-    t.is(response.body(), 'foo/bar')
+    t.is(response.bodyAsString(), 'foo/bar')
 })
 
 test('json body', async (t) => {

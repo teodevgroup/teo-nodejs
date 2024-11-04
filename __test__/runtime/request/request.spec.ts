@@ -23,7 +23,7 @@ test('path', async (t) => {
         body: {},
     })
     const response = await server.process(test_request)
-    t.is(response.bodyObject()['path'], '/')
+    t.is(response.bodyAsJson()['path'], '/')
 })
 
 test('query', async (t) => {
@@ -33,7 +33,7 @@ test('query', async (t) => {
         body: {},
     })
     const response = await server.process(test_request)
-    t.is(response.bodyObject()['query'], 'foo=bar')
+    t.is(response.bodyAsJson()['query'], 'foo=bar')
 })
 
 test('content type from header', async (t) => {
@@ -46,7 +46,7 @@ test('content type from header', async (t) => {
         body: {},
     })
     const response = await server.process(test_request)
-    t.is(response.bodyObject()['contentTypeFromHeader'], 'application/json')
+    t.is(response.bodyAsJson()['contentTypeFromHeader'], 'application/json')
 })
 
 test('content type', async (t) => {
@@ -59,7 +59,7 @@ test('content type', async (t) => {
         body: {},
     })
     const response = await server.process(test_request)
-    t.is(response.bodyObject()['contentType'], 'application/json')
+    t.is(response.bodyAsJson()['contentType'], 'application/json')
 })
 
 test('method', async (t) => {
@@ -72,7 +72,7 @@ test('method', async (t) => {
         body: {},
     })
     const response = await server.process(test_request)
-    t.is(response.bodyObject()['method'], 'POST')
+    t.is(response.bodyAsJson()['method'], 'POST')
 })
 
 test('captures', async (t) => {
@@ -103,7 +103,7 @@ test('json body', async (t) => {
         },
     })
     const response = await server.process(test_request)
-    t.deepEqual(response.bodyObject(), {
+    t.deepEqual(response.bodyAsJson(), {
         name: 'foo',
         age: 1
     })
@@ -127,7 +127,7 @@ test('form body', async (t) => {
         body: buffer,
     })
     const response = await server.process(test_request)
-    const responseBody = response.bodyObject()
+    const responseBody = response.bodyAsJson()
     const responseKeys = Object.keys(responseBody)
     t.is(responseKeys.length, 2)
     t.assert(responseKeys.includes('name'))
@@ -146,7 +146,7 @@ test('cookie', async (t) => {
         body: {},
     })
     const response = await server.process(test_request)
-    t.deepEqual(response.bodyObject(), {
+    t.deepEqual(response.bodyAsJson(), {
         "cookies": [
             { "name": "a", "value": "b" }
         ]

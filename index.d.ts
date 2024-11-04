@@ -207,8 +207,9 @@ export declare class TestRequest {
 export declare class TestResponse {
   status(): number
   version(): string
-  body(): string
-  bodyObject(): any
+  body(): Buffer
+  bodyAsString(): string
+  bodyAsJson(): any
   containsHeader(name: string): boolean
   headerValue(name: string): string | null
   headerValues(name: string): Array<string>

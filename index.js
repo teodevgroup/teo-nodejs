@@ -398,9 +398,6 @@ HandlerGroup.prototype.defineHandler = function(name, callback) {
     return callback(arg)
   })
 }
-TestResponse.prototype.bodyObject = function() {
-  return JSON.parse(this.body())
-}
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")

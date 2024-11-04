@@ -1,4 +1,4 @@
-use napi::Result;
+use napi::{bindgen_prelude::Buffer, Env, JsFunction, JsGlobal, JsObject, JsString, JsUnknown, Result, JSON};
 
 #[napi]
 pub struct TestResponse {
@@ -24,8 +24,24 @@ impl TestResponse {
     }
 
     #[napi]
-    pub fn body(&self) -> String {
+    pub fn body(&self) -> Buffer {
+        Buffer::from(Vec::<u8>::from(self.teo_test_response.body().clone()))
+    }
+
+    #[napi]
+    pub fn body_as_string(&self) -> String {
         self.teo_test_response.body_as_string()
+    }
+
+    #[napi(ts_return_type = "any")]
+    pub fn body_as_json(&self, env: Env) -> Result<JsUnknown> {
+        let string = self.teo_test_response.body_as_string();
+        let js_string = env.create_string(&string)?;
+        let global: JsGlobal = env.get_global()?;
+        let json: JsObject = global.get_named_property("JSON")?;
+        let parse: JsFunction = json.get_named_property("parse")?;
+        let json_result: JsUnknown = parse.call(None, &[js_string])?;
+        Ok(json_result)
     }
 
     #[napi]

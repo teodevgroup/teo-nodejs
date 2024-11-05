@@ -63,6 +63,8 @@
     "artifacts": "napi artifacts",
     "build": "napi build --platform --release --pipe \"node ./scripts/fixFiles.js\"",
     "build:debug": "napi build --platform --pipe \"node ./scripts/fixFiles.js\"",
+    "postbuild": "tsc lib/*.ts --outDir .",
+    "postbuild:debug": "tsc lib/*.ts --outDir .",
     "prepublishOnly": "napi prepublish -t npm",
     "pretest": "node ./scripts/copyTestSchemas.js",
     "test": "ava",

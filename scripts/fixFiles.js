@@ -127,17 +127,17 @@ function fixIndexDTs(filename) {
   /** Run this app. */
   run(): Promise<void>`).replaceAll("_defineHandler", "defineHandler")
   content += `export class TeoError extends Error {
-  constructor(message: string, code: number = 500, errors: { [key: string]: string } | null = null)
+  constructor(message: string, code?: number, errors?: { [key: string]: string } | null)
   public get code(): number
   public get errorMessage(): string
   public get errors(): { [key: string]: string } | null
   public messagePrefixed(prefix: string): TeoError
   public pathPrefixed(prefix: string): TeoError
   public mapPath(mapper: (string) => string): TeoError
-  public static notFound(message: string = "not found"): TeoError
-  public static invalidRequest(message: string = "value is invalid"): TeoError
-  public static internalServerError(message: string = "internal server error"): TeoError
-  public static unauthorized(message: string = "unauthorized"): TeoError  
+  public static notFound(message?: string): TeoError
+  public static invalidRequest(message?: string): TeoError
+  public static internalServerError(message?: string): TeoError
+  public static unauthorized(message?: string): TeoError  
 }
 `
   writeFileSync(filename, content)

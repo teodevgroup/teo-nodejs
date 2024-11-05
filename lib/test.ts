@@ -115,12 +115,33 @@ export function matchJsonValuePathed(path: KeyPath, value: any, matcher: any) {
     }
 }
 
-function matchObject(path: KeyPath, value: object, matcher: object, partial: boolean) {
-
+function matchObject(path: KeyPath, value: {[key: string]: any}, matcher: {[key: string]: any}, partial: boolean) {
+    const objectKeys = Object.keys(value)
+    const matcherKeys = Object.keys(matcher)
+    if (!partial) {
+        objectKeys.forEach((k) => {
+            if (!matcherKeys.includes(k)) {
+                throw new JSONMatchError(path, value, `found extra key: ${k}`)
+            }
+        })
+    }
+    matcherKeys.forEach((k) => {
+        if (!objectKeys.includes(k)) {
+            throw new JSONMatchError(path, value, `missing key: ${k}`)
+        }
+    })
+    matcherKeys.forEach((k) => {
+        matchJsonValuePathed(pathAppend(path, k), value[k], matcher[k])
+    })
 }
 
 function matchArray(path: KeyPath, value: any[], matcher: any[]) {
-
+    if (value.length !== matcher.length) {
+        throw new JSONMatchError(path, value, "array of wrong length")
+    }
+    for (let i = 0; i < value.length; i++) {
+        matchJsonValuePathed(pathAppend(path, i), value[i], matcher[i])
+    }
 }
 
 export function partial(matcher: any): Matcher {

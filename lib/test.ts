@@ -16,7 +16,6 @@ export function matchJson(value: any, matcher: any) {
 
 export function matchJsonValue(value: any, matcher: any) {
     matchJsonValuePathed([], value, matcher)
-
 }
 
 export function formatPath(path: KeyPath): string {
@@ -44,17 +43,89 @@ export function pathAppend(path: KeyPath, next: string | number): KeyPath {
     return retval
 }
 
+export function displayValue(value: any): string {
+    return JSON.stringify(value)
+}
+
+export function displayMatcher(matcher: any): string {
+    if (matcher === String) {
+        return 'string'
+    } else if (matcher === Number) {
+        return 'number'
+    } else if (matcher === Boolean) {
+        return 'boolean'
+    } else if (matcher === Array) {
+        return 'array'
+    } else {
+        if (Array.isArray(matcher)) {
+            return JSON.stringify(matcher)
+        } else {
+            return JSON.stringify(matcher)
+        }
+    }
+}
+
 export function matchJsonValuePathed(path: KeyPath, value: any, matcher: any) {
     if (typeof matcher === 'function') {
         (matcher as Matcher)(path, value)
+    } else if (typeof value === 'string') {
+        if (matcher === String) {
+        } else if (typeof matcher === 'string') {
+            if (value !== matcher) {
+                throw new JSONMatchError(path, value, `expect ${displayMatcher(matcher)}, found ${displayValue(value)}`)
+            }
+        } else {
+            throw new JSONMatchError(path, value, `expect ${displayMatcher(matcher)}, found '${displayValue(value)}'`)
+        }
+    } else if (typeof value === 'boolean') {
+        if (matcher === Boolean) {
+        } else if (typeof matcher === 'boolean') {
+            if (value !== matcher) {
+                throw new JSONMatchError(path, value, `expect ${displayMatcher(matcher)}, found ${displayValue(value)}`)
+            }
+        } else {
+            throw new JSONMatchError(path, value, `expect ${displayMatcher(matcher)}, found '${displayValue(value)}'`)
+        }
+    } else if (typeof value === 'number') {
+        if (matcher === Boolean) {
+        } else if (typeof matcher === 'number') {
+            if (value !== matcher) {
+                throw new JSONMatchError(path, value, `expect ${displayMatcher(matcher)}, found ${displayValue(value)}`)
+            }
+        } else {
+            throw new JSONMatchError(path, value, `expect ${displayMatcher(matcher)}, found '${displayValue(value)}'`)
+        }
+    } else if (value === null) {
+        if (matcher !== null) {
+            throw new JSONMatchError(path, value, `expect ${displayMatcher(matcher)}, found ${displayValue(value)}`)
+        }
+    } else if (Array.isArray(value)) {
+        if (matcher === Array) {
+        } else if (Array.isArray(matcher)) {
+            matchArray(path, value, matcher)
+        } else {
+            throw new JSONMatchError(path, value, `expect ${displayMatcher(matcher)}, found ${displayValue(value)}`)
+        }
+    } else {
+        if (typeof matcher === 'object' && !Array.isArray(matcher)) {
+            matchObject(path, value, matcher, false)
+        } else {
+            throw new JSONMatchError(path, value, `expect ${displayMatcher(matcher)}, found ${displayValue(value)}`)
+        }
     }
-    matcher
+}
+
+function matchObject(path: KeyPath, value: object, matcher: object, partial: boolean) {
 
 }
 
-export function partial(matcher: any) {
-    return (json: any) => {
+function matchArray(path: KeyPath, value: any[], matcher: any[]) {
 
+}
+
+export function partial(matcher: any): Matcher {
+    return (path, value) => {
+        matchObject(path, value, matcher, true)
     }
 }
 

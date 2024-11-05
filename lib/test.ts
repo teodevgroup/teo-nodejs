@@ -15,6 +15,7 @@ export function matchJson(value: any, matcher: any) {
 }
 
 export function matchJsonValue(value: any, matcher: any) {
+    console.log("here runs?")
     matchJsonValuePathed([], value, matcher)
 }
 
@@ -66,6 +67,7 @@ export function displayMatcher(matcher: any): string {
 }
 
 export function matchJsonValuePathed(path: KeyPath, value: any, matcher: any) {
+    console.log(path, value)
     if (typeof matcher === 'function') {
         (matcher as Matcher)(path, value)
     } else if (typeof value === 'string') {
@@ -229,7 +231,7 @@ export function combine(...matchers: Matcher[]): Matcher {
     }
 }
 
-export function oneMatches(matcher: Matcher): Matcher {
+export function oneMatches(matcher: any): Matcher {
     return (path, value) => {
         if (!Array.isArray(value)) {
             throw new JSONMatchError(path, value, 'value is not array')

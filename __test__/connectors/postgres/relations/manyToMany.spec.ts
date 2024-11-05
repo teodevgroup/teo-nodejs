@@ -2,6 +2,7 @@ import test from 'ava'
 import { App, TestServer } from '../../../..'
 import schemaPathArgs from '../../../helpers/schemaPathArgs'
 import builtinReq from '../../../helpers/builtinReq'
+import { ignore, matchJson, matchJsonValue, oneMatches } from '../../../../test'
 
 const server = new TestServer(new App(schemaPathArgs(__filename, "schema.teo")))
 
@@ -29,8 +30,17 @@ test('create with nested create one', async (t) => {
             "songs": true
         }
     })
-    t.deepEqual(findManyRes["meta"], { "count": 3 })
-    t.assert(findManyRes["data"].find((item: any) => {
-        return item.name === 'Taylor Swift' && item.songs[0].name === 'Love Story'
+    t.notThrows(() => matchJsonValue(findManyRes, {
+        "meta": {
+            "count": 3
+        },
+        "data": oneMatches({
+            "id": ignore,
+            "name": "Taylor Swift",
+            "songs": oneMatches({
+                "id": ignore,
+                "name": "Love Story2"
+            })
+        })
     }))
 })

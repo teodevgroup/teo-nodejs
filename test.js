@@ -52,6 +52,7 @@ function matchJson(value, matcher) {
     return function () { return matchJsonValue(value, matcher); };
 }
 function matchJsonValue(value, matcher) {
+    console.log("here runs?");
     matchJsonValuePathed([], value, matcher);
 }
 function formatPath(path) {
@@ -104,6 +105,7 @@ function displayMatcher(matcher) {
     }
 }
 function matchJsonValuePathed(path, value, matcher) {
+    console.log(path, value);
     if (typeof matcher === 'function') {
         matcher(path, value);
     }

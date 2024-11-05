@@ -6,7 +6,7 @@ export type Matcher = (path: KeyPath, value: any) => void
 
 export class JSONMatchError extends Error {
     constructor(path: (string | number)[], found: any, reason?: string) {
-        super(`${formatPath(path)}: ${reason || "value is invalid"}\nFound value: ${found}`)
+        super(`${formatPath(path)}: ${reason || "value is invalid"}\nFound value: ${displayValue(found)}`)
     }
 }
 
@@ -15,7 +15,6 @@ export function matchJson(value: any, matcher: any) {
 }
 
 export function matchJsonValue(value: any, matcher: any) {
-    console.log("here runs?")
     matchJsonValuePathed([], value, matcher)
 }
 
@@ -67,7 +66,6 @@ export function displayMatcher(matcher: any): string {
 }
 
 export function matchJsonValuePathed(path: KeyPath, value: any, matcher: any) {
-    console.log(path, value)
     if (typeof matcher === 'function') {
         (matcher as Matcher)(path, value)
     } else if (typeof value === 'string') {
@@ -240,6 +238,7 @@ export function oneMatches(matcher: any): Matcher {
         for (let i = 0; i < len; i++) {
             try {
                 matchJsonValuePathed(pathAppend(path, i), value[i], matcher)
+                return
             } catch(_) { }
         }
         throw new JSONMatchError(path, value, 'none of values matches matcher')

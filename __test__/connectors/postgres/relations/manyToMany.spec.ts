@@ -39,7 +39,7 @@ test('create with nested create one', async (t) => {
             "name": "Taylor Swift",
             "songs": oneMatches({
                 "id": ignore,
-                "name": "Love Story2"
+                "name": "Love Story"
             })
         })
     }))

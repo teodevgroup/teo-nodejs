@@ -43,7 +43,7 @@ exports.oneMatches = oneMatches;
 var JSONMatchError = /** @class */ (function (_super) {
     __extends(JSONMatchError, _super);
     function JSONMatchError(path, found, reason) {
-        return _super.call(this, "".concat(formatPath(path), ": ").concat(reason || "value is invalid", "\nFound value: ").concat(found)) || this;
+        return _super.call(this, "".concat(formatPath(path), ": ").concat(reason || "value is invalid", "\nFound value: ").concat(displayValue(found))) || this;
     }
     return JSONMatchError;
 }(Error));
@@ -52,7 +52,6 @@ function matchJson(value, matcher) {
     return function () { return matchJsonValue(value, matcher); };
 }
 function matchJsonValue(value, matcher) {
-    console.log("here runs?");
     matchJsonValuePathed([], value, matcher);
 }
 function formatPath(path) {
@@ -105,7 +104,6 @@ function displayMatcher(matcher) {
     }
 }
 function matchJsonValuePathed(path, value, matcher) {
-    console.log(path, value);
     if (typeof matcher === 'function') {
         matcher(path, value);
     }
@@ -287,6 +285,7 @@ function oneMatches(matcher) {
         for (var i = 0; i < len; i++) {
             try {
                 matchJsonValuePathed(pathAppend(path, i), value[i], matcher);
+                return;
             }
             catch (_) { }
         }

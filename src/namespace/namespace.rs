@@ -10,6 +10,7 @@ use crate::request::send_next::SendNext;
 use teo::prelude::namespace;
 use teo::prelude::model::field;
 use teo::prelude::handler;
+use teo::prelude::MiddlewareImpl;
 use teo::prelude::{r#enum, Value as TeoValue, Arguments, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
 use crate::handler::group::HandlerGroup;
 use crate::model::model::Model;
@@ -340,11 +341,8 @@ impl Namespace {
                 let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async((ctx.clone(), SendNext::new(next))).await?;
                 let res = res_or_promise.to_teo_response().await?;
                 return Ok(res);
-            };
-            let wrapped_box = Box::new(wrapped_result);
-            let wrapped_raw = Box::leak(wrapped_box);
-            let leak_static_result: &'static dyn Middleware = unsafe { &*(wrapped_raw as * const dyn Middleware) };
-            return Ok(leak_static_result);
+            };            
+            return Ok(MiddlewareImpl::new(wrapped_result));
         });
         Ok(())
     }
@@ -364,10 +362,7 @@ impl Namespace {
                 let res = res_or_promise.to_teo_response().await?;
                 return Ok(res);
             };
-            let wrapped_box = Box::new(wrapped_result);
-            let wrapped_raw = Box::leak(wrapped_box);
-            let leak_static_result: &'static dyn Middleware = unsafe { &*(wrapped_raw as * const dyn Middleware) };
-            return Ok(leak_static_result);
+            return Ok(MiddlewareImpl::new(wrapped_result));
         });
         Ok(())
     }

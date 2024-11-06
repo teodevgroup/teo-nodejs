@@ -2,7 +2,7 @@ use napi::{JsFunction, Result};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
 use teo::prelude::app::data::AppData;
 use teo::prelude::pipeline::item::validator::Validity;
-use teo::prelude::{Next, Middleware};
+use teo::prelude::Next;
 use teo::prelude::Request as TeoRequest;
 use crate::dynamic::JSClassLookupMap;
 use crate::middleware::SendMiddlewareCallback;

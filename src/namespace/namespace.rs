@@ -11,7 +11,7 @@ use teo::prelude::namespace;
 use teo::prelude::model::field;
 use teo::prelude::handler;
 use teo::prelude::MiddlewareImpl;
-use teo::prelude::{r#enum, Value as TeoValue, Arguments, Arguments as TeoArgs, pipeline, model, transaction, request, response::Response as TeoResponse};
+use teo::prelude::{r#enum, Value as TeoValue, Arguments, Arguments as TeoArgs, pipeline, model, transaction, response::Response as TeoResponse};
 use crate::handler::group::HandlerGroup;
 use crate::model::model::Model;
 use crate::model::relation::relation::Relation;

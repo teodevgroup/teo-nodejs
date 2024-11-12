@@ -314,7 +314,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
         let object_ctor_object = object_ctor.coerce_to_object()?;
         let mut object_prototype: JsObject = object_ctor_object.get_named_property("prototype")?;
         // find unique
-        let find_unique = env.create_function_from_closure("findUnique", move |ctx| {
+        let find_unique = env.create_function_from_closure("findUniqueObject", move |ctx| {
             let teo_value = if ctx.length == 0 {
                 TeoValue::Dictionary(IndexMap::new())
             } else {
@@ -335,9 +335,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             })?;
             Ok(promise)
         })?;
-        class_prototype.set_named_property("findUnique", find_unique)?;
+        class_prototype.set_named_property("findUniqueObject", find_unique)?;
         // find first
-        let find_unique = env.create_function_from_closure("findFirst", move |ctx| {
+        let find_unique = env.create_function_from_closure("findFirstObject", move |ctx| {
             let teo_value = if ctx.length == 0 {
                 TeoValue::Dictionary(IndexMap::new())
             } else {
@@ -358,9 +358,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             })?;
             Ok(promise)
         })?;
-        class_prototype.set_named_property("findFirst", find_unique)?;
+        class_prototype.set_named_property("findFirstObject", find_unique)?;
         // find many
-        let find_many = env.create_function_from_closure("findMany", move |ctx| {
+        let find_many = env.create_function_from_closure("findManyObjects", move |ctx| {
             let teo_value = if ctx.length == 0 {
                 TeoValue::Dictionary(IndexMap::new())
             } else {
@@ -385,9 +385,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             })?;
             Ok(promise)
         })?;
-        class_prototype.set_named_property("findMany", find_many)?;
+        class_prototype.set_named_property("findManyObjects", find_many)?;
         // create
-        let create = env.create_function_from_closure("create", move |ctx| {
+        let create = env.create_function_from_closure("createObject", move |ctx| {
             let teo_value = if ctx.length == 0 {
                 TeoValue::Dictionary(IndexMap::new())
             } else {
@@ -405,7 +405,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             })?;
             Ok(promise)
         })?;
-        class_prototype.set_named_property("create", create)?;
+        class_prototype.set_named_property("createObject", create)?;
         // count
         let count = env.create_function_from_closure("count", move |ctx| {
             let teo_value = if ctx.length == 0 {

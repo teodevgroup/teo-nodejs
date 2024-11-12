@@ -3755,6 +3755,7 @@ dependencies = [
  "array_tool",
  "async-recursion",
  "async-trait",
+ "bigdecimal",
  "bson",
  "bytes",
  "chrono",

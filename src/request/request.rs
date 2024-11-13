@@ -102,8 +102,9 @@ impl Request {
         result
     }
 
-    pub fn headers_length(&self) -> usize {
-        self.teo_request.headers().len()
+    #[napi]
+    pub fn headers_length(&self) -> i64 {
+        self.teo_request.headers().len() as i64
     }
 
     #[napi]
@@ -123,12 +124,7 @@ impl Request {
 
     #[napi(ts_return_type = "{[key: string]: string}")]
     pub fn captures(&self, env: Env) -> Result<JsObject> {
-        let captures_map = self.teo_request.captures()?;
-        let mut js_object = env.create_object()?;
-        for (k, value) in captures_map.iter() {
-            js_object.set_named_property(k, value)?;
-        }
-        Ok(js_object)
+        self.handler_match()?.captures(env)
     }
 
     #[napi(ts_return_type = "any")]

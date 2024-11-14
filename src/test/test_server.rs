@@ -1,7 +1,5 @@
 use napi::Result;
-
 use crate::app::app::App;
-
 use super::{TestRequest, TestResponse};
 
 #[napi]

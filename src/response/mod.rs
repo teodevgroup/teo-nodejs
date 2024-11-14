@@ -3,7 +3,7 @@ pub(crate) mod response_or_promise;
 
 use std::path::PathBuf;
 
-use crate::{object::{js_any_to_teo_value, value::{teo_value_to_js_any, teo_value_to_js_any_no_app_data}}, request::Cookie};
+use crate::{object::{js_any_to_teo_value, value::teo_value_to_js_any_no_app_data}, request::Cookie};
 
 use self::header_map::ReadWriteHeaderMap;
 use napi::{Result, JsUnknown, Env, bindgen_prelude::{FromNapiValue, FromNapiRef}};

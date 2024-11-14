@@ -1,4 +1,4 @@
-use napi::{bindgen_prelude::Buffer, Env, JsFunction, JsGlobal, JsObject, JsString, JsUnknown, Result, JSON};
+use napi::{bindgen_prelude::Buffer, Env, JsFunction, JsGlobal, JsObject, JsUnknown, Result};
 
 #[napi]
 pub struct TestResponse {

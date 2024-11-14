@@ -63,8 +63,6 @@ impl Response {
             teo_response: response
         })
     }
-
-    // error
     
     #[napi(js_name = "file")]
     pub fn file(path: String) -> Self {

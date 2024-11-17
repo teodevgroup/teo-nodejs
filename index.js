@@ -398,6 +398,10 @@ HandlerGroup.prototype.defineHandler = function(name, callback) {
     return callback(arg)
   })
 }
+TestServer.prototype.setup = async function() {
+  await this._setup_0()
+  this._setup_1()
+}
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")

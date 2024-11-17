@@ -48,7 +48,7 @@ impl App {
     /// @internal
     #[napi(js_name = "_prepare", ts_return_type="Promise<void>")]
     pub fn _prepare(&'static self, env: Env) -> Result<JsUnknown> {
-        let js_function = env.create_function_from_closure("run", |ctx| {
+        let js_function = env.create_function_from_closure("_prepare", |ctx| {
             let promise = ctx.env.execute_tokio_future((|| async {
                 self.teo_app.prepare_for_run().await?;
                 Ok(0)

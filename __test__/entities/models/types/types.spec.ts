@@ -45,7 +45,6 @@ test('find many objects', async (t) => {
         },
     })
     const response = await server.process(test_request)
-    console.log(response.bodyAsJson())
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": [],
     }))

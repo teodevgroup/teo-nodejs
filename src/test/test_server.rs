@@ -1,5 +1,5 @@
-use napi::Result;
-use crate::app::app::App;
+use napi::{Env, Result};
+use crate::{app::app::App, dynamic::synthesize_dynamic_nodejs_classes};
 use super::{TestRequest, TestResponse};
 
 #[napi]
@@ -16,9 +16,16 @@ impl TestServer {
         }
     }
 
-    #[napi]
-    pub async fn setup(&self) -> Result<()> {
+    /// @internal
+    #[napi(js_name = "_setup_0")]
+    pub async fn _setup_0(&self) -> Result<()> {
         Ok(self.server.setup_app_for_unit_test().await?)
+    }
+
+    /// @internal
+    #[napi(js_name = "_setup_1")]
+    pub fn _setup_1(&self, env: Env) -> Result<()> {
+        synthesize_dynamic_nodejs_classes(&self.server.app, env)
     }
 
     #[napi]

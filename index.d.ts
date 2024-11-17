@@ -190,7 +190,12 @@ export declare class Enum {
 }
 export declare class TestServer {
   constructor(app: App)
-  setup(): Promise<void>
+  /** @internal */
+  _setup_0(): Promise<void>
+  /** @internal */
+  _setup_1(): void
+    /** Setup the server. */
+    setup(): Promise<void>
   reset(): Promise<void>
   process(request: TestRequest): Promise<TestResponse>
 }

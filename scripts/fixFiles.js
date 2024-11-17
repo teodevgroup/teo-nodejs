@@ -62,6 +62,10 @@ HandlerGroup.prototype.defineHandler = function(name, callback) {
     return callback(arg)
   })
 }
+TestServer.prototype.setup = async function() {
+  await this._setup_0()
+  this._setup_1()
+}
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")
@@ -126,6 +130,9 @@ function fixIndexDTs(filename) {
   content = content.replace("_run(): Promise<void>", `_run(): Promise<void>
   /** Run this app. */
   run(): Promise<void>`).replaceAll("_defineHandler", "defineHandler")
+  .replace("_setup_1(): void", `_setup_1(): void
+    /** Setup the server. */
+    setup(): Promise<void>`)
   content += `export class TeoError extends Error {
   constructor(message: string, code?: number, errors?: { [key: string]: string } | null)
   public get code(): number

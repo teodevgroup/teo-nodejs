@@ -48,12 +48,12 @@
         "tsx"
       ],
       "rewritePaths": {
-        "__test__/": "__test_build__/"
+        "tests/": "tests_build/"
       },
       "compile": "tsc"
     },
     "files": [
-      "__test__/**/*.spec.ts"
+      "tests/**/*.spec.ts"
     ]
   },
   "engines": {

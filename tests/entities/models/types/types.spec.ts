@@ -1,11 +1,7 @@
 import test from 'ava'
-import fs from 'fs'
-import path from 'path'
-import { FormDataEncoder } from 'form-data-encoder'
-import { Readable } from 'stream'
 import { TestRequest, TestServer } from '../../../..'
 import loadApp from './app'
-import { ignore, matchJsonValue } from '../../../../test'
+import { dateValue, ignore, matchJsonValue } from '../../../../test'
 
 const server = new TestServer(loadApp())
 
@@ -40,7 +36,7 @@ test('find many objects', async (t) => {
         method: 'POST',
         uri: '/Support/myCreateObject',
         body: {
-            "int32": 1,
+            "date": "2005-12-25",
         },
     })
     await server.process(test_request_c)
@@ -58,7 +54,7 @@ test('find many objects', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": [{
             "id": ignore,
-            "int32": 1
+            "date": dateValue("2005-12-25"),
         }],
     }))
 })

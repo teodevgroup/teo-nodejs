@@ -13,7 +13,7 @@ test.beforeEach(async () => {
     await server.reset()
 })
 
-test('create object', async (t) => {
+test.serial('create object', async (t) => {
     const test_request = new TestRequest({
         method: 'POST',
         uri: '/Support/myCreateObject',
@@ -30,7 +30,7 @@ test('create object', async (t) => {
     }))
 })
 
-test('find many objects', async (t) => {
+test.serial('find many objects', async (t) => {
     // create one
     const test_request_c = new TestRequest({
         method: 'POST',
@@ -51,9 +51,6 @@ test('find many objects', async (t) => {
         },
     })
     const response = await server.process(test_request)
-    t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
-        "data": [],
-    }))
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": [{
             "id": ignore,

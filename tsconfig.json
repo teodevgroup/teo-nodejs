@@ -1,4 +1,5 @@
 {
+  "include": ["tests/**/*.ts"],
   "compilerOptions": {
     "lib": ["es2015"],
     "target": "es2016",
@@ -6,9 +7,10 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "outDir": "./__test_build__",
+    "rootDir": "./tests",
+    "outDir": "./tests_build",
     "moduleResolution": "NodeNext",
     "module": "NodeNext",
-    "types": ["node"]
+    "types": ["node"],
   }
 }

@@ -35,6 +35,16 @@ test('create object', async (t) => {
 })
 
 test('find many objects', async (t) => {
+    // create one
+    const test_request_c = new TestRequest({
+        method: 'POST',
+        uri: '/Support/myCreateObject',
+        body: {
+            "int32": 1,
+        },
+    })
+    await server.process(test_request_c)
+    // find this one
     const test_request = new TestRequest({
         method: 'POST',
         uri: '/Support/myFindManyObjects',
@@ -46,6 +56,9 @@ test('find many objects', async (t) => {
     })
     const response = await server.process(test_request)
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
-        "data": [],
+        "data": [{
+            "id": ignore,
+            "int32": 1
+        }],
     }))
 })

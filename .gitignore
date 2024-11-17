@@ -207,4 +207,4 @@ package-lock.json
 /.yarnrc.yml
 
 # tests
-/__test_build__
+/tests_build

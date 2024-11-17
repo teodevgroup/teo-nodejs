@@ -9,7 +9,8 @@ rustfmt.toml
 yarn.lock
 *.node
 .yarn
-__test__
+tests
+tests_build
 renovate.json
 try.js
 schema.teo

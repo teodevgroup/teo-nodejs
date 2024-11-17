@@ -16,7 +16,7 @@ export default function loadApp() {
             const teo: Teo = req.teo()
             const input: SupportFindManyArgs = req.bodyObject()
             const objects = await teo.support.findManyObjects(input)
-            const values = Promise.all(objects.map(async object => await object.toTeon()))
+            const values = await Promise.all(objects.map(async object => await object.toTeon()))
             return Response.data(values)
         })
     })

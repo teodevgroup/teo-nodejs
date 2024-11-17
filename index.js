@@ -386,7 +386,7 @@ Namespace.prototype.defineHandler = function(name, callback) {
   this._defineHandler(name, function(e, arg) {
     if (e != null) {
       throw e
-    }  
+    }
     return callback(arg)
   })
 }

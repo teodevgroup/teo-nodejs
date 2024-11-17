@@ -110,6 +110,7 @@ export declare class Request {
   headerValue(name: string): string | null
   headerValues(name: string): Array<string>
   headerKeys(): string[]
+  headersLength(): number
   cookie(name: string): Cookie | null
   cookies(): Array<Cookie>
   handlerMatch(): HandlerMatch

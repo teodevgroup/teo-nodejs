@@ -52,6 +52,9 @@ test('find many objects', async (t) => {
     })
     const response = await server.process(test_request)
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
+        "data": [],
+    }))
+    t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": [{
             "id": ignore,
             "date": dateValue("2005-12-25"),

@@ -1,5 +1,5 @@
 use napi::{Result, JsFunction, threadsafe_function::{ThreadSafeCallContext, ErrorStrategy, ThreadsafeFunction}};
-use teo::prelude::{handler, request, Response as TeoResponse, App as TeoApp};
+use teo::prelude::{handler, Response as TeoResponse};
 
 use crate::{request::Request, response::response_or_promise::ResponseOrPromise};
 

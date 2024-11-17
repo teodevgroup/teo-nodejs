@@ -2,7 +2,7 @@ import test from 'ava'
 import { App, TestServer } from '../../../..'
 import schemaPathArgs from '../../../helpers/schemaPathArgs'
 import builtinReq from '../../../helpers/builtinReq'
-import { ignore, matchJson, matchJsonValue, oneMatches } from '../../../../test'
+import { ignore, matchJsonValue, oneMatches } from '../../../../test'
 
 const server = new TestServer(new App(schemaPathArgs(__filename, "schema.teo")))
 

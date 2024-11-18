@@ -1,5 +1,5 @@
 {
-  "name": "@teocloud/teo-linux-arm64-gnu",
+  "name": "@teodevgroup/teo-linux-arm64-gnu",
   "version": "0.2.1",
   "os": [
     "linux"

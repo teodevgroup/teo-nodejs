@@ -1,3 +1,3 @@
-# `@teocloud/teo-darwin-universal`
+# `@teodevgroup/teo-darwin-universal`
 
-This is the **universal-apple-darwin** binary for `@teocloud/teo`
+This is the **universal-apple-darwin** binary for `@teodevgroup/teo`

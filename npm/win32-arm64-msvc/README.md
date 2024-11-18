@@ -1,3 +1,3 @@
-# `@teocloud/teo-win32-arm64-msvc`
+# `@teodevgroup/teo-win32-arm64-msvc`
 
-This is the **aarch64-pc-windows-msvc** binary for `@teocloud/teo`
+This is the **aarch64-pc-windows-msvc** binary for `@teodevgroup/teo`

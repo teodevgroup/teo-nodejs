@@ -1,5 +1,5 @@
 import Decimal from "decimal.js"
-import { DateOnly, ObjectId, File } from "@teocloud/teo"
+import { DateOnly, ObjectId, File } from "@teodevgroup/teo"
 
 export type ExistKeys<T> = {
     [key in keyof T]: T[key] extends false | undefined | null ? never : key

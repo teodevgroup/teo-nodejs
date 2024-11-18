@@ -39,7 +39,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./teo.android-arm64.node')
           } else {
-            nativeBinding = require('@teocloud/teo-android-arm64')
+            nativeBinding = require('@teodevgroup/teo-android-arm64')
           }
         } catch (e) {
           loadError = e
@@ -51,7 +51,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./teo.android-arm-eabi.node')
           } else {
-            nativeBinding = require('@teocloud/teo-android-arm-eabi')
+            nativeBinding = require('@teodevgroup/teo-android-arm-eabi')
           }
         } catch (e) {
           loadError = e
@@ -71,7 +71,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./teo.win32-x64-msvc.node')
           } else {
-            nativeBinding = require('@teocloud/teo-win32-x64-msvc')
+            nativeBinding = require('@teodevgroup/teo-win32-x64-msvc')
           }
         } catch (e) {
           loadError = e
@@ -85,7 +85,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./teo.win32-ia32-msvc.node')
           } else {
-            nativeBinding = require('@teocloud/teo-win32-ia32-msvc')
+            nativeBinding = require('@teodevgroup/teo-win32-ia32-msvc')
           }
         } catch (e) {
           loadError = e
@@ -99,7 +99,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./teo.win32-arm64-msvc.node')
           } else {
-            nativeBinding = require('@teocloud/teo-win32-arm64-msvc')
+            nativeBinding = require('@teodevgroup/teo-win32-arm64-msvc')
           }
         } catch (e) {
           loadError = e
@@ -115,7 +115,7 @@ switch (platform) {
       if (localFileExisted) {
         nativeBinding = require('./teo.darwin-universal.node')
       } else {
-        nativeBinding = require('@teocloud/teo-darwin-universal')
+        nativeBinding = require('@teodevgroup/teo-darwin-universal')
       }
       break
     } catch {}
@@ -126,7 +126,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./teo.darwin-x64.node')
           } else {
-            nativeBinding = require('@teocloud/teo-darwin-x64')
+            nativeBinding = require('@teodevgroup/teo-darwin-x64')
           }
         } catch (e) {
           loadError = e
@@ -140,7 +140,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./teo.darwin-arm64.node')
           } else {
-            nativeBinding = require('@teocloud/teo-darwin-arm64')
+            nativeBinding = require('@teodevgroup/teo-darwin-arm64')
           }
         } catch (e) {
           loadError = e
@@ -159,7 +159,7 @@ switch (platform) {
       if (localFileExisted) {
         nativeBinding = require('./teo.freebsd-x64.node')
       } else {
-        nativeBinding = require('@teocloud/teo-freebsd-x64')
+        nativeBinding = require('@teodevgroup/teo-freebsd-x64')
       }
     } catch (e) {
       loadError = e
@@ -176,7 +176,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./teo.linux-x64-musl.node')
             } else {
-              nativeBinding = require('@teocloud/teo-linux-x64-musl')
+              nativeBinding = require('@teodevgroup/teo-linux-x64-musl')
             }
           } catch (e) {
             loadError = e
@@ -189,7 +189,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./teo.linux-x64-gnu.node')
             } else {
-              nativeBinding = require('@teocloud/teo-linux-x64-gnu')
+              nativeBinding = require('@teodevgroup/teo-linux-x64-gnu')
             }
           } catch (e) {
             loadError = e
@@ -205,7 +205,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./teo.linux-arm64-musl.node')
             } else {
-              nativeBinding = require('@teocloud/teo-linux-arm64-musl')
+              nativeBinding = require('@teodevgroup/teo-linux-arm64-musl')
             }
           } catch (e) {
             loadError = e
@@ -218,7 +218,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./teo.linux-arm64-gnu.node')
             } else {
-              nativeBinding = require('@teocloud/teo-linux-arm64-gnu')
+              nativeBinding = require('@teodevgroup/teo-linux-arm64-gnu')
             }
           } catch (e) {
             loadError = e
@@ -234,7 +234,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./teo.linux-arm-musleabihf.node')
             } else {
-              nativeBinding = require('@teocloud/teo-linux-arm-musleabihf')
+              nativeBinding = require('@teodevgroup/teo-linux-arm-musleabihf')
             }
           } catch (e) {
             loadError = e
@@ -247,7 +247,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./teo.linux-arm-gnueabihf.node')
             } else {
-              nativeBinding = require('@teocloud/teo-linux-arm-gnueabihf')
+              nativeBinding = require('@teodevgroup/teo-linux-arm-gnueabihf')
             }
           } catch (e) {
             loadError = e
@@ -263,7 +263,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./teo.linux-riscv64-musl.node')
             } else {
-              nativeBinding = require('@teocloud/teo-linux-riscv64-musl')
+              nativeBinding = require('@teodevgroup/teo-linux-riscv64-musl')
             }
           } catch (e) {
             loadError = e
@@ -276,7 +276,7 @@ switch (platform) {
             if (localFileExisted) {
               nativeBinding = require('./teo.linux-riscv64-gnu.node')
             } else {
-              nativeBinding = require('@teocloud/teo-linux-riscv64-gnu')
+              nativeBinding = require('@teodevgroup/teo-linux-riscv64-gnu')
             }
           } catch (e) {
             loadError = e
@@ -291,7 +291,7 @@ switch (platform) {
           if (localFileExisted) {
             nativeBinding = require('./teo.linux-s390x-gnu.node')
           } else {
-            nativeBinding = require('@teocloud/teo-linux-s390x-gnu')
+            nativeBinding = require('@teodevgroup/teo-linux-s390x-gnu')
           }
         } catch (e) {
           loadError = e

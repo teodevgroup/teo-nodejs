@@ -1,3 +1,3 @@
-# `@teocloud/teo-linux-arm64-musl`
+# `@teodevgroup/teo-linux-arm64-musl`
 
-This is the **aarch64-unknown-linux-musl** binary for `@teocloud/teo`
+This is the **aarch64-unknown-linux-musl** binary for `@teodevgroup/teo`

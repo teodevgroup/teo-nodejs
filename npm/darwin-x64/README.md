@@ -1,3 +1,3 @@
-# `@teocloud/teo-darwin-x64`
+# `@teodevgroup/teo-darwin-x64`
 
-This is the **x86_64-apple-darwin** binary for `@teocloud/teo`
+This is the **x86_64-apple-darwin** binary for `@teodevgroup/teo`

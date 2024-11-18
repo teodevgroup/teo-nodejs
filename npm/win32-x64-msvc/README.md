@@ -1,3 +1,3 @@
-# `@teocloud/teo-win32-x64-msvc`
+# `@teodevgroup/teo-win32-x64-msvc`
 
-This is the **x86_64-pc-windows-msvc** binary for `@teocloud/teo`
+This is the **x86_64-pc-windows-msvc** binary for `@teodevgroup/teo`

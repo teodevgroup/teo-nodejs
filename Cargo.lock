@@ -3751,6 +3751,8 @@ dependencies = [
 [[package]]
 name = "teo"
 version = "0.3.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c89f0ea629dd663540eec7272d7d32d90de080bf35a4fb55de09c317b22f8845"
 dependencies = [
  "array_tool",
  "async-recursion",
@@ -3798,6 +3800,8 @@ dependencies = [
 [[package]]
 name = "teo-generator"
 version = "0.3.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21c00eb85174f14cd65931c7d3adc0f261901da1616bdd916610c9bbee070de9"
 dependencies = [
  "askama",
  "async-recursion",
@@ -3826,6 +3830,8 @@ dependencies = [
 [[package]]
 name = "teo-mongodb-connector"
 version = "0.3.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4e64d9113be4f28ed753d0d3157b6109d1fceb17323136ac9c6bf6b3d5aaea3"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -3849,6 +3855,8 @@ dependencies = [
 [[package]]
 name = "teo-parser"
 version = "0.3.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a16a5c21994fe2e84e86eda29664c27f8e47b5204170dabcef3a6ca6d5b8b2a"
 dependencies = [
  "array_tool",
  "bigdecimal",
@@ -3878,6 +3886,8 @@ dependencies = [
 [[package]]
 name = "teo-result"
 version = "0.3.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cbc5f38986cae9c6c7b72b9253021852c3e705fe8ea9b880e419c3f8e6e9a419"
 dependencies = [
  "indexmap 2.6.0",
  "multer",
@@ -3890,6 +3900,8 @@ dependencies = [
 [[package]]
 name = "teo-runtime"
 version = "0.3.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e14ffd67eb307e934385ee2c4994c9169cc49f7095d3cc67faf0de6408ca6108"
 dependencies = [
  "array_tool",
  "async-recursion",
@@ -3937,6 +3949,8 @@ dependencies = [
 [[package]]
 name = "teo-sql-connector"
 version = "0.3.0-alpha.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f673ca69584ab99c1991073514c6d6298721996895cee268e31cbd40856be929"
 dependencies = [
  "array_tool",
  "async-recursion",

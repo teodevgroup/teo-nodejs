@@ -1,6 +1,6 @@
 {
   "name": "@teodevgroup/teo-linux-x64-musl",
-  "version": "0.2.1",
+  "version": "0.3.0-alpha.1",
   "os": [
     "linux"
   ],

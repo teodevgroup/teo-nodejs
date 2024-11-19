@@ -9,14 +9,14 @@ pub struct LocalValues {
 #[napi]
 impl LocalValues {
 
-    #[napi]
+    #[napi(ts_args_type = "key: string, value: any")]
     pub fn insert(&self, key: String, value: JsUnknown, env: Env) -> Result<()> {
         let value = crate::object::js_any_to_teo_value(value, env)?;
         self.teo_local_values.insert(key, value);
         Ok(())
     }
 
-    #[napi]
+    #[napi(ts_return_type= "any")]
     pub fn get(&self, key: String, env: Env) -> Result<JsUnknown> {
         let value: &Value = self.teo_local_values.get(&key)?;
         Ok(crate::object::value::teo_value_to_js_any_no_app_data(value, &env)?)

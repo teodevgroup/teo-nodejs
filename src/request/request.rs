@@ -1,8 +1,6 @@
 use teo::prelude::Request as TeoRequest;
 use napi::{Env, JsObject, JsUnknown, Result};
-
 use crate::{dynamic::JSClassLookupMap, object::{js_any_to_teo_value, value::teo_value_to_js_any}};
-
 use super::{local::{objects::LocalObjects, values::LocalValues}, Cookie, HandlerMatch};
 
 #[napi(js_name = "Request")]

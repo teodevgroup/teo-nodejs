@@ -9,14 +9,14 @@ pub struct LocalObjects {
 #[napi]
 impl LocalObjects {
 
-    #[napi]
+    #[napi(ts_args_type = "key: string, value: any")]
     pub fn insert(&self, key: String, value: JsUnknown, env: Env) -> Result<()> {
         let reference = env.create_reference(value)?;
         self.teo_local_objects.insert(key, reference);
         Ok(())
     }
 
-    #[napi]
+    #[napi(ts_return_type = "any")]
     pub fn get(&self, key: String, env: Env) -> Result<Option<JsUnknown>> {
         let reference: Option<&Ref<()>> = self.teo_local_objects.get(&key);
         match reference {

@@ -154,15 +154,15 @@ export declare class Cookie {
   static fromString(string: string): Cookie
 }
 export declare class LocalObjects {
-  insert(key: string, value: unknown): void
-  get(key: string): unknown | null
+  insert(key: string, value: any): void
+  get(key: string): any
   contains(key: string): boolean
   remove(key: string): void
   clear(): void
 }
 export declare class LocalValues {
-  insert(key: string, value: unknown): void
-  get(key: string): unknown
+  insert(key: string, value: any): void
+  get(key: string): any
   contains(key: string): boolean
   remove(key: string): void
   clear(): void

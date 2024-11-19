@@ -118,6 +118,8 @@ export declare class Request {
   bodyObject(): any
   setBodyObject(value: unknown): void
   teo(): any
+  localValues(): LocalValues
+  localObjects(): LocalObjects
 }
 export declare class Expiration {
   static createSession(): Expiration
@@ -151,7 +153,20 @@ export declare class Cookie {
   makePermanent(): void
   static fromString(string: string): Cookie
 }
-export declare class LocalValues { }
+export declare class LocalObjects {
+  insert(key: string, value: unknown): void
+  get(key: string): unknown | null
+  contains(key: string): boolean
+  remove(key: string): void
+  clear(): void
+}
+export declare class LocalValues {
+  insert(key: string, value: unknown): void
+  get(key: string): unknown
+  contains(key: string): boolean
+  remove(key: string): void
+  clear(): void
+}
 export declare class ReadWriteHeaderMap {
   keys(): Array<string>
   len(): number

@@ -2224,13 +2224,12 @@ dependencies = [
 [[package]]
 name = "napi"
 version = "2.16.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "214f07a80874bb96a8433b3cdfc84980d56c7b02e1a0d7ba4ba0db5cef785e2b"
+source = "git+https://github.com/victorteokw/napi-rs?branch=release#abd2eb7a6bc5691d30db350acf7e1595b0b86583"
 dependencies = [
  "bitflags 2.4.2",
  "chrono",
  "ctor",
- "napi-derive",
+ "napi-derive 2.16.12 (git+https://github.com/victorteokw/napi-rs?branch=release)",
  "napi-sys",
  "once_cell",
  "tokio",
@@ -2250,7 +2249,20 @@ checksum = "17435f7a00bfdab20b0c27d9c56f58f6499e418252253081bfff448099da31d1"
 dependencies = [
  "cfg-if",
  "convert_case 0.6.0",
- "napi-derive-backend",
+ "napi-derive-backend 1.0.74 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.85",
+]
+
+[[package]]
+name = "napi-derive"
+version = "2.16.12"
+source = "git+https://github.com/victorteokw/napi-rs?branch=release#abd2eb7a6bc5691d30db350acf7e1595b0b86583"
+dependencies = [
+ "cfg-if",
+ "convert_case 0.6.0",
+ "napi-derive-backend 1.0.74 (git+https://github.com/victorteokw/napi-rs?branch=release)",
  "proc-macro2",
  "quote",
  "syn 2.0.85",
@@ -2272,10 +2284,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "napi-derive-backend"
+version = "1.0.74"
+source = "git+https://github.com/victorteokw/napi-rs?branch=release#abd2eb7a6bc5691d30db350acf7e1595b0b86583"
+dependencies = [
+ "convert_case 0.6.0",
+ "once_cell",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.85",
+]
+
+[[package]]
 name = "napi-sys"
 version = "2.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "427802e8ec3a734331fec1035594a210ce1ff4dc5bc1950530920ab717964ea3"
+source = "git+https://github.com/victorteokw/napi-rs?branch=release#abd2eb7a6bc5691d30db350acf7e1595b0b86583"
 dependencies = [
  "libloading",
 ]
@@ -3974,7 +3997,7 @@ dependencies = [
  "inflector-plus",
  "napi",
  "napi-build",
- "napi-derive",
+ "napi-derive 2.16.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "once_cell",
  "regex",
  "serde",

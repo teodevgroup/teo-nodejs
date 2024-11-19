@@ -31,3 +31,6 @@ napi-build = "2.1.0"
 
 [profile.release]
 lto = true
+
+[patch.crates-io]
+napi = { git = 'https://github.com/victorteokw/napi-rs', branch = 'release' }

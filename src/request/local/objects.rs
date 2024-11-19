@@ -30,12 +30,12 @@ impl LocalObjects {
 
     #[napi]
     pub fn contains(&self, key: String) -> bool {
-        self.teo_local_objects.contains::<Ref<()>>(&key)
+        self.teo_local_objects.contains(&key)
     }
 
     #[napi]
     pub fn remove(&self, key: String) {
-        self.teo_local_objects.remove::<Ref<()>>(key.as_str());
+        self.teo_local_objects.remove(key.as_str());
     }
 
     #[napi]

@@ -18,10 +18,10 @@ impl LocalObjects {
 
     #[napi(ts_return_type = "any")]
     pub fn get(&self, key: String, env: Env) -> Result<Option<JsUnknown>> {
-        let reference: Option<&Ref<()>> = self.teo_local_objects.get(&key);
+        let reference: Option<&mut Ref<()>> = self.teo_local_objects.get_mut(&key);
         match reference {
             Some(reference) => {
-                let value: JsUnknown = env.get_reference_value(reference)?;
+                let value: JsUnknown = env.get_reference_value_unchecked(reference)?;
                 Ok(Some(value))
             },
             None => Ok(None),

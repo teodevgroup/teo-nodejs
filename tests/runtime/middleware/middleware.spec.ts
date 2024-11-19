@@ -19,11 +19,9 @@ test('middleware and request locals', async (t) => {
         uri: '/',
         body: {},
     })
-    const response = await server.process(test_request)
+    const response = (await server.process(test_request)).bodyAsJson()
     t.notThrows(() => matchJsonValue(response, {
-        "data": {
-            "numberFromValues": 100,
-            "numberFromObjects": 100,
-        },
+        "numberFromValues": 100,
+        "numberFromObjects": 100,
     }))
 })

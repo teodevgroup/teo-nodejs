@@ -28,7 +28,6 @@ impl LocalObjects {
         match reference {
             Some(reference) => {
                 let any: JsUnknown = env.get_reference_value(reference)?;
-                reference.unref(env)?;
                 Ok(Some(any))
             },
             None => Ok(None),

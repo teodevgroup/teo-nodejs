@@ -119,6 +119,7 @@ export declare class Request {
   setBodyObject(value: unknown): void
   teo(): any
   localValues(): LocalValues
+  localObjects(): LocalObjects
 }
 export declare class Expiration {
   static createSession(): Expiration

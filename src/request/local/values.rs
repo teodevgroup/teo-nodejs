@@ -2,8 +2,15 @@ use napi::{Env, JsUnknown, Result};
 use teo::prelude::{request::local_values::LocalValues as TeoLocalValues, Value};
 
 #[napi(js_name = "LocalValues")]
+#[derive(Clone)]
 pub struct LocalValues {
     pub(crate) teo_local_values: TeoLocalValues,
+}
+
+impl LocalValues {
+    pub(crate) fn new(teo_local_values: TeoLocalValues) -> Self {
+        Self { teo_local_values }
+    }
 }
 
 #[napi]

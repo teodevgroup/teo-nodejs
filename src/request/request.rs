@@ -8,15 +8,17 @@ pub struct Request {
     pub(crate) teo_request: TeoRequest,
 }
 
+impl Request {
+    pub(crate) fn new(teo_request: TeoRequest) -> Self {
+        Self {
+            teo_request,
+        }
+    }
+}
+
 /// HTTP request.
 #[napi]
 impl Request {
-
-    pub(crate) fn new(teo_request: TeoRequest) -> Self {
-        Self {
-            teo_request
-        }
-    }
 
     #[napi]
     pub fn version(&self) -> String {

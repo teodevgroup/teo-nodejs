@@ -1,4 +1,4 @@
-use napi::{bindgen_prelude::{FromNapiValue, Reference, WeakReference}, JsUnknown, Result};
+use napi::{bindgen_prelude::{FromNapiValue, Reference, WeakReference}, Env, JsUnknown, Ref, Result};
 use teo::prelude::request::local_objects::LocalObjects as TeoLocalObjects;
 
 #[napi(js_name = "LocalObjects")]
@@ -16,19 +16,20 @@ impl LocalObjects {
 impl LocalObjects {
 
     #[napi(ts_args_type = "key: string, value: any")]
-    pub fn insert(&self, key: String, value: JsUnknown) -> Result<()> {
-        let reference: Reference<JsUnknown> = Reference::from_unknown(value)?;
-        //let reference = env.create_reference(value)?;
+    pub fn insert(&self, key: String, value: JsUnknown, env: Env) -> Result<()> {
+        let reference = env.create_reference(value)?;
         self.teo_local_objects.insert(key, reference);
         Ok(())
     }
 
     #[napi(ts_return_type = "any")]
-    pub fn get(&self, key: String) -> Result<Option<WeakReference<JsUnknown>>> {
-        let reference: Option<&Reference<JsUnknown>> = self.teo_local_objects.get(&key);
+    pub fn get(&self, key: String, env: Env) -> Result<Option<JsUnknown>> {
+        let reference: Option<&mut Ref<()>> = self.teo_local_objects.get_mut(&key);
         match reference {
             Some(reference) => {
-                Ok(Some(reference.downgrade().clone()))
+                let any: JsUnknown = env.get_reference_value(reference)?;
+                reference.unref(env)?;
+                Ok(Some(any))
             },
             None => Ok(None),
         }

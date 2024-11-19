@@ -115,7 +115,7 @@ jobs:
         run: yarn config set supportedArchitectures.cpu "ia32"
         shell: bash
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --ignore-optional
       - name: Setup node x86
         uses: actions/setup-node@v4
         if: matrix.settings.target == 'i686-pc-windows-msvc'
@@ -163,7 +163,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --ignore-optional
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -192,7 +192,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: yarn
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --ignore-optional
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -223,7 +223,7 @@ jobs:
       - name: Install dependencies
         run: |
           yarn config set supportedArchitectures.libc "musl"
-          yarn install
+          yarn install --ignore-optional
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
@@ -258,7 +258,7 @@ jobs:
         run: |
           yarn config set supportedArchitectures.cpu "arm64"
           yarn config set supportedArchitectures.libc "glibc"
-          yarn install
+          yarn install --ignore-optional
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -292,7 +292,7 @@ jobs:
         run: |
           yarn config set supportedArchitectures.cpu "arm64"
           yarn config set supportedArchitectures.libc "musl"
-          yarn install
+          yarn install --ignore-optional
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -319,7 +319,7 @@ jobs:
           node-version: 22
           cache: yarn
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --ignore-optional
       - name: Download macOS x64 artifact
         uses: actions/download-artifact@v4
         with:
@@ -356,7 +356,7 @@ jobs:
           node-version: 22
           cache: yarn
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --ignore-optional
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:

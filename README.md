@@ -1,10 +1,10 @@
 <div align="center">
   <h1>Teo</h1>
   <a href="https://crates.io/crates/teo"><img src="https://img.shields.io/crates/v/teo?style=flat-square" /></a>
-  <a href="https://www.npmjs.com/package/@teodevgroup/teo"><img src="https://img.shields.io/npm/v/%40teocloud%2Fteo?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@teodevgroup/teo"><img src="https://img.shields.io/npm/v/%teodevgroup%2Fteo?style=flat-square" /></a>
   <a href="https://pypi.org/project/teo/"><img src="https://img.shields.io/pypi/v/teo?style=flat-square" /></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=yeannylam.teo-vscode"><img src="https://img.shields.io/visual-studio-marketplace/v/yeannylam.teo-vscode?style=flat-square&label=VSCode%20marketplace&color=%2300AFD7" /></a>
-  <a href="https://github.com/teodevgroup/teo/blob/master/LICENSE"><img src="https://img.shields.io/github/license/teocloud/teo.svg?style=flat-square" /></a>
+  <a href="https://github.com/teodevgroup/teo/blob/master/LICENSE"><img src="https://img.shields.io/github/license/teodevgroup/teo.svg?style=flat-square" /></a>
   <a href="https://github.com/teodevgroup/teo"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" /></a>
   <br />
   <br />

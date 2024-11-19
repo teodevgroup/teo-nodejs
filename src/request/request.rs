@@ -145,6 +145,9 @@ impl Request {
         Ok(map.teo_transaction_ctx_to_js_ctx_object(env, self.teo_request.transaction_ctx(), "")?.into_unknown())
     }
 
+    // #[napi]
+    // pub fn local_values()
+
     // TODO: local objects and local data
 
     // TODO: take incoming as stream? temp file? string?

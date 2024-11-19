@@ -151,6 +151,7 @@ export declare class Cookie {
   makePermanent(): void
   static fromString(string: string): Cookie
 }
+export declare class LocalValues { }
 export declare class ReadWriteHeaderMap {
   keys(): Array<string>
   len(): number

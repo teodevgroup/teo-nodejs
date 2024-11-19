@@ -70,22 +70,5 @@
     "test": "ava",
     "universal": "napi universal",
     "version": "napi version"
-  },
-  "optionalDependencies": {
-    "@teodevgroup/teo-win32-x64-msvc": "0.3.0-alpha.1",
-    "@teodevgroup/teo-darwin-x64": "0.3.0-alpha.1",
-    "@teodevgroup/teo-linux-x64-gnu": "0.3.0-alpha.1",
-    "@teodevgroup/teo-darwin-arm64": "0.3.0-alpha.1",
-    "@teodevgroup/teo-android-arm64": "0.3.0-alpha.1",
-    "@teodevgroup/teo-linux-arm64-gnu": "0.3.0-alpha.1",
-    "@teodevgroup/teo-linux-arm64-musl": "0.3.0-alpha.1",
-    "@teodevgroup/teo-win32-arm64-msvc": "0.3.0-alpha.1",
-    "@teodevgroup/teo-linux-arm-gnueabihf": "0.3.0-alpha.1",
-    "@teodevgroup/teo-linux-x64-musl": "0.3.0-alpha.1",
-    "@teodevgroup/teo-freebsd-x64": "0.3.0-alpha.1",
-    "@teodevgroup/teo-win32-ia32-msvc": "0.3.0-alpha.1",
-    "@teodevgroup/teo-android-arm-eabi": "0.3.0-alpha.1",
-    "@teodevgroup/teo-darwin-universal": "0.3.0-alpha.1",
-    "@teodevgroup/teo-linux-riscv64-gnu": "0.3.0-alpha.1"
   }
 }

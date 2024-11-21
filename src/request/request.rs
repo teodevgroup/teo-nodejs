@@ -122,7 +122,7 @@ impl Request {
         Ok(HandlerMatch::new(self.teo_request.handler_match()?.clone()))
     }
 
-    #[napi(ts_return_type = "{[key: string]: string}")]
+    #[napi(ts_return_type = "{[key: string]: string} | any")]
     pub fn captures(&self, env: Env) -> Result<JsObject> {
         self.handler_match()?.captures(env)
     }

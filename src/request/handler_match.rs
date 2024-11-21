@@ -26,7 +26,7 @@ impl HandlerMatch {
         self.inner.handler_name()
     }
 
-    #[napi(ts_return_type = "{[key: string]: string}")]
+    #[napi(ts_return_type = "{[key: string]: string} | any")]
     pub fn captures(&self, env: Env) -> Result<JsObject> {
         let captures_map = self.inner.captures();
         let mut js_object = env.create_object()?;

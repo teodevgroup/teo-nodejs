@@ -72,6 +72,13 @@ impl Response {
         }
     }
 
+    #[napi(js_name = "sendFile")]
+    pub fn send_file(base: String, path: String) -> Result<Self> {
+        Ok(Self {
+            teo_response: TeoResponse::send_file(base, path)?
+        })
+    }
+
     #[napi(js_name = "redirect")]
     pub fn redirect(path: String) -> Self {
         Self {

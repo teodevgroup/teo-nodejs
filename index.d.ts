@@ -95,7 +95,7 @@ export declare class App {
 export declare class HandlerMatch {
   path(): Array<string>
   handlerName(): string
-  captures(): {[key: string]: string}
+  captures(): {[key: string]: string} | any
 }
 export declare class Request {
   version(): string
@@ -114,7 +114,7 @@ export declare class Request {
   cookie(name: string): Cookie | null
   cookies(): Array<Cookie>
   handlerMatch(): HandlerMatch
-  captures(): {[key: string]: string}
+  captures(): {[key: string]: string} | any
   bodyObject(): any
   setBodyObject(value: unknown): void
   teo(): any
@@ -182,6 +182,7 @@ export declare class Response {
   static data(value: unknown): Response
   static dataMeta(data: unknown, meta: unknown): Response
   static file(path: string): Response
+  static sendFile(base: string, path: string): Response
   static redirect(path: string): Response
   setCode(code: number): void
   code(): number

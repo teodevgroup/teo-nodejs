@@ -3773,9 +3773,9 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.3.2"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d27ae60a06710260eb8e26066dff8efed7e8387780697f38b52fba43c66dd2cb"
+checksum = "6ad57f4c61c26c2dc816a1e3b16e6885078d730b499567c656ff082ead030e76"
 dependencies = [
  "array_tool",
  "async-recursion",
@@ -3908,9 +3908,9 @@ dependencies = [
 
 [[package]]
 name = "teo-result"
-version = "0.3.0"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8eaa2df0ddecac4065165393b944b81592720a8aa90f3ffca447db0fc5c00fba"
+checksum = "1df319ec6bc6554b24a0e21e2b173d99100c933072934035ee137958d316ce29"
 dependencies = [
  "indexmap 2.6.0",
  "multer",
@@ -3999,7 +3999,7 @@ dependencies = [
 
 [[package]]
 name = "teodevgroup_teo"
-version = "0.3.2"
+version = "0.3.4"
 dependencies = [
  "bigdecimal",
  "bson",

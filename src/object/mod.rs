@@ -58,12 +58,8 @@ pub fn js_any_to_teo_value(any: JsUnknown, env: Env) -> Result<Value> {
                 let js_date = JsDate::try_from(any)?;
                 let milliseconds_since_epoch_utc = js_date.value_of()?;
                 let milliseconds_since_epoch_utc = milliseconds_since_epoch_utc as i64;
-                let timestamp_seconds = milliseconds_since_epoch_utc / 1_000;
-                let naive = NaiveDateTime::from_timestamp_opt(
-                    timestamp_seconds,
-                    (milliseconds_since_epoch_utc % 1_000 * 1_000_000) as u32,
-                ).unwrap();
-                TeoValue::DateTime(DateTime::<Utc>::from_utc(naive, Utc))
+                let rust_date = DateTime::<Utc>::from_timestamp_millis(milliseconds_since_epoch_utc).unwrap();
+                TeoValue::DateTime(rust_date)
             } else {
                 let object = any.coerce_to_object()?;
                 // test for decimal

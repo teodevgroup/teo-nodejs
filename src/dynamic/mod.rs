@@ -626,189 +626,216 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
         object_prototype.set_named_property("toString", to_string)?;
         // fields
         for field in model.fields().values() {
-            let field_name = Box::leak(Box::new(field.name().to_string()));
-            let property = Property::new(field_name.as_str())?.with_getter_closure(|env: Env, this: JsObject| {
-                let object: &mut model::Object = env.unwrap(&this)?;
-                let value: TeoValue = object.get_value(field_name.as_str()).unwrap();
-                Ok(teo_value_to_js_any(app_data, &value, &env)?)
-            }).with_setter_closure(|env: Env, this: JsObject, arg0: JsUnknown| {
-                let teo_value = js_any_to_teo_value(arg0, env.clone())?;
-                let object: &mut model::Object = env.unwrap(&this)?;
-                object.set_value(field_name.as_str(), teo_value).unwrap();
-                Ok(())
+            let field_name = field.name().to_string();
+            let property = Property::new(field_name.as_str())?.with_getter_closure({
+                let field_name = field_name.clone();
+                move |env: Env, this: JsObject| {
+                    let field_name = field_name.clone();
+                    let object: &mut model::Object = env.unwrap(&this)?;
+                    let value: TeoValue = object.get_value(field_name.as_str()).unwrap();
+                    Ok(teo_value_to_js_any(app_data, &value, &env)?)
+                }
+            }).with_setter_closure({
+                let field_name = field_name.clone();
+                move |env: Env, this: JsObject, arg0: JsUnknown| {
+                    let teo_value = js_any_to_teo_value(arg0, env.clone())?;
+                    let object: &mut model::Object = env.unwrap(&this)?;
+                    object.set_value(field_name.as_str(), teo_value).unwrap();
+                    Ok(())
+                }
             });
             object_prototype.define_properties(&[property])?;
         }
         // relations
         for relation in model.relations().values() {
-            let name_raw = Box::leak(Box::new(relation.name().to_string()));
-            let name = name_raw.as_str();
+            let relation_name = relation.name().to_string();
             if relation.is_vec() {
                 // get
-                let get_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
-                    let teo_value = if ctx.length == 0 {
-                        TeoValue::Dictionary(IndexMap::new())
-                    } else {
-                        let val: JsUnknown = ctx.get(0)?;
-                        js_any_to_teo_value(val, ctx.env.clone())?
-                    };
-                    let this: JsObject = ctx.this()?;
-                    let object: &mut model::Object = ctx.env.unwrap(&this)?;
-                    let object_cloned = object.clone();
-                    let promise = ctx.env.execute_tokio_future((|| async move {
-                        match object_cloned.force_get_relation_objects(name, teo_value).await {
-                            Ok(objects) => Ok(objects),
-                            Err(err) => Err(Error::from_reason(err.message())),
-                        }
-                    })(), move |env, objects| {
-                        let app_map = JSClassLookupMap::from_app_data(app_data);
-                        let mut array = env.create_array_with_length(objects.len())?;
-                        for (index, object) in objects.iter().enumerate() {
-                            array.set_element(index as u32, app_map.teo_model_object_to_js_model_object_object(env.clone(), object.clone())?)?;
-                        }
-                        Ok(array)
-                    })?;
-                    Ok(promise)
-                })?;
-                object_prototype.set_named_property(&name, get_relation)?;
-                // set
-                let set_name = "set".to_owned() + &name.to_pascal_case();
-                let set_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
-                    let array: JsObject = ctx.get(0)?;
-                    let mut objects = vec![];
-                    for i in 0..array.get_array_length()? {
-                        let element: JsObject = array.get_element(i)?;
-                        let obj: &mut model::Object = ctx.env.unwrap(&element)?;
-                        objects.push(obj.clone());
+                let get_relation = env.create_function_from_closure(&relation_name, {
+                    let relation_name = relation_name.clone();
+                    move |ctx: CallContext<'_>| {
+                        let relation_name = relation_name.clone();
+                        let teo_value = if ctx.length == 0 {
+                            TeoValue::Dictionary(IndexMap::new())
+                        } else {
+                            let val: JsUnknown = ctx.get(0)?;
+                            js_any_to_teo_value(val, ctx.env.clone())?
+                        };
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut model::Object = ctx.env.unwrap(&this)?;
+                        let object = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            match object.force_get_relation_objects(&relation_name, teo_value).await {
+                                Ok(objects) => Ok(objects),
+                                Err(err) => Err(Error::from_reason(err.message())),
+                            }
+                        })(), move |env, objects| {
+                            let app_map = JSClassLookupMap::from_app_data(app_data);
+                            let mut array = env.create_array_with_length(objects.len())?;
+                            for (index, object) in objects.iter().enumerate() {
+                                array.set_element(index as u32, app_map.teo_model_object_to_js_model_object_object(env.clone(), object.clone())?)?;
+                            }
+                            Ok(array)
+                        })?;
+                        Ok(promise)
                     }
-                    let this: JsObject = ctx.this()?;
-                    let object: &mut model::Object = ctx.env.unwrap(&this)?;
-                    let object_cloned = object.clone();
-                    let promise = ctx.env.execute_tokio_future((|| async move {
-                        Ok(object_cloned.force_set_relation_objects(name, objects).await)
-                    })(), |env, _objects| {
-                        env.get_undefined()
-                    })?;
-                    Ok(promise)
+                })?;
+                object_prototype.set_named_property(&relation_name, get_relation)?;
+                // set
+                let set_name = "set".to_owned() + &relation_name.to_pascal_case();
+                let set_relation = env.create_function_from_closure(&relation_name, {
+                    let relation_name = relation_name.clone();
+                    move |ctx: CallContext<'_>| {
+                        let array: JsObject = ctx.get(0)?;
+                        let mut objects = vec![];
+                        for i in 0..array.get_array_length()? {
+                            let element: JsObject = array.get_element(i)?;
+                            let obj: &mut model::Object = ctx.env.unwrap(&element)?;
+                            objects.push(obj.clone());
+                        }
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut model::Object = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            Ok(object_cloned.force_set_relation_objects(&relation_name, objects).await)
+                        })(), |env, _objects| {
+                            env.get_undefined()
+                        })?;
+                        Ok(promise)
+                    }
                 })?;
                 object_prototype.set_named_property(&set_name, set_relation)?;
                 // add
-                let add_name = "addTo".to_owned() + &name.to_pascal_case();
-                let add_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
-                    let array: JsObject = ctx.get(0)?;
-                    let mut objects = vec![];
-                    for i in 0..array.get_array_length()? {
-                        let element: JsObject = array.get_element(i)?;
-                        let obj: &mut model::Object = ctx.env.unwrap(&element)?;
-                        objects.push(obj.clone());
+                let add_name = "addTo".to_owned() + &relation_name.to_pascal_case();
+                let add_relation = env.create_function_from_closure(&relation_name, {
+                    let relation_name = relation_name.clone();
+                    move |ctx: CallContext<'_>| {
+                        let array: JsObject = ctx.get(0)?;
+                        let mut objects = vec![];
+                        for i in 0..array.get_array_length()? {
+                            let element: JsObject = array.get_element(i)?;
+                            let obj: &mut model::Object = ctx.env.unwrap(&element)?;
+                            objects.push(obj.clone());
+                        }
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut model::Object = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            Ok(object_cloned.force_add_relation_objects(&relation_name, objects).await)
+                        })(), |env, _objects| {
+                            env.get_undefined()
+                        })?;
+                        Ok(promise)
                     }
-                    let this: JsObject = ctx.this()?;
-                    let object: &mut model::Object = ctx.env.unwrap(&this)?;
-                    let object_cloned = object.clone();
-                    let promise = ctx.env.execute_tokio_future((|| async move {
-                        Ok(object_cloned.force_add_relation_objects(name, objects).await)
-                    })(), |env, _objects| {
-                        env.get_undefined()
-                    })?;
-                    Ok(promise)
                 })?;
                 object_prototype.set_named_property(&add_name, add_relation)?;
                 // remove
-                let remove_name = "removeFrom".to_owned() + &name.to_pascal_case();
-                let remove_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
-                    let array: JsObject = ctx.get(0)?;
-                    let mut objects = vec![];
-                    for i in 0..array.get_array_length()? {
-                        let element: JsObject = array.get_element(i)?;
-                        let obj: &mut model::Object = ctx.env.unwrap(&element)?;
-                        objects.push(obj.clone());
+                let remove_name = "removeFrom".to_owned() + &relation_name.to_pascal_case();
+                let remove_relation = env.create_function_from_closure(&relation_name, {
+                    let relation_name = relation_name.clone();
+                    move |ctx: CallContext<'_>| {
+                        let array: JsObject = ctx.get(0)?;
+                        let mut objects = vec![];
+                        for i in 0..array.get_array_length()? {
+                            let element: JsObject = array.get_element(i)?;
+                            let obj: &mut model::Object = ctx.env.unwrap(&element)?;
+                            objects.push(obj.clone());
+                        }
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut model::Object = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            Ok(object_cloned.force_add_relation_objects(&relation_name, objects).await)
+                        })(), |env, _objects| {
+                            env.get_undefined()
+                        })?;
+                        Ok(promise)
                     }
-                    let this: JsObject = ctx.this()?;
-                    let object: &mut model::Object = ctx.env.unwrap(&this)?;
-                    let object_cloned = object.clone();
-                    let promise = ctx.env.execute_tokio_future((|| async move {
-                        Ok(object_cloned.force_add_relation_objects(name, objects).await)
-                    })(), |env, _objects| {
-                        env.get_undefined()
-                    })?;
-                    Ok(promise)
                 })?;
                 object_prototype.set_named_property(&remove_name, remove_relation)?;
             } else {
                 // get
-                let mut property = Property::new(name)?;
-                property = property.with_getter_closure(move |env: Env, this: JsObject| {
-                    let object: &mut model::Object = env.unwrap(&this)?;
-                    let object_cloned = object.clone();
-                    let promise = env.execute_tokio_future((|| async move {
-                        match object_cloned.force_get_relation_object(name).await {
-                            Ok(v) => Ok(v),
-                            Err(err) => Err(Error::from_reason(err.message())),
-                        }
-                    })(), move |env, object: Option<model::Object>| {
-                        let app_map = JSClassLookupMap::from_app_data(app_data);
-                        Ok(app_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)?.into_unknown())
-                    })?;
-                    Ok(promise)
+                let mut property = Property::new(&relation_name)?;
+                property = property.with_getter_closure({
+                    let relation_name = relation_name.clone();
+                    move |env: Env, this: JsObject| {
+                        let object: &mut model::Object = env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = env.execute_tokio_future((|| async move {
+                            match object_cloned.force_get_relation_object(&relation_name).await {
+                                Ok(v) => Ok(v),
+                                Err(err) => Err(Error::from_reason(err.message())),
+                            }
+                        })(), move |env, object: Option<model::Object>| {
+                            let app_map = JSClassLookupMap::from_app_data(app_data);
+                            Ok(app_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)?.into_unknown())
+                        })?;
+                        Ok(promise)
+                    }
                 });
                 object_prototype.define_properties(&[property])?;
                 // set
-                let set_name = "set".to_owned() + &name.to_pascal_case();
-                let set_relation = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
-                    let value: JsUnknown = ctx.get(0)?;
-                    let arg = match value.get_type()? {
-                        ValueType::Null | ValueType::Undefined => None,
-                        ValueType::Object => {
-                            let object = value.coerce_to_object()?;
-                            let obj: &mut model::Object = ctx.env.unwrap(&object)?;
-                            Some(obj.clone())
-                        }
-                        _ => None,
-                    };
-                    let this: JsObject = ctx.this()?;
-                    let object: &mut model::Object = ctx.env.unwrap(&this)?;
-                    let object_cloned = object.clone();
-                    let promise = ctx.env.execute_tokio_future((|| async move {
-                        Ok(object_cloned.force_set_relation_object(name, arg).await)
-                    })(), |env, _objects| {
-                        env.get_undefined()
-                    })?;
-                    Ok(promise)
+                let set_name = "set".to_owned() + &relation_name.to_pascal_case();
+                let set_relation = env.create_function_from_closure(&relation_name, {
+                    let relation_name = relation_name.clone();
+                    move |ctx: CallContext<'_>| {
+                        let value: JsUnknown = ctx.get(0)?;
+                        let arg = match value.get_type()? {
+                            ValueType::Null | ValueType::Undefined => None,
+                            ValueType::Object => {
+                                let object = value.coerce_to_object()?;
+                                let obj: &mut model::Object = ctx.env.unwrap(&object)?;
+                                Some(obj.clone())
+                            }
+                            _ => None,
+                        };
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut model::Object = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            Ok(object_cloned.force_set_relation_object(&relation_name, arg).await)
+                        })(), |env, _objects| {
+                            env.get_undefined()
+                        })?;
+                        Ok(promise)
+                    }
                 })?;
                 object_prototype.set_named_property(&set_name, set_relation)?;
             }
         }
         // properties
         for model_property in model.properties().values() {
-            let field_name_raw = Box::leak(Box::new(model_property.name().to_string()));
-            let field_name = field_name_raw.as_str();
+            let property_name = model_property.name().to_string();
             if model_property.setter().is_some() {
-                let name = "set".to_owned() + &field_name.to_pascal_case();
-                let set_property = env.create_function_from_closure(&name, move |ctx: CallContext<'_>| {
-                    let val: JsUnknown = ctx.get(0)?;
-                    let teo_value = js_any_to_teo_value(val, ctx.env.clone())?;
-                    let this: JsObject = ctx.this()?;
-                    let object: &mut model::Object = ctx.env.unwrap(&this)?;
-                    let object_cloned = object.clone();
-                    let promise = ctx.env.execute_tokio_future((|| async move {
-                        match object_cloned.set_property(field_name, teo_value).await {
-                            Ok(()) => Ok(()),
-                            Err(err) => Err(Error::from_reason(err.message())),
-                        }
-                    })(), |_env, v: ()| {
-                        Ok(v)
-                    })?;
-                    Ok(promise)
+                let name = "set".to_owned() + &property_name.to_pascal_case();
+                let set_property = env.create_function_from_closure(&name, {
+                    let property_name = property_name.clone();
+                    move |ctx: CallContext<'_>| {
+                        let val: JsUnknown = ctx.get(0)?;
+                        let teo_value = js_any_to_teo_value(val, ctx.env.clone())?;
+                        let this: JsObject = ctx.this()?;
+                        let object: &mut model::Object = ctx.env.unwrap(&this)?;
+                        let object_cloned = object.clone();
+                        let promise = ctx.env.execute_tokio_future((|| async move {
+                            match object_cloned.set_property(&property_name, teo_value).await {
+                                Ok(()) => Ok(()),
+                                Err(err) => Err(Error::from_reason(err.message())),
+                            }
+                        })(), |_env, v: ()| {
+                            Ok(v)
+                        })?;
+                        Ok(promise)
+                    }
                 })?;
                 object_prototype.set_named_property(&name, set_property)?;
             }
             if model_property.getter().is_some() {
-                let mut property = Property::new(field_name)?;
+                let mut property = Property::new(&property_name)?;
                 property = property.with_getter_closure(move |env: Env, this: JsObject| {
                     let object: &mut model::Object = env.unwrap(&this)?;
                     let object_cloned = object.clone();
                     let promise = env.execute_tokio_future((|| async move {
-                        match object_cloned.get_property_value(field_name).await {
+                        match object_cloned.get_property_value(&property_name).await {
                             Ok(v) => Ok(v),
                             Err(err) => Err(Error::from_reason(err.message())),
                         }
@@ -833,22 +860,25 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
         ctx_prototype.define_properties(&[ctx_property])?;
     }
     let transaction = env.create_function_from_closure("transaction", move |ctx| {
-        let func_arg: JsFunction = ctx.get(0)?;
-        let wrapper_thread_safe: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = func_arg.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+        let callback: JsFunction = ctx.get(0)?;
+        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let app_map = JSClassLookupMap::from_app_data(app_data);
             let js_ctx = app_map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value, "")?;
             Ok(vec![js_ctx])
         })?;
-        let wrapper_thread_safe_longlive = &*Box::leak(Box::new(wrapper_thread_safe));
         let this: JsObject = ctx.this()?;
-        let wrapped_teo_ctx_shortlive: &mut transaction::Ctx = ctx.env.unwrap(&this)?;
-        let wrapped_teo_ctx: &'static transaction::Ctx = unsafe { &*(wrapped_teo_ctx_shortlive as * const transaction::Ctx) };
-        let promise = ctx.env.execute_tokio_future((|| async {
-            let result = wrapped_teo_ctx.run_transaction(|teo: transaction::Ctx| async {
-                let retval: SendJsUnknownOrPromise = wrapper_thread_safe_longlive.call_async(teo).await?;
-                Ok(retval.to_send_js_unknown().await)
-            }).await?;
-            result
+        let teo_ctx: &mut transaction::Ctx = ctx.env.unwrap(&this)?;
+        let teo_ctx = teo_ctx.clone();
+        let promise = ctx.env.execute_tokio_future((move || {
+            let threadsafe_callback = threadsafe_callback.clone();
+            let teo_ctx = teo_ctx.clone();
+            async move {
+                let result = teo_ctx.run_transaction(|teo: transaction::Ctx| async {
+                    let retval: SendJsUnknownOrPromise = threadsafe_callback.call_async(teo).await?;
+                    Ok(retval.to_send_js_unknown().await)
+                }).await?;
+                result    
+            }
         })(), |_: &mut Env, unknown: SendJsUnknown| {
             Ok(unknown.inner)
         })?;

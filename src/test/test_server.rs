@@ -12,7 +12,7 @@ impl TestServer {
     #[napi(constructor)]
     pub fn new(app: &App) -> Self {
         Self { 
-            server: teo::server::server::Server::new(app.teo_app.clone())
+            server: teo::server::server::Server::new(app.original.clone())
         }
     }
 

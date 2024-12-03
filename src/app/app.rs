@@ -1,4 +1,4 @@
-use teo::prelude::{App as TeoApp, Entrance, RuntimeVersion, transaction};
+use teo::prelude::{App as OriginalApp, Entrance, RuntimeVersion, transaction};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown};
 use crate::dynamic::{synthesize_dynamic_nodejs_classes, JSClassLookupMap};
@@ -6,8 +6,9 @@ use crate::namespace::Namespace;
 use crate::object::promise_or_ignore::PromiseOrIgnore;
 
 #[napi]
+#[derive(Clone)]
 pub struct App {
-    pub(crate) teo_app: TeoApp,
+    pub(crate) original: OriginalApp,
 }
 
 /// A Teo app.
@@ -41,7 +42,7 @@ impl App {
             }
         };
         let entrance = if cli { Entrance::CLI } else { Entrance::APP };
-        let app = App { teo_app: TeoApp::new_with_entrance_and_runtime_version(Some(entrance), Some(RuntimeVersion::NodeJS(version_str)), Some(rust_argv))? };
+        let app = App { original: OriginalApp::new_with_entrance_and_runtime_version(Some(entrance), Some(RuntimeVersion::NodeJS(version_str)), Some(rust_argv))? };
         Ok(app)
     }
 
@@ -50,7 +51,7 @@ impl App {
     pub fn _prepare(&'static self, env: Env) -> Result<JsUnknown> {
         let js_function = env.create_function_from_closure("_prepare", |ctx| {
             let promise = ctx.env.execute_tokio_future((|| async {
-                self.teo_app.prepare_for_run().await?;
+                self.original.prepare_for_run().await?;
                 Ok(0)
             })(), |env: &mut Env, _unknown: i32| {
                 env.get_undefined()
@@ -65,10 +66,10 @@ impl App {
     #[napi(js_name = "_run", ts_return_type="Promise<void>")]
     pub fn _run(&'static self, env: Env) -> Result<JsObject> {
         // synthesize dynamic running classes for Node.js
-        synthesize_dynamic_nodejs_classes(&self.teo_app, env)?;
+        synthesize_dynamic_nodejs_classes(&self.original, env)?;
         let promise: JsObject = env.execute_tokio_future((|| async {
         // the CLI parsing and dispatch process
-        self.teo_app.run_without_prepare().await?;
+        self.original.run_without_prepare().await?;
             Ok(0)
         })(), |env: &mut Env, _unknown: i32| {
             env.get_undefined()
@@ -78,16 +79,18 @@ impl App {
 
     /// Run before server is started.
     #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
-    pub fn setup(&'static self, callback: JsFunction) -> Result<()> {
-        let map = JSClassLookupMap::from_app_data(self.teo_app.app_data());
-        let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+    pub fn setup(&self, callback: JsFunction) -> Result<()> {
+        let map = JSClassLookupMap::from_app_data(self.original.app_data());
+        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
         })?;
-        let tsfn_cloned = Box::leak(Box::new(tsfn));
-        self.teo_app.setup(|ctx: transaction::Ctx| async {
-            let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await?;
-            Ok(promise_or_ignore.to_ignore().await?)
+        self.original.setup(move |ctx: transaction::Ctx| {
+            let threadsafe_callback = threadsafe_callback.clone();
+            async move {
+                let promise_or_ignore: PromiseOrIgnore = threadsafe_callback.call_async(ctx).await?;
+                Ok(promise_or_ignore.to_ignore().await?)    
+            }
         });
         Ok(())
     }
@@ -95,15 +98,17 @@ impl App {
     /// Define a custom program.
     #[napi(ts_args_type = "name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>")]
     pub fn program(&'static self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
-        let map = JSClassLookupMap::from_app_data(self.teo_app.app_data());
-        let tsfn: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+        let map = JSClassLookupMap::from_app_data(self.original.app_data());
+        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
         })?;
-        let tsfn_cloned = Box::leak(Box::new(tsfn));
-        self.teo_app.program(name.as_str(), desc, |ctx: transaction::Ctx| async {
-            let promise_or_ignore: PromiseOrIgnore = tsfn_cloned.call_async(ctx).await?;
-            Ok(promise_or_ignore.to_ignore().await?)
+        self.original.program(name.as_str(), desc, move |ctx: transaction::Ctx| {
+            let threadsafe_callback = threadsafe_callback.clone();
+            async move {
+                let promise_or_ignore: PromiseOrIgnore = threadsafe_callback.call_async(ctx).await?;
+                Ok(promise_or_ignore.to_ignore().await?)    
+            }
         });
         Ok(())
     }
@@ -111,7 +116,7 @@ impl App {
     #[napi(js_name = "mainNamespace", writable = false)]
     pub fn main_namespace(&'static self) -> Namespace {
         Namespace { 
-            namespace_builder: self.teo_app.main_namespace().clone(),
+            namespace_builder: self.original.main_namespace().clone(),
         }
     }
 }

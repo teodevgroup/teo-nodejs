@@ -1,10 +1,12 @@
 use napi::{threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext}, bindgen_prelude::FromNapiValue, JsFunction, Env};
-use teo::prelude::Response as TeoResponse;
+use teo::prelude::{Next, NextImp, Response as TeoResponse};
 
-use crate::{request::{send_next::SendNext, Request}, response::Response};
+use crate::{request::Request, response::Response};
 
+#[derive(Clone)]
+#[repr(transparent)]
 pub struct SendMiddlewareCallback {
-    pub(crate) inner: &'static ThreadsafeFunction<(teo::prelude::Request, SendNext), ErrorStrategy::Fatal>,
+    pub(crate) inner: ThreadsafeFunction<(teo::prelude::Request, Next), ErrorStrategy::Fatal>,
 }
 
 unsafe impl Send for SendMiddlewareCallback { }
@@ -12,17 +14,20 @@ unsafe impl Sync for SendMiddlewareCallback { }
 
 impl FromNapiValue for SendMiddlewareCallback {
     unsafe fn from_napi_value(env: napi::sys::napi_env, napi_val: napi::sys::napi_value) -> napi::Result<Self> {
-        let js_function = JsFunction::from_napi_value(env, napi_val)?;
-        let thread_safe_function: ThreadsafeFunction<(teo::prelude::Request, SendNext), ErrorStrategy::Fatal> = js_function.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(teo::prelude::Request, SendNext)>| {
+        let callback = JsFunction::from_napi_value(env, napi_val)?;
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Request, Next), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(teo::prelude::Request, Next)>| {
             let request_ctx = Request::new(ctx.value.0.clone());
             let request_ctx_unknown = request_ctx.into_instance(ctx.env)?.as_object(ctx.env).into_unknown();
+            let teo_next = ctx.value.1;
             let wrapped_next = ctx.env.create_function_from_closure("next", move |_| {
-                let teo_request_ctx = ctx.value.0.clone();
-                let teo_next = ctx.value.1;
-                let teo_next = teo_next.next();
-                let promise = ctx.env.execute_tokio_future((move || async move {
-                    let result = teo_next.call(teo_request_ctx).await?;
-                    Ok(result)
+                let teo_request = ctx.value.0.clone();
+                let teo_next = teo_next.clone();
+                let promise = ctx.env.execute_tokio_future((move || {
+                    let teo_next = teo_next.clone();
+                    async move {
+                        let result = teo_next.call(teo_request).await?;
+                        Ok(result)    
+                    }
                 })(), |env: &mut Env, response: TeoResponse| {
                     Ok(Response {
                         teo_response: response.clone()
@@ -32,7 +37,6 @@ impl FromNapiValue for SendMiddlewareCallback {
             })?.into_unknown();
             Ok(vec![request_ctx_unknown, wrapped_next])
         })?;
-        let tsfn_cloned: &'static ThreadsafeFunction<(teo::prelude::Request, SendNext), ErrorStrategy::Fatal> = &*Box::leak(Box::new(thread_safe_function));
-        Ok(SendMiddlewareCallback { inner: tsfn_cloned })
+        Ok(SendMiddlewareCallback { inner: threadsafe_callback })
     }
 }

@@ -48,11 +48,16 @@ impl App {
 
     /// @internal
     #[napi(js_name = "_prepare", ts_return_type="Promise<void>")]
-    pub fn _prepare(&'static self, env: Env) -> Result<JsUnknown> {
-        let js_function = env.create_function_from_closure("_prepare", |ctx| {
-            let promise = ctx.env.execute_tokio_future((|| async {
-                self.original.prepare_for_run().await?;
-                Ok(0)
+    pub fn _prepare(&self, env: Env) -> Result<JsUnknown> {
+        let app = self.original.clone();
+        let js_function = env.create_function_from_closure("_prepare", move |ctx| {
+            let app = app.clone();
+            let promise = ctx.env.execute_tokio_future((move || {
+                let app = app.clone();
+                async move {
+                    app.prepare_for_run().await?;
+                    Ok(0)    
+                }
             })(), |env: &mut Env, _unknown: i32| {
                 env.get_undefined()
             })?;
@@ -64,13 +69,17 @@ impl App {
 
     /// @internal
     #[napi(js_name = "_run", ts_return_type="Promise<void>")]
-    pub fn _run(&'static self, env: Env) -> Result<JsObject> {
+    pub fn _run(&self, env: Env) -> Result<JsObject> {
+        let app = self.original.clone();
         // synthesize dynamic running classes for Node.js
-        synthesize_dynamic_nodejs_classes(&self.original, env)?;
-        let promise: JsObject = env.execute_tokio_future((|| async {
-        // the CLI parsing and dispatch process
-        self.original.run_without_prepare().await?;
-            Ok(0)
+        synthesize_dynamic_nodejs_classes(&app, env)?;
+        let promise: JsObject = env.execute_tokio_future((move || {
+            let app = app.clone();
+            async move {
+                // the CLI parsing and dispatch process
+                app.run_without_prepare().await?;
+                Ok(0)
+            }
         })(), |env: &mut Env, _unknown: i32| {
             env.get_undefined()
         })?;
@@ -97,7 +106,7 @@ impl App {
 
     /// Define a custom program.
     #[napi(ts_args_type = "name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>")]
-    pub fn program(&'static self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
+    pub fn program(&self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
         let map = JSClassLookupMap::from_app_data(self.original.app_data());
         let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
@@ -114,9 +123,9 @@ impl App {
     }
 
     #[napi(js_name = "mainNamespace", writable = false)]
-    pub fn main_namespace(&'static self) -> Namespace {
+    pub fn main_namespace(&self) -> Namespace {
         Namespace { 
-            namespace_builder: self.original.main_namespace().clone(),
+            builder: self.original.main_namespace().clone(),
         }
     }
 }

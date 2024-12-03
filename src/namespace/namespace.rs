@@ -1,4 +1,4 @@
-use napi::{JsFunction, Result};
+use napi::{JsFunction, JsUnknown, Result};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
 use teo::prelude::app::data::AppData;
 use teo::prelude::pipeline::item::templates::validator::Validity;

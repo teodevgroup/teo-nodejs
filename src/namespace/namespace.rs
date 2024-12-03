@@ -76,9 +76,9 @@ impl Namespace {
 
     #[napi(js_name = "defineModelDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, model: Model) => void")]
     pub fn define_model_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::Builder)>| {
-            let arguments = teo_args_to_js_args(app_data, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
             let js_model = Model { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -92,9 +92,9 @@ impl Namespace {
 
     #[napi(js_name = "defineModelFieldDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, field: Field) => void")]
     pub fn define_model_field_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::field::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, field::Builder)>| {
-            let arguments = teo_args_to_js_args(app_data, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
             let js_model = Field { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -108,9 +108,9 @@ impl Namespace {
 
     #[napi(js_name = "defineModelRelationDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, relation: Relation) => void")]
     pub fn define_model_relation_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::relation::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, model::relation::Builder)>| {
-            let arguments = teo_args_to_js_args(app_data, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
             let js_model = Relation { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -124,9 +124,9 @@ impl Namespace {
 
     #[napi(js_name = "defineModelPropertyDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, property: Property) => void")]
     pub fn define_model_property_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::property::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, model::property::Builder)>| {
-            let arguments = teo_args_to_js_args(app_data, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
             let js_model = Property { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -140,9 +140,9 @@ impl Namespace {
 
     #[napi(js_name = "defineEnumDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, e: Enum) => void")]
     pub fn define_enum_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, r#enum::Builder)>| {
-            let arguments = teo_args_to_js_args(app_data, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
             let js_model = Enum { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -156,9 +156,9 @@ impl Namespace {
 
     #[napi(js_name = "defineEnumMemberDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, member: EnumMember) => void")]
     pub fn define_enum_member_decorator(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::member::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, r#enum::member::Builder)>| {
-            let arguments = teo_args_to_js_args(app_data, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
             let js_model = EnumMember { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -172,10 +172,10 @@ impl Namespace {
 
     #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
     pub fn define_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
-            let js_value = teo_value_to_js_any(app_data, &ctx.value.0, &ctx.env)?;
-            let js_args = teo_args_to_js_args(app_data, &ctx.value.1, &ctx.env)?;
+            let js_value = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
+            let js_args = teo_args_to_js_args(lookup_map, &ctx.value.1, &ctx.env)?;
             let map = JSClassLookupMap::from_app_data(self.builder.app_data());
             let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
             let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
@@ -201,10 +201,10 @@ impl Namespace {
 
     #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
     pub fn define_validator_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
-            let js_value = teo_value_to_js_any(app_data, &ctx.value.0, &ctx.env)?;
-            let js_args = teo_args_to_js_args(app_data, &ctx.value.1, &ctx.env)?;
+            let js_value = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
+            let js_args = teo_args_to_js_args(lookup_map, &ctx.value.1, &ctx.env)?;
             let map = JSClassLookupMap::from_app_data(app_data);
             let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
             let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
@@ -234,13 +234,12 @@ impl Namespace {
     /// Register a named callback.
     #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => void | Promise<void>")]
     pub fn define_callback_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
-            let js_value = teo_value_to_js_any(app_data, &ctx.value.0, &ctx.env)?;
-            let js_args = teo_args_to_js_args(app_data, &ctx.value.1, &ctx.env)?;
-            let map = JSClassLookupMap::from_app_data(app_data);
-            let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
-            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
+            let js_value = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
+            let js_args = teo_args_to_js_args(lookup_map, &ctx.value.1, &ctx.env)?;
+            let js_object = lookup_map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
+            let js_ctx = lookup_map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
             Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
         })?;
         self.builder.define_callback_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| {
@@ -258,12 +257,11 @@ impl Namespace {
 
     #[napi(js_name = "defineComparePipelineItem<T>", ts_args_type = "name: string, callback: (oldValue: T, newValue: T, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
     pub fn define_compare_pipeline_item(&'static mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
-            let js_value_old = teo_value_to_js_any(app_data, &ctx.value.0, &ctx.env)?;
-            let js_value_new = teo_value_to_js_any(app_data, &ctx.value.1, &ctx.env)?;
-            let js_args = teo_args_to_js_args(app_data, &ctx.value.2, &ctx.env)?;
-            let map = JSClassLookupMap::from_app_data(app_data);
+            let js_value_old = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
+            let js_value_new = teo_value_to_js_any(lookup_map, &ctx.value.1, &ctx.env)?;
+            let js_args = teo_args_to_js_args(lookup_map, &ctx.value.2, &ctx.env)?;
             let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.3.clone())?;
             let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.4.clone(), "")?;
             Ok(vec![js_value_old, js_value_new, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
@@ -339,9 +337,9 @@ impl Namespace {
 
     #[napi(js_name = "defineRequestMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
     pub fn define_request_middleware(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
-            let js_args = teo_args_to_js_args(app_data, &ctx.value, &ctx.env)?;
+            let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_request_middleware(name.as_str(), move |arguments| {
@@ -364,9 +362,9 @@ impl Namespace {
 
     #[napi(js_name = "defineHandlerMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
     pub fn define_handler_middleware(&mut self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = unsafe { &*(Box::leak(Box::new(self.builder.app_data().clone())) as *mut AppData as *const AppData) as &'static AppData };
+        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_callback: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
-            let js_args = teo_args_to_js_args(app_data, &ctx.value, &ctx.env)?;
+            let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_handler_middleware(name.as_str(), move |arguments| {

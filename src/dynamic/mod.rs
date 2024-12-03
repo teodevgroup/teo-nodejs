@@ -601,9 +601,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             let model_object: &mut model::Object = ctx.env.unwrap(&this)?;
             let value_map = model_object.inner.value_map.lock().unwrap();
             let mut object = ctx.env.create_object()?;
-            let app_data = model_object.namespace().app_data();
+            let lookup_map = JSClassLookupMap::from_app_data(model_object.namespace().app_data());
             for (k, v) in value_map.iter() {
-                object.set_named_property(k.as_str(), teo_value_to_js_any(app_data, v, &ctx.env)?)?;
+                object.set_named_property(k.as_str(), teo_value_to_js_any(lookup_map, v, &ctx.env)?)?;
             }
             let inspect_options: JsObject = ctx.get(1)?;
             let object_inspect: JsString = inspect.call(Some(&this), &[object, inspect_options])?.coerce_to_string()?;

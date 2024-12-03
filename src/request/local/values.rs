@@ -26,7 +26,7 @@ impl LocalValues {
     #[napi(ts_return_type= "any")]
     pub fn get(&self, key: String, env: Env) -> Result<JsUnknown> {
         let value: &Value = self.teo_local_values.get(&key)?;
-        Ok(crate::object::value::teo_value_to_js_any_no_app_data(value, &env)?)
+        Ok(crate::object::value::teo_value_to_js_any_no_map(value, &env)?)
     }
 
     #[napi]

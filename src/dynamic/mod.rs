@@ -269,7 +269,7 @@ impl JSClassLookupMap {
 }
 
 pub(crate) fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<()> {
-    let static_app = unsafe { &*(app as *const App) } as &'static App;
+    let static_app = unsafe { &*(app as *const App) } as &App;
     let mut map = JSClassLookupMap::new();
     synthesize_dynamic_nodejs_classes_for_namespace(&mut map, static_app, static_app.compiled_main_namespace(), env)?;
     let raw_map_pointer = Box::into_raw(Box::new(map));
@@ -283,7 +283,7 @@ pub(crate) fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<(
     Ok(())
 }
 
-pub(crate) fn synthesize_dynamic_nodejs_classes_for_namespace(map: &mut JSClassLookupMap, app: &'static App, namespace: &'static Namespace, env: Env) -> Result<()> {
+pub(crate) fn synthesize_dynamic_nodejs_classes_for_namespace(map: &mut JSClassLookupMap, app: &App, namespace: &Namespace, env: Env) -> Result<()> {
     synthesize_direct_dynamic_nodejs_classes_for_namespace(map, app, namespace, env)?;
     for namespace in namespace.namespaces().values() {
         synthesize_dynamic_nodejs_classes_for_namespace(map, app, namespace, env)?;
@@ -291,20 +291,20 @@ pub(crate) fn synthesize_dynamic_nodejs_classes_for_namespace(map: &mut JSClassL
     Ok(())
 }
 
-pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut JSClassLookupMap, app: &'static App, namespace: &'static Namespace, env: Env) -> Result<()> {
+pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut JSClassLookupMap, app: &App, namespace: &Namespace, env: Env) -> Result<()> {
     let ctx_ctor = map.ctx_constructor_or_create(&namespace.path().join("."), env)?;
     let ctx_ctor_object = ctx_ctor.coerce_to_object()?;
     let mut ctx_prototype: JsObject = ctx_ctor_object.get_named_property("prototype")?;
-    let app_data: &'static AppData = app.app_data();
+    let lookup_map = JSClassLookupMap::from_app_data(app.app_data());
     for model in namespace.models().values() {
         let model_name = model.path().join(".");
         let lowercase_model_name = model_name.to_camel_case();
         let ctx_property = Property::new(&lowercase_model_name)?.with_getter_closure(move |env: Env, this: JsObject| {
+            let model = model.clone();
             let model_name = model.path().join(".");
             let transaction_ctx: &mut transaction::Ctx = env.unwrap(&this)?;
             let model_ctx = transaction_ctx.model_ctx_for_model_at_path(&model.path()).unwrap();
-            let app_map = JSClassLookupMap::from_app_data(app_data);
-            app_map.teo_model_ctx_to_js_model_class_object(env, model_ctx, &model_name)
+            lookup_map.teo_model_ctx_to_js_model_class_object(env, model_ctx, &model_name)
         });
         ctx_prototype.define_properties(&[ctx_property])?;
         let class_ctor = map.class_constructor_or_create(&model_name, env)?;
@@ -330,8 +330,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                     Err(err) => Err(Error::from_reason(err.message())),
                 }
             })(), move |env, object: Option<model::Object>| {
-                let app_map = JSClassLookupMap::from_app_data(app_data);
-                app_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)
+                lookup_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)
             })?;
             Ok(promise)
         })?;
@@ -353,8 +352,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                     Err(err) => Err(Error::from_reason(err.message())),
                 }
             })(), move |env, object: Option<model::Object>| {
-                let app_map = JSClassLookupMap::from_app_data(app_data);
-                app_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)
+                lookup_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)
             })?;
             Ok(promise)
         })?;
@@ -376,10 +374,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                     Err(err) => Err(Error::from_reason(err.message())),
                 }
             })(), move |env, objects: Vec<model::Object>| {
-                let app_map = JSClassLookupMap::from_app_data(app_data);
                 let mut array = env.create_array_with_length(objects.len())?;
                 for (index, object) in objects.iter().enumerate() {
-                    array.set_element(index as u32, app_map.teo_model_object_to_js_model_object_object(env.clone(), object.clone())?)?;
+                    array.set_element(index as u32, lookup_map.teo_model_object_to_js_model_object_object(env.clone(), object.clone())?)?;
                 }
                 Ok(array)
             })?;
@@ -400,8 +397,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             let promise = ctx.env.execute_tokio_future((|| async move {
                 Ok(model_ctx_cloned.create_object(&teo_value).await.unwrap())
             })(), move |env, object: model::Object| {
-                let app_map = JSClassLookupMap::from_app_data(app_data);
-                app_map.teo_model_object_to_js_model_object_object(env.clone(), object)
+                lookup_map.teo_model_object_to_js_model_object_object(env.clone(), object)
             })?;
             Ok(promise)
         })?;
@@ -421,7 +417,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 Ok(model_ctx_cloned.count(&teo_value).await.unwrap())
             })(), move |env, object: TeoValue| {
                 teo_value_to_js_any(
-                    app_data,
+                    lookup_map,
                     &object,
                     env
                 )
@@ -443,11 +439,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             let promise = ctx.env.execute_tokio_future((|| async move {
                 Ok(model_ctx_cloned.aggregate(&teo_value).await.unwrap())
             })(), |env, object: TeoValue| {
-                teo_value_to_js_any(
-                    app_data,
-                    &object, 
-                    env
-                )
+                teo_value_to_js_any(lookup_map, &object, env)
             })?;
             Ok(promise)
         })?;
@@ -468,7 +460,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             })(), |env, values: Vec<TeoValue>| {
                 let mut array = env.create_array(values.len() as u32)?;
                 for value in values {
-                    array.insert(teo_value_to_js_any(app_data, &value, env)?)?;
+                    array.insert(teo_value_to_js_any(lookup_map, &value, env)?)?;
                 }
                 Ok(array)
             })?;
@@ -487,7 +479,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 })(), |env, values: Vec<TeoValue>| {
                     let mut array = env.create_array(values.len() as u32)?;
                     for value in values {
-                        array.insert(teo_value_to_js_any(app_data, &value, env)?)?;
+                        array.insert(teo_value_to_js_any(lookup_map, &value, env)?)?;
                     }
                     Ok(array)
                 })?;
@@ -587,7 +579,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                     Err(err) => Err(Error::from_reason(err.message())),
                 }
             })(), move |env: &mut Env, value: TeoValue| {
-                Ok(teo_value_to_js_any(app_data, &value, env)?)
+                Ok(teo_value_to_js_any(lookup_map, &value, env)?)
             })?;
             Ok(promise)
         })?;
@@ -633,7 +625,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                     let field_name = field_name.clone();
                     let object: &mut model::Object = env.unwrap(&this)?;
                     let value: TeoValue = object.get_value(field_name.as_str()).unwrap();
-                    Ok(teo_value_to_js_any(app_data, &value, &env)?)
+                    Ok(teo_value_to_js_any(lookup_map, &value, &env)?)
                 }
             }).with_setter_closure({
                 let field_name = field_name.clone();
@@ -670,10 +662,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                                 Err(err) => Err(Error::from_reason(err.message())),
                             }
                         })(), move |env, objects| {
-                            let app_map = JSClassLookupMap::from_app_data(app_data);
                             let mut array = env.create_array_with_length(objects.len())?;
                             for (index, object) in objects.iter().enumerate() {
-                                array.set_element(index as u32, app_map.teo_model_object_to_js_model_object_object(env.clone(), object.clone())?)?;
+                                array.set_element(index as u32, lookup_map.teo_model_object_to_js_model_object_object(env.clone(), object.clone())?)?;
                             }
                             Ok(array)
                         })?;
@@ -767,8 +758,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                                 Err(err) => Err(Error::from_reason(err.message())),
                             }
                         })(), move |env, object: Option<model::Object>| {
-                            let app_map = JSClassLookupMap::from_app_data(app_data);
-                            Ok(app_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)?.into_unknown())
+                            Ok(lookup_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)?.into_unknown())
                         })?;
                         Ok(promise)
                     }
@@ -840,7 +830,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                             Err(err) => Err(Error::from_reason(err.message())),
                         }
                     })(), |env, v: TeoValue| {
-                        Ok(teo_value_to_js_any(app_data, &v, env))
+                        Ok(teo_value_to_js_any(lookup_map, &v, env))
                     })?;
                     Ok(promise)
                 });
@@ -850,20 +840,18 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
     }
     for namespace in namespace.namespaces().values() {
         let namespace_name = namespace.path().join(".");
-        let _ = map.ctx_constructor_or_create(&namespace.path().join("."), env)?;
+        let _ = lookup_map.ctx_constructor_or_create(&namespace.path().join("."), env)?;
         let ctx_property = Property::new(&namespace_name)?.with_getter_closure(move |env: Env, this: JsObject| {
             let namespace_name = namespace.path().join(".");
             let transaction_ctx: &mut transaction::Ctx = env.unwrap(&this)?;
-            let app_map = JSClassLookupMap::from_app_data(app_data);
-            app_map.teo_transaction_ctx_to_js_ctx_object(env, transaction_ctx.clone(), namespace_name.as_str())
+            lookup_map.teo_transaction_ctx_to_js_ctx_object(env, transaction_ctx.clone(), namespace_name.as_str())
         });
         ctx_prototype.define_properties(&[ctx_property])?;
     }
     let transaction = env.create_function_from_closure("transaction", move |ctx| {
         let callback: JsFunction = ctx.get(0)?;
         let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
-            let app_map = JSClassLookupMap::from_app_data(app_data);
-            let js_ctx = app_map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value, "")?;
+            let js_ctx = lookup_map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value, "")?;
             Ok(vec![js_ctx])
         })?;
         let this: JsObject = ctx.this()?;

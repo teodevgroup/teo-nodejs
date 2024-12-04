@@ -30,7 +30,7 @@ impl FromNapiValue for SendMiddlewareCallback {
                     }
                 })(), |env: &mut Env, response: TeoResponse| {
                     Ok(Response {
-                        teo_response: response.clone()
+                        original: response.clone()
                     }.into_instance(*env)?.as_object(*env))
                 })?;
                 Ok(promise)

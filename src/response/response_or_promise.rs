@@ -35,7 +35,7 @@ impl FromNapiValue for ResponseOrPromise {
             Ok(ResponseOrPromise::Promise(promise))
         } else {
             let response = Response::from_napi_ref(raw_env, napi_val)?;
-            Ok(ResponseOrPromise::TeoResponse(response.teo_response.clone()))
+            Ok(ResponseOrPromise::TeoResponse(response.original.clone()))
         }
     }
 }

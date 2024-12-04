@@ -297,15 +297,17 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
     let mut ctx_prototype: JsObject = ctx_ctor_object.get_named_property("prototype")?;
     let lookup_map = JSClassLookupMap::from_app_data(app.app_data());
     for model in namespace.models().values() {
-        let model = model.clone();
         let model_name = model.path().join(".");
         let lowercase_model_name = model_name.to_camel_case();
-        let ctx_property = Property::new(&lowercase_model_name)?.with_getter_closure(move |env: Env, this: JsObject| {
+        let ctx_property = Property::new(&lowercase_model_name)?.with_getter_closure({
             let model = model.clone();
-            let model_name = model.path().join(".");
-            let transaction_ctx: &mut transaction::Ctx = env.unwrap(&this)?;
-            let model_ctx = transaction_ctx.model_ctx_for_model_at_path(&model.path()).unwrap();
-            lookup_map.teo_model_ctx_to_js_model_class_object(env, model_ctx, &model_name)
+            move |env: Env, this: JsObject| {
+                let model = model.clone();
+                let model_name = model.path().join(".");
+                let transaction_ctx: &mut transaction::Ctx = env.unwrap(&this)?;
+                let model_ctx = transaction_ctx.model_ctx_for_model_at_path(&model.path()).unwrap();
+                lookup_map.teo_model_ctx_to_js_model_class_object(env, model_ctx, &model_name)
+            }
         });
         ctx_prototype.define_properties(&[ctx_property])?;
         let class_ctor = map.class_constructor_or_create(&model_name, env)?;

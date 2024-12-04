@@ -3980,6 +3980,7 @@ dependencies = [
  "hyper",
  "indexmap 2.6.0",
  "inflector-plus",
+ "key-path",
  "napi",
  "napi-build",
  "napi-derive 2.16.12 (registry+https://github.com/rust-lang/crates.io-index)",

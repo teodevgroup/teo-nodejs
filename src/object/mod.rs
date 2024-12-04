@@ -19,8 +19,8 @@ use napi::{JsUnknown, JsFunction, Result, ValueType};
 use teo::prelude::File as TeoFile;
 use regex::Regex;
 use crate::object::interface_enum_variant::InterfaceEnumVariant;
-use crate::object::pipeline::Pipeline;
 use crate::object::value::{DateOnly, File, ObjectId, OptionVariant, Range};
+use crate::pipeline::pipeline::Pipeline;
 
 pub fn js_any_to_teo_value(any: JsUnknown, env: Env) -> Result<Value> {
     Ok(match any.get_type()? {
@@ -125,7 +125,7 @@ pub fn js_any_to_teo_value(any: JsUnknown, env: Env) -> Result<Value> {
                 // test for pipeline
                 if Pipeline::instance_of(env, &object)? {
                     let pipeline: &Pipeline = unsafe { Pipeline::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoValue::Pipeline(pipeline.value.clone()));
+                    return Ok(TeoValue::Pipeline(pipeline.original.clone()));
                 }
                 // test for model object
                 if object.has_named_property("__teo_object__")? {

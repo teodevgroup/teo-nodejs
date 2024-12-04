@@ -15,5 +15,6 @@ pub mod headers;
 pub mod request;
 pub mod response;
 pub mod r#enum;
+pub mod pipeline;
 pub mod console;
 pub mod test;

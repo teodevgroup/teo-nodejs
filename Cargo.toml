@@ -25,6 +25,7 @@ serde_json = { version = "1.0", features = ["preserve_order"] }
 hyper = { version = "1.5.0", features = ["full"] }
 bytes = "1.8.0"
 http-body-util = "0.1"
+key-path = "0.2.3"
 
 [build-dependencies]
 napi-build = "2.1.0"

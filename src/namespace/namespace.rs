@@ -20,7 +20,7 @@ use crate::object::value::teo_value_to_js_any;
 use crate::r#enum::member::member::EnumMember;
 use crate::r#enum::r#enum::Enum;
 use crate::request::Request;
-use crate::response::response_or_promise::ResponseOrPromise;
+use crate::response::ResponseOrPromise;
 
 #[napi(js_name = "Namespace")]
 pub struct Namespace {

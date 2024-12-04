@@ -1,27 +1,34 @@
 use chrono::NaiveDate;
-use napi::{Env, JsUnknown, Result};
+use napi::Result;
+use teo::prelude::Error;
 
-#[napi(js_name = "DateOnly")]
+#[derive(Clone, Copy)]
+#[napi]
 pub struct DateOnly {
-    pub(crate) value: NaiveDate
+    pub(crate) original: NaiveDate
+}
+
+impl From<NaiveDate> for DateOnly {
+    fn from(original: NaiveDate) -> Self {
+        Self { original }
+    }
 }
 
 #[napi]
 impl DateOnly {
 
-    #[napi]
-    pub fn to_string(&self) -> String {
-        self.value.format("%Y-%m-%d").to_string()
+    #[napi(constructor)]
+    pub fn constructor(string: String) -> Result<Self> {
+        match NaiveDate::parse_from_str(string.as_str(), "%Y-%m-%d") {
+            Ok(original) => Ok(Self::from(original)),
+            Err(_) => {
+                Err(Error::new("string doesn't represent valid DateOnly"))?
+            }
+        }
     }
 
     #[napi]
-    pub fn from_string(string: String, env: Env) -> Result<JsUnknown> {
-        match NaiveDate::parse_from_str(string.as_str(), "%Y-%m-%d") {
-            Ok(value) => Ok(Self { value }.into_instance(env)?.as_object(env).into_unknown()),
-            Err(e) => {
-                env.throw_type_error("string doesn't represent valid DateOnly", None)?;
-                Ok(env.get_undefined()?.into_unknown())
-            }
-        }
+    pub fn to_string(&self) -> String {
+        self.original.format("%Y-%m-%d").to_string()
     }
 }

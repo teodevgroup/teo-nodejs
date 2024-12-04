@@ -39,7 +39,7 @@ pub fn teo_value_to_js_any_no_map(value: &Value, env: &Env) -> Result<JsUnknown>
         }
         Value::String(string) => env.create_string(string)?.into_unknown(),
         Value::Date(date) => {
-            let instance = DateOnly { value: date.clone() }.into_instance(*env)?;
+            let instance = DateOnly { original: date.clone() }.into_instance(*env)?;
             instance.as_object(*env).into_unknown()
         }
         Value::DateTime(datetime) => env.create_date(datetime.timestamp_millis() as f64)?.into_unknown(),

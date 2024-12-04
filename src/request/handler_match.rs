@@ -1,7 +1,6 @@
 use napi::{Env, Result, JsObject};
 use teo::prelude::handler::r#match::HandlerMatch as TeoHandlerMatch;
 
-#[napi(js_name = "HandlerMatch")]
 pub struct HandlerMatch {
     inner: TeoHandlerMatch,
 }

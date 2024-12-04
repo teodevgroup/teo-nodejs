@@ -115,7 +115,7 @@ pub fn js_any_to_teo_value(any: JsUnknown, env: Env) -> Result<Value> {
                 // test for option variant
                 if OptionVariant::instance_of(env, &object)? {
                     let enum_variant: &OptionVariant = unsafe { OptionVariant::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoValue::OptionVariant(enum_variant.value.clone()));
+                    return Ok(TeoValue::OptionVariant(enum_variant.original.clone()));
                 }
                 // test for interface enum variant
                 if InterfaceEnumVariant::instance_of(env, &object)? {

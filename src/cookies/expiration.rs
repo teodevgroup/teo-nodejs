@@ -1,4 +1,4 @@
-use napi::bindgen_prelude::FromNapiValue;
+use napi::bindgen_prelude::{FromNapiRef, FromNapiValue};
 use time::{self, OffsetDateTime};
 use chrono::{DateTime, Utc};
 use teo::prelude::cookies::Expiration as OriginalExpiration;
@@ -62,7 +62,7 @@ impl Expiration {
 
 impl FromNapiValue for Expiration {
     unsafe fn from_napi_value(raw_env: napi::sys::napi_env, napi_val: napi::sys::napi_value) -> napi::Result<Self> {
-        let expiration: &Expiration = &Expiration::from_napi_value(raw_env, napi_val)?;
+        let expiration: &Expiration = Expiration::from_napi_ref(raw_env, napi_val)?;
         Ok(expiration.clone())
     }
 }

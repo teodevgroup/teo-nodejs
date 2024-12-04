@@ -1,17 +1,22 @@
 use teo::prelude::cookies::{Cookie as OriginalCookie, SameSite};
 use time::Duration;
 use napi::Result;
-
 use super::expiration::Expiration;
 
 #[napi]
-struct Cookie {
+pub struct Cookie {
     original: OriginalCookie
 }
 
 impl From<OriginalCookie> for Cookie {
     fn from(original: OriginalCookie) -> Self {
         Self { original }
+    }
+}
+
+impl Cookie {
+    pub(super) fn original(&self) -> &OriginalCookie {
+        &self.original
     }
 }
 
@@ -193,5 +198,4 @@ struct CookieCreateArgs {
     pub path: Option<String>,
     pub domain: Option<String>,
     pub expires: Option<Expiration>,
-
 }

@@ -9,13 +9,13 @@ pub use file::File;
 pub use range::Range;
 
 use napi::{Env, Error, JsFunction, JsUnknown, Result};
-use teo::prelude::{model, OptionVariant as TeoOptionVariant, Value};
+use teo::prelude::{model, OptionVariant as OriginalOptionVariant, Value};
 use crate::dynamic::JSClassLookupMap;
 use super::{interface_enum_variant::teo_interface_enum_variant_to_js_any, pipeline::teo_pipeline_to_js_any, r#struct::teo_struct_object_to_js_any};
 
-#[napi(js_name = "OptionVariant")]
+#[napi]
 pub struct OptionVariant {
-    pub(crate) value: TeoOptionVariant
+    pub(crate) original: OriginalOptionVariant
 }
 
 pub fn teo_value_to_js_any_no_map(value: &Value, env: &Env) -> Result<JsUnknown> {
@@ -74,7 +74,7 @@ pub fn teo_value_to_js_any_no_map(value: &Value, env: &Env) -> Result<JsUnknown>
             js_array.into_unknown()
         }
         Value::OptionVariant(option_variant) => {
-            let instance = OptionVariant { value: option_variant.clone() }.into_instance(*env)?;
+            let instance = OptionVariant { original: option_variant.clone() }.into_instance(*env)?;
             instance.as_object(*env).into_unknown()
         }
         Value::Regex(regex) => {

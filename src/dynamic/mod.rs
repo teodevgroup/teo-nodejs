@@ -297,6 +297,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
     let mut ctx_prototype: JsObject = ctx_ctor_object.get_named_property("prototype")?;
     let lookup_map = JSClassLookupMap::from_app_data(app.app_data());
     for model in namespace.models().values() {
+        let model = model.clone();
         let model_name = model.path().join(".");
         let lowercase_model_name = model_name.to_camel_case();
         let ctx_property = Property::new(&lowercase_model_name)?.with_getter_closure(move |env: Env, this: JsObject| {
@@ -677,6 +678,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 let set_relation = env.create_function_from_closure(&relation_name, {
                     let relation_name = relation_name.clone();
                     move |ctx: CallContext<'_>| {
+                        let relation_name = relation_name.clone();
                         let array: JsObject = ctx.get(0)?;
                         let mut objects = vec![];
                         for i in 0..array.get_array_length()? {
@@ -687,8 +689,11 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                         let this: JsObject = ctx.this()?;
                         let object: &mut model::Object = ctx.env.unwrap(&this)?;
                         let object_cloned = object.clone();
-                        let promise = ctx.env.execute_tokio_future((|| async move {
-                            Ok(object_cloned.force_set_relation_objects(&relation_name, objects).await)
+                        let promise = ctx.env.execute_tokio_future((move || {
+                            let relation_name = relation_name.clone();
+                            async move {
+                                Ok(object_cloned.force_set_relation_objects(&relation_name, objects).await)
+                            }
                         })(), |env, _objects| {
                             env.get_undefined()
                         })?;
@@ -701,6 +706,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 let add_relation = env.create_function_from_closure(&relation_name, {
                     let relation_name = relation_name.clone();
                     move |ctx: CallContext<'_>| {
+                        let relation_name = relation_name.clone();
                         let array: JsObject = ctx.get(0)?;
                         let mut objects = vec![];
                         for i in 0..array.get_array_length()? {
@@ -711,8 +717,11 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                         let this: JsObject = ctx.this()?;
                         let object: &mut model::Object = ctx.env.unwrap(&this)?;
                         let object_cloned = object.clone();
-                        let promise = ctx.env.execute_tokio_future((|| async move {
-                            Ok(object_cloned.force_add_relation_objects(&relation_name, objects).await)
+                        let promise = ctx.env.execute_tokio_future((move || {
+                            let relation_name = relation_name.clone();
+                            async move {
+                                Ok(object_cloned.force_add_relation_objects(&relation_name, objects).await)
+                            }
                         })(), |env, _objects| {
                             env.get_undefined()
                         })?;
@@ -725,6 +734,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 let remove_relation = env.create_function_from_closure(&relation_name, {
                     let relation_name = relation_name.clone();
                     move |ctx: CallContext<'_>| {
+                        let relation_name = relation_name.clone();
                         let array: JsObject = ctx.get(0)?;
                         let mut objects = vec![];
                         for i in 0..array.get_array_length()? {
@@ -750,12 +760,16 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 property = property.with_getter_closure({
                     let relation_name = relation_name.clone();
                     move |env: Env, this: JsObject| {
+                        let relation_name = relation_name.clone();
                         let object: &mut model::Object = env.unwrap(&this)?;
-                        let object_cloned = object.clone();
-                        let promise = env.execute_tokio_future((|| async move {
-                            match object_cloned.force_get_relation_object(&relation_name).await {
-                                Ok(v) => Ok(v),
-                                Err(err) => Err(Error::from_reason(err.message())),
+                        let object = object.clone();
+                        let promise = env.execute_tokio_future((move || {
+                            let relation_name = relation_name.clone();
+                            async move {
+                                match object.force_get_relation_object(&relation_name).await {
+                                    Ok(v) => Ok(v),
+                                    Err(err) => Err(Error::from_reason(err.message())),
+                                }    
                             }
                         })(), move |env, object: Option<model::Object>| {
                             Ok(lookup_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)?.into_unknown())
@@ -769,6 +783,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 let set_relation = env.create_function_from_closure(&relation_name, {
                     let relation_name = relation_name.clone();
                     move |ctx: CallContext<'_>| {
+                        let relation_name = relation_name.clone();
                         let value: JsUnknown = ctx.get(0)?;
                         let arg = match value.get_type()? {
                             ValueType::Null | ValueType::Undefined => None,
@@ -801,15 +816,19 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
                 let set_property = env.create_function_from_closure(&name, {
                     let property_name = property_name.clone();
                     move |ctx: CallContext<'_>| {
+                        let property_name = property_name.clone();
                         let val: JsUnknown = ctx.get(0)?;
                         let teo_value = js_any_to_teo_value(val, ctx.env.clone())?;
                         let this: JsObject = ctx.this()?;
                         let object: &mut model::Object = ctx.env.unwrap(&this)?;
-                        let object_cloned = object.clone();
-                        let promise = ctx.env.execute_tokio_future((|| async move {
-                            match object_cloned.set_property(&property_name, teo_value).await {
-                                Ok(()) => Ok(()),
-                                Err(err) => Err(Error::from_reason(err.message())),
+                        let object = object.clone();
+                        let promise = ctx.env.execute_tokio_future((move || {
+                            let property_name = property_name.clone();
+                            async move {
+                                match object.set_property(&property_name, teo_value).await {
+                                    Ok(()) => Ok(()),
+                                    Err(err) => Err(Error::from_reason(err.message())),
+                                }    
                             }
                         })(), |_env, v: ()| {
                             Ok(v)
@@ -822,12 +841,15 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
             if model_property.getter().is_some() {
                 let mut property = Property::new(&property_name)?;
                 property = property.with_getter_closure(move |env: Env, this: JsObject| {
+                    let property_name = property_name.clone();
                     let object: &mut model::Object = env.unwrap(&this)?;
-                    let object_cloned = object.clone();
-                    let promise = env.execute_tokio_future((|| async move {
-                        match object_cloned.get_property_value(&property_name).await {
-                            Ok(v) => Ok(v),
-                            Err(err) => Err(Error::from_reason(err.message())),
+                    let object = object.clone();
+                    let promise = env.execute_tokio_future((move || {
+                        async move {
+                            match object.get_property_value(&property_name).await {
+                                Ok(v) => Ok(v),
+                                Err(err) => Err(Error::from_reason(err.message())),
+                            }    
                         }
                     })(), |env, v: TeoValue| {
                         Ok(teo_value_to_js_any(lookup_map, &v, env))
@@ -839,8 +861,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(map: &mut J
         }        
     }
     for namespace in namespace.namespaces().values() {
+        let namespace = namespace.clone();
         let namespace_name = namespace.path().join(".");
-        let _ = lookup_map.ctx_constructor_or_create(&namespace.path().join("."), env)?;
+        let _ = map.ctx_constructor_or_create(&namespace.path().join("."), env)?;
         let ctx_property = Property::new(&namespace_name)?.with_getter_closure(move |env: Env, this: JsObject| {
             let namespace_name = namespace.path().join(".");
             let transaction_ctx: &mut transaction::Ctx = env.unwrap(&this)?;

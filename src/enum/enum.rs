@@ -1,7 +1,7 @@
 use napi::{Result, JsUnknown, Env};
 use teo::prelude::r#enum;
 
-use crate::object::{js_any_to_teo_value, value::teo_value_to_js_any};
+use crate::{dynamic::JSClassLookupMap, object::{js_any_to_teo_value, value::teo_value_to_js_any}};
 
 #[napi(js_name = "Enum")]
 pub struct Enum {
@@ -19,8 +19,9 @@ impl Enum {
 
     #[napi]
     pub fn data(&self, key: String, env: Env) -> Result<JsUnknown> {
+        let map = JSClassLookupMap::from_app_data(self.builder.app_data());
         Ok(match self.builder.data().get(key.as_str()) {
-            Some(object) => teo_value_to_js_any(self.builder.app_data(), object, &env)?,
+            Some(object) => teo_value_to_js_any(map, object, &env)?,
             None => env.get_undefined()?.into_unknown(),
         })
     }

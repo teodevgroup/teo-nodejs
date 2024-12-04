@@ -1,4 +1,4 @@
-use napi::{JsUnknown, bindgen_prelude::{Promise, FromNapiValue}, Env, Result, Error, Status};
+use napi::{JsUnknown, bindgen_prelude::{Promise, FromNapiValue}, Result, Error, Status};
 
 pub(crate) struct SendJsUnknown {
     pub(crate) inner: JsUnknown
@@ -20,7 +20,6 @@ pub enum SendJsUnknownOrPromise {
 
 impl FromNapiValue for SendJsUnknownOrPromise {
     unsafe fn from_napi_value(raw_env: napi::sys::napi_env, napi_val: napi::sys::napi_value) -> napi::Result<Self> {
-        let env = Env::from_raw(raw_env);
         let unknown = JsUnknown::from_napi_value(raw_env, napi_val)?;
         if unknown.is_promise().unwrap() {
             let promise: Promise<SendJsUnknownOrPromise> = Promise::from_napi_value(raw_env, napi_val)?;

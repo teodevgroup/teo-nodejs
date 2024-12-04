@@ -17,7 +17,7 @@ impl TeoValueOrPromise {
         Ok(match self {
             TeoValueOrPromise::Promise(promise) => match promise.await {
                 Ok(p) => match p {
-                    TeoValueOrPromise::Promise(promise) => Err(Error::new(Status::Unknown, "nested promise detected"))?,
+                    TeoValueOrPromise::Promise(_) => Err(Error::new(Status::Unknown, "nested promise detected"))?,
                     TeoValueOrPromise::TeoValue(v) => v,
                 },
                 Err(e) => Err(e)?,

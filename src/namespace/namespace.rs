@@ -1,10 +1,12 @@
-use napi::{JsFunction, Result};
+use napi::bindgen_prelude::execute_tokio_future;
+use napi::{Env, JsFunction, Result};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
 use teo::prelude::pipeline::item::templates::validator::Validity;
 use teo::prelude::{Middleware, Next};
 use teo::prelude::Request as TeoRequest;
 use crate::dynamic::JSClassLookupMap;
 use crate::middleware::SendMiddlewareCallback;
+use crate::pipeline::ctx::PipelineCtx;
 use teo::prelude::namespace;
 use teo::prelude::model::field;
 use teo::prelude::handler;
@@ -169,127 +171,133 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
-    pub fn define_pipeline_item(&self, name: String, callback: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
-            let js_value = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
-            let js_args = teo_args_to_js_args(lookup_map, &ctx.value.1, &ctx.env)?;
-            let map = JSClassLookupMap::from_app_data(self.builder.app_data());
-            let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
-            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
-            Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
-        })?;
-        self.builder.define_pipeline_item(name.as_str(), move |args: TeoArgs, ctx: pipeline::Ctx| {
-            let threadsafe_callback = threadsafe_callback.clone();
-            async move {
-                let object = ctx.value().clone();
-                let model_object = ctx.object().clone();
-                let transaction_ctx = ctx.transaction_ctx().clone();
-                let result: TeoValueOrPromise = threadsafe_callback.call_async((object, args, model_object, transaction_ctx)).await?;
-                Ok(result.to_teo_value().await?)    
-            }
-        });
-        Ok(())
-    }
+    // #[napi(js_name = "definePipelineItem", ts_args_type = "name: string, body: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
+    // pub fn define_pipeline_item(&self, name: String, creator: JsFunction, env: Env) -> Result<()> {
+    //     let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
+    //     let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
+    //         let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
+    //         Ok(vec![js_args])
+    //     })?;
+    //     self.builder.define_pipeline_item(name.as_str(), move |arguments: Arguments| {
+    //         let threadsafe_creator = threadsafe_creator.clone();
+    //         let promise: JsObject = env.execute_tokio_future(async move {
+    //             let item: JsFunction = threadsafe_creator.call_async(Ok(arguments)).await?;
+    //             Ok(item)
+    //         }())?;
 
-    #[napi(js_name = "defineTransformPipelineItem", ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
-    pub fn define_transform_pipeline_item(&self, name: String, callback: JsFunction) -> Result<()> {
-        self.define_pipeline_item(name, callback)
-    }
+    //         Ok(move |ctx: pipeline::Ctx| {
+    //             async move {
 
-    #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
-    pub fn define_validator_pipeline_item(&self, name: String, callback: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
-            let js_value = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
-            let js_args = teo_args_to_js_args(lookup_map, &ctx.value.1, &ctx.env)?;
-            let map = JSClassLookupMap::from_app_data(app_data);
-            let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
-            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
-            Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
-        })?;
-        self.builder.define_validator_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| {
-            let threadsafe_callback = threadsafe_callback.clone();
-            async move {
-                let result: TeoValueOrPromise = threadsafe_callback.call_async((value, args, ctx.object().clone(), ctx.transaction_ctx())).await?;
-                let teo_value = result.to_teo_value().await?;
-                Ok::<Validity, teo::prelude::Error>(match teo_value {
-                    TeoValue::String(s) => {
-                        Validity::Invalid(s.to_owned())
-                    },
-                    TeoValue::Bool(b) => if b {
-                        Validity::Valid
-                    } else {
-                        Validity::Invalid("value is invalid".to_owned())
-                    },
-                    _ => Validity::Valid
-                })    
-            }
-        });
-        Ok(())
-    }
+    //             }
+    //         })
+    //         async move {
+    //             let object = ctx.value().clone();
+    //             let model_object = ctx.object().clone();
+    //             let transaction_ctx = ctx.transaction_ctx().clone();
+    //             let result: TeoValueOrPromise = threadsafe_callback.call_async((object, args, model_object, transaction_ctx)).await?;
+    //             Ok(result.to_teo_value().await?)    
+    //         }
+    //     });
+    //     Ok(())
+    // }
 
-    /// Register a named callback.
-    #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => void | Promise<void>")]
-    pub fn define_callback_pipeline_item(&self, name: String, callback: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
-            let js_value = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
-            let js_args = teo_args_to_js_args(lookup_map, &ctx.value.1, &ctx.env)?;
-            let js_object = lookup_map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
-            let js_ctx = lookup_map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
-            Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
-        })?;
-        self.builder.define_callback_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| {
-            let threadsafe_callback = threadsafe_callback.clone();
-            async move {
-                let model_object = ctx.object().clone();
-                let transaction_ctx = ctx.transaction_ctx().clone();
-                let result: TeoValueOrPromise = threadsafe_callback.call_async((value, args, model_object, transaction_ctx)).await?;
-                result.to_teo_value().await?;
-                Ok(())    
-            }
-        });
-        Ok(())
-    }
+    // #[napi(js_name = "defineTransformPipelineItem", ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => any | Promise<any>")]
+    // pub fn define_transform_pipeline_item(&self, name: String, callback: JsFunction) -> Result<()> {
+    //     self.define_pipeline_item(name, callback)
+    // }
 
-    #[napi(js_name = "defineComparePipelineItem<T>", ts_args_type = "name: string, callback: (oldValue: T, newValue: T, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
-    pub fn define_compare_pipeline_item(&self, name: String, callback: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
-            let js_value_old = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
-            let js_value_new = teo_value_to_js_any(lookup_map, &ctx.value.1, &ctx.env)?;
-            let js_args = teo_args_to_js_args(lookup_map, &ctx.value.2, &ctx.env)?;
-            let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.3.clone())?;
-            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.4.clone(), "")?;
-            Ok(vec![js_value_old, js_value_new, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
-        })?;
-        self.builder.define_compare_pipeline_item(name.as_str(), move |old: TeoValue, new: TeoValue, args: TeoArgs, object: TeoValue, ctx: pipeline::Ctx| {
-            let threadsafe_callback = threadsafe_callback.clone();
-            async move {
-                let result: TeoValueOrPromise = threadsafe_callback.call_async((old, new, args, ctx.object().clone(), ctx.transaction_ctx())).await?;
-                let teo_value = result.to_teo_value().await?;
-                Ok::<Validity, teo::prelude::Error>(match teo_value {
-                    TeoValue::String(s) => {
-                        Validity::Invalid(s.to_owned())
-                    },
-                    TeoValue::Bool(b) => if b {
-                        Validity::Valid
-                    } else {
-                        Validity::Invalid("value is invalid".to_owned())
-                    },
-                    _ => Validity::Valid
-                })    
-            }
-        });
-        Ok(())
-    }
+    // #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
+    // pub fn define_validator_pipeline_item(&self, name: String, callback: JsFunction) -> Result<()> {
+    //     let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
+    //     let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
+    //         let js_value = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
+    //         let js_args = teo_args_to_js_args(lookup_map, &ctx.value.1, &ctx.env)?;
+    //         let map = JSClassLookupMap::from_app_data(app_data);
+    //         let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
+    //         let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
+    //         Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
+    //     })?;
+    //     self.builder.define_validator_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| {
+    //         let threadsafe_callback = threadsafe_callback.clone();
+    //         async move {
+    //             let result: TeoValueOrPromise = threadsafe_callback.call_async((value, args, ctx.object().clone(), ctx.transaction_ctx())).await?;
+    //             let teo_value = result.to_teo_value().await?;
+    //             Ok::<Validity, teo::prelude::Error>(match teo_value {
+    //                 TeoValue::String(s) => {
+    //                     Validity::Invalid(s.to_owned())
+    //                 },
+    //                 TeoValue::Bool(b) => if b {
+    //                     Validity::Valid
+    //                 } else {
+    //                     Validity::Invalid("value is invalid".to_owned())
+    //                 },
+    //                 _ => Validity::Valid
+    //             })    
+    //         }
+    //     });
+    //     Ok(())
+    // }
+
+    // /// Register a named callback.
+    // #[napi(ts_args_type = "name: string, callback: (input: any, args: {[key: string]: any}, object: any, teo: any) => void | Promise<void>")]
+    // pub fn define_callback_pipeline_item(&self, name: String, callback: JsFunction) -> Result<()> {
+    //     let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
+    //     let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
+    //         let js_value = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
+    //         let js_args = teo_args_to_js_args(lookup_map, &ctx.value.1, &ctx.env)?;
+    //         let js_object = lookup_map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.2.clone())?;
+    //         let js_ctx = lookup_map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.3.clone(), "")?;
+    //         Ok(vec![js_value, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
+    //     })?;
+    //     self.builder.define_callback_pipeline_item(name.as_str(), move |value: TeoValue, args: TeoArgs, ctx: pipeline::Ctx| {
+    //         let threadsafe_callback = threadsafe_callback.clone();
+    //         async move {
+    //             let model_object = ctx.object().clone();
+    //             let transaction_ctx = ctx.transaction_ctx().clone();
+    //             let result: TeoValueOrPromise = threadsafe_callback.call_async((value, args, model_object, transaction_ctx)).await?;
+    //             result.to_teo_value().await?;
+    //             Ok(())    
+    //         }
+    //     });
+    //     Ok(())
+    // }
+
+    // #[napi(js_name = "defineComparePipelineItem<T>", ts_args_type = "name: string, callback: (oldValue: T, newValue: T, args: {[key: string]: any}, object: any, teo: any) => boolean | string | undefined | null | Promise<boolean | string | undefined | null>")]
+    // pub fn define_compare_pipeline_item(&self, name: String, callback: JsFunction) -> Result<()> {
+    //     let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
+    //     let threadsafe_callback: ThreadsafeFunction<(TeoValue, TeoValue, TeoArgs, model::Object, transaction::Ctx), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(TeoValue, TeoValue, TeoArgs, model::Object, transaction::Ctx)>| {
+    //         let js_value_old = teo_value_to_js_any(lookup_map, &ctx.value.0, &ctx.env)?;
+    //         let js_value_new = teo_value_to_js_any(lookup_map, &ctx.value.1, &ctx.env)?;
+    //         let js_args = teo_args_to_js_args(lookup_map, &ctx.value.2, &ctx.env)?;
+    //         let js_object = map.teo_model_object_to_js_model_object_object(ctx.env, ctx.value.3.clone())?;
+    //         let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.4.clone(), "")?;
+    //         Ok(vec![js_value_old, js_value_new, js_args.into_unknown(), js_object.into_unknown(), js_ctx.into_unknown()])
+    //     })?;
+    //     self.builder.define_compare_pipeline_item(name.as_str(), move |old: TeoValue, new: TeoValue, args: TeoArgs, object: TeoValue, ctx: pipeline::Ctx| {
+    //         let threadsafe_callback = threadsafe_callback.clone();
+    //         async move {
+    //             let result: TeoValueOrPromise = threadsafe_callback.call_async((old, new, args, ctx.object().clone(), ctx.transaction_ctx())).await?;
+    //             let teo_value = result.to_teo_value().await?;
+    //             Ok::<Validity, teo::prelude::Error>(match teo_value {
+    //                 TeoValue::String(s) => {
+    //                     Validity::Invalid(s.to_owned())
+    //                 },
+    //                 TeoValue::Bool(b) => if b {
+    //                     Validity::Valid
+    //                 } else {
+    //                     Validity::Invalid("value is invalid".to_owned())
+    //                 },
+    //                 _ => Validity::Valid
+    //             })    
+    //         }
+    //     });
+    //     Ok(())
+    // }
 
     #[napi(js_name = "_defineHandler", ts_args_type = "name: string, callback: (request: Request) => Response | Promise<Response>")]
     pub fn define_handler(&self, name: String, callback: JsFunction) -> Result<()> {
         let threadsafe_callback: ThreadsafeFunction<TeoRequest, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<TeoRequest>| {
-            let request_ctx = Request::new(ctx.value);
+            let request_ctx = Request::from(ctx.value);
             let request_ctx_instance = request_ctx.into_instance(ctx.env)?;
             let request_ctx_unknown = request_ctx_instance.as_object(ctx.env).into_unknown();
             Ok(vec![request_ctx_unknown])
@@ -334,17 +342,17 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineRequestMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
-    pub fn define_request_middleware(&self, name: String, callback: JsFunction) -> Result<()> {
+    #[napi(js_name = "defineRequestMiddleware", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
+    pub fn define_request_middleware(&self, name: String, creator: JsFunction) -> Result<()> {
         let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
+        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
             let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_request_middleware(name.as_str(), move |arguments| {
-            let threadsafe_callback = threadsafe_callback.clone();
+            let threadsafe_creator = threadsafe_creator.clone();
             async move {
-                let middleware_function: SendMiddlewareCallback = threadsafe_callback.call_async(arguments).await?;
+                let middleware_function: SendMiddlewareCallback = threadsafe_creator.call_async(arguments).await?;
                 let wrapped_result = move |request: TeoRequest, next: Next| {
                     let middleware_function = middleware_function.clone();
                     async move {
@@ -359,17 +367,17 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineHandlerMiddleware", ts_args_type = "name: string, callback: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
-    pub fn define_handler_middleware(&self, name: String, callback: JsFunction) -> Result<()> {
+    #[napi(js_name = "defineHandlerMiddleware", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
+    pub fn define_handler_middleware(&self, name: String, creator: JsFunction) -> Result<()> {
         let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
+        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
             let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_handler_middleware(name.as_str(), move |arguments| {
-            let threadsafe_callback = threadsafe_callback.clone();
+            let threadsafe_creator = threadsafe_creator.clone();
             async move {
-                let middleware_function: SendMiddlewareCallback = threadsafe_callback.call_async(arguments).await?;
+                let middleware_function: SendMiddlewareCallback = threadsafe_creator.call_async(arguments).await?;
                 let wrapped_result = move |request: TeoRequest, next: Next| {
                     let middleware_function = middleware_function.clone();
                     async move {

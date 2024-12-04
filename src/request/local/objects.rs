@@ -1,14 +1,14 @@
-use napi::{bindgen_prelude::{FromNapiValue, Reference, WeakReference}, Env, JsUnknown, Ref, Result};
-use teo::prelude::request::local_objects::LocalObjects as TeoLocalObjects;
+use napi::{Env, JsUnknown, Ref, Result};
+use teo::prelude::request::local_objects::LocalObjects as OriginalLocalObjects;
 
-#[napi(js_name = "LocalObjects")]
+#[napi]
 pub struct LocalObjects {
-    pub(crate) teo_local_objects: TeoLocalObjects,
+    pub(crate) original: OriginalLocalObjects,
 }
 
-impl LocalObjects {
-    pub(crate) fn new(teo_local_objects: TeoLocalObjects) -> Self {
-        Self { teo_local_objects }
+impl From<OriginalLocalObjects> for LocalObjects {
+    fn from(original: OriginalLocalObjects) -> Self {
+        Self { original }
     }
 }
 
@@ -16,15 +16,15 @@ impl LocalObjects {
 impl LocalObjects {
 
     #[napi(ts_args_type = "key: string, value: any")]
-    pub fn insert(&self, key: String, value: JsUnknown, env: Env) -> Result<()> {
+    pub fn set(&self, key: String, value: JsUnknown, env: Env) -> Result<()> {
         let reference = env.create_reference(value)?;
-        self.teo_local_objects.insert(key, reference);
+        self.original.insert(key, reference);
         Ok(())
     }
 
     #[napi(ts_return_type = "any")]
     pub fn get(&self, key: String, env: Env) -> Result<Option<JsUnknown>> {
-        let reference: Option<&mut Ref<()>> = self.teo_local_objects.get_mut(&key);
+        let reference: Option<&mut Ref<()>> = self.original.get_mut(&key);
         match reference {
             Some(reference) => {
                 let any: JsUnknown = env.get_reference_value(reference)?;
@@ -35,17 +35,17 @@ impl LocalObjects {
     }
 
     #[napi]
-    pub fn contains(&self, key: String) -> bool {
-        self.teo_local_objects.contains(&key)
+    pub fn has(&self, key: String) -> bool {
+        self.original.contains(&key)
     }
 
     #[napi]
     pub fn remove(&self, key: String) {
-        self.teo_local_objects.remove(key.as_str());
+        self.original.remove(key.as_str());
     }
 
     #[napi]
     pub fn clear(&self) {
-        self.teo_local_objects.clear();
+        self.original.clear();
     }
 }

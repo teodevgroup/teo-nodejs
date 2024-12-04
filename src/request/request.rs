@@ -1,161 +1,139 @@
-use teo::prelude::Request as TeoRequest;
+use teo::prelude::{request::{Version, Method, Request as OriginalRequest}, Error};
 use napi::{Env, JsObject, JsUnknown, Result};
-use crate::{dynamic::JSClassLookupMap, object::{js_any_to_teo_value, value::teo_value_to_js_any}};
-use super::{local::{objects::LocalObjects, values::LocalValues}, Cookie, HandlerMatch};
+use crate::{cookies::Cookies, dynamic::JSClassLookupMap, headers::headers::Headers, object::{js_any_to_teo_value, value::teo_value_to_js_any}};
+use super::{local::{objects::LocalObjects, values::LocalValues}, HandlerMatch};
 
 #[napi(js_name = "Request")]
 pub struct Request {
-    pub(crate) teo_request: TeoRequest,
+    pub(crate) original: OriginalRequest,
 }
 
-impl Request {
-    pub(crate) fn new(teo_request: TeoRequest) -> Self {
-        Self {
-            teo_request,
-        }
+impl From<OriginalRequest> for Request {
+    fn from(original: OriginalRequest) -> Self {
+        Self { original }
     }
 }
 
-/// HTTP request.
+/// Represents an incoming HTTP request.
 #[napi]
 impl Request {
 
-    #[napi]
+    #[napi(getter)]
     pub fn version(&self) -> String {
-        format!("{:?}", self.teo_request.version())
+        format!("{:?}", self.original.version())
     }
 
-    #[napi]
+    #[napi(setter)]
+    pub fn set_version(&self, value: String) -> Result<()> {
+        match value.as_str() {
+            "HTTP/0.9" => { self.original.set_version(Version::HTTP_09); },
+            "HTTP/1.0" => { self.original.set_version(Version::HTTP_10); },
+            "HTTP/1.1" => { self.original.set_version(Version::HTTP_11); },
+            "HTTP/2.0" => { self.original.set_version(Version::HTTP_2); },
+            "HTTP/3.0" => { self.original.set_version(Version::HTTP_3); },
+            _ => { Err(Error::new(format!("Invalid version: {}", value)))? },
+        }
+        Ok(())
+    }
+
+    #[napi(getter)]
     pub fn method(&self) -> &str {
-        self.teo_request.method().as_str()
+        self.original.method().as_str()
     }
 
-    #[napi]
+    #[napi(setter)]
+    pub fn set_method(&self, value: String) -> Result<()> {
+        let method = Method::from_bytes(value.as_bytes()).unwrap();
+        self.original.set_method(method);
+        Ok(())
+    }
+
+    #[napi(getter)]
     pub fn uri(&self) -> String {
-        self.teo_request.uri_string()
+        self.original.uri_string()
     }
 
-    #[napi]
+    #[napi(setter)]
+    pub fn set_uri(&self, value: String) -> Result<()> {
+        self.original.set_uri_string(value.as_str())?;
+        Ok(())
+    }
+
+    #[napi(getter)]
     pub fn scheme(&self) -> Option<&str> {
-        self.teo_request.scheme_str()
+        self.original.scheme_str()
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn host(&self) -> Option<&str> {
-        self.teo_request.host()
+        self.original.host()
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn path(&self) -> &str {
-        self.teo_request.path()
+        self.original.path()
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn query(&self) -> Option<&str> {
-        self.teo_request.query()
+        self.original.query()
     }
 
-    #[napi(js_name = "contentType")]
-    pub fn content_type(&self) -> Result<Option<&str>> {
-        Ok(self.teo_request.content_type()?)
+    #[napi(getter)]
+    pub fn content_type(&self) -> Result<Option<String>> {
+        Ok(self.original.content_type()?)
     }
 
-    #[napi]
-    pub fn contains_header(&self, name: String) -> bool {
-        self.teo_request.headers().contains_key(name.as_str())
+    #[napi(getter)]
+    pub fn headers(&self) -> Headers {
+        self.original.headers().into()
     }
 
-    #[napi]
-    pub fn header_value(&self, name: String) -> Result<Option<&str>> {
-        let header_value = self.teo_request.headers().get(name.as_str());
-        match header_value {
-            None => Ok(None),
-            Some(header_value) => {
-                let header_value = header_value.to_str().map_err(|_| {
-                    teo_result::Error::internal_server_error_message(format!("cannot read request header value: {}", name))
-                })?;
-                Ok(Some(header_value))
-            }
-        }
+    #[napi(getter)]
+    pub fn cookies(&self) -> Result<Cookies> {
+        Ok(self.original.cookies()?.clone().into())
     }
 
-    #[napi]
-    pub fn header_values(&self, name: String) -> Result<Vec<&str>> {
-        let header_values = self.teo_request.headers().get_all(name.as_str());
-        let mut result = Vec::new();
-        for header_value in header_values {
-            let header_value = header_value.to_str().map_err(|_| {
-                teo_result::Error::internal_server_error_message(format!("cannot read request header value: {}", name))
-            })?;
-            result.push(header_value);
-        }
-        Ok(result)
-    }
-
-    #[napi(js_name = "headerKeys", ts_return_type = "string[]")]
-    pub fn header_keys(&self) -> Vec<&str> {
-        let header_map = self.teo_request.headers();
-        let mut result = vec![];
-        header_map.keys().for_each(|k| {
-            result.push(k.as_str());
-        });
-        result
-    }
-
-    #[napi]
-    pub fn headers_length(&self) -> i64 {
-        self.teo_request.headers().len() as i64
-    }
-
-    #[napi]
-    pub fn cookie(&self, name: String) -> Result<Option<Cookie>> {
-        Ok(self.teo_request.cookies()?.get(&name).map(|c| Cookie { inner: c.clone() }))
-    }
-
-    #[napi]
-    pub fn cookies(&self) -> Result<Vec<Cookie>> {
-        Ok(self.teo_request.cookies()?.iter().map(|c| Cookie { inner: c.clone() }).collect())
-    }
-
-    #[napi]
+    #[napi(getter)]
     pub fn handler_match(&self) -> Result<HandlerMatch> {
-        Ok(HandlerMatch::new(self.teo_request.handler_match()?.clone()))
+        Ok(self.original.handler_match()?.clone().into())
     }
 
-    #[napi(ts_return_type = "{[key: string]: string} | any")]
+    #[napi(getter, ts_return_type = "{[key: string]: string} | any")]
     pub fn captures(&self, env: Env) -> Result<JsObject> {
         self.handler_match()?.captures(env)
     }
 
-    #[napi(ts_return_type = "any")]
+    #[napi(getter, ts_return_type = "any")]
     pub fn body_object(&self, env: Env) -> Result<JsUnknown> {
-        teo_value_to_js_any(self.teo_request.transaction_ctx().connection_ctx().namespace().app_data(), self.teo_request.body_value()?, &env)
+        let map = JSClassLookupMap::from_app_data(self.original.transaction_ctx().connection_ctx().namespace().app_data());
+        teo_value_to_js_any(map, self.original.body_value()?, &env)
     }
 
-    #[napi]
+    #[napi(setter)]
     pub fn set_body_object(&self, value: JsUnknown, env: Env) -> Result<()> {
         let teo_value = js_any_to_teo_value(value, env)?;
-        self.teo_request.set_body_value(teo_value);
+        self.original.set_body_value(teo_value);
         Ok(())
     }
 
-    #[napi(ts_return_type = "any")]
+    #[napi(getter, ts_return_type = "any")]
     pub fn teo(&self, env: Env) -> Result<JsUnknown> {
-        let map = JSClassLookupMap::from_app_data(self.teo_request.transaction_ctx().connection_ctx().namespace().app_data());
-        Ok(map.teo_transaction_ctx_to_js_ctx_object(env, self.teo_request.transaction_ctx(), "")?.into_unknown())
+        let map = JSClassLookupMap::from_app_data(self.original.transaction_ctx().connection_ctx().namespace().app_data());
+        Ok(map.teo_transaction_ctx_to_js_ctx_object(env, self.original.transaction_ctx(), "")?.into_unknown())
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn local_values(&self) -> LocalValues {
         LocalValues {
-            teo_local_values: self.teo_request.local_values().clone(),
+            original: self.original.local_values().clone(),
         }
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn local_objects(&self) -> LocalObjects {
         LocalObjects {
-            teo_local_objects: self.teo_request.local_objects().clone(),
+            original: self.original.local_objects().clone(),
         }
     }
 

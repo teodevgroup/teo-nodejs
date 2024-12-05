@@ -198,6 +198,11 @@ impl Namespace {
         Ok(())
     }
 
+    #[napi(js_name = "_define_transform_pipeline_item", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>")]
+    pub fn _define_transform_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
+        self._define_pipeline_item(name, creator)
+    }
+
     #[napi(js_name = "_define_validator_pipeline_item", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>")]
     pub fn _define_validator_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
         let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
@@ -291,7 +296,7 @@ impl Namespace {
     }
 
     #[napi(js_name = "_defineHandler", ts_args_type = "name: string, callback: (request: Request) => Response | Promise<Response>")]
-    pub fn define_handler(&self, name: String, callback: JsFunction) -> Result<()> {
+    pub fn _define_handler(&self, name: String, callback: JsFunction) -> Result<()> {
         let threadsafe_callback: ThreadsafeFunction<TeoRequest, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<TeoRequest>| {
             let request_ctx = Request::from(ctx.value);
             let request_ctx_instance = request_ctx.into_instance(ctx.env)?;

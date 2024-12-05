@@ -350,21 +350,21 @@ App.prototype.run = async function() {
 }
 HandlerMatch.prototype[customInspectSymbol] = function(_, inspectOptions) {
   return "HandlerMatch " + inspect({
-    "path": this.path(),
-    "handlerName": this.handlerName(),
-    "captures": this.captures(),
+    "path": this.path,
+    "handlerName": this.handlerName,
+    "captures": this.captures,
   }, inspectOptions)
 }
 Request.prototype[customInspectSymbol] = function(_, inspectOptions) {
   return "Request " + inspect({
-    "method": this.method(),
-    "path": this.path(),
-    "queryString": this.queryString(),
-    "contentType": this.contentType(),
-    "headers": this.headers(),
-    "bodyObject": this.bodyObject(),
-    "teo": this.teo(),
-    "handlerMatch": this.handlerMatch(),
+    "method": this.method,
+    "path": this.path,
+    "query": this.query,
+    "contentType": this.contentType,
+    "headers": this.headers,
+    "bodyObject": this.bodyObject,
+    "teo": this.teo,
+    "handlerMatch": this.handlerMatch,
   }, inspectOptions)
 }
 Response.prototype[customInspectSymbol] = function(_, inspectOptions) {
@@ -373,18 +373,75 @@ Response.prototype[customInspectSymbol] = function(_, inspectOptions) {
     "headers": this.headers(),
   }, inspectOptions)
 }
-ReadWriteHeaderMap.prototype[customInspectSymbol] = function(_, inspectOptions) {
+Headers.prototype[customInspectSymbol] = function(_, inspectOptions) {
   let object = {}
   for (let k of this.keys()) {
     object[k] = this.get(k)
   }
-  return "ReadWriteHeaderMap " + inspect(object, inspectOptions)
+  return "Headers " + inspect(object, inspectOptions)
 }
 DateOnly.prototype[customInspectSymbol] = function(_, inspectOptions) {
   return this.toString()
 }
 ObjectId.prototype[customInspectSymbol] = function(_, inspectOptions) {
   return "ObjectId(\"" + this.toString() + "\")"
+}
+Namespace.prototype.definePipelineItem = function(name, creator) {
+  this._definePipelineItem(name, function(e, args) {
+    if (e != null) {
+      throw e
+    }
+    const item = creator(args)
+    return function (e, ctx) {
+      if (e != null) {
+        throw e
+      }
+      return item(ctx)
+    }
+  })
+}
+Namespace.prototype.defineTransformPipelineItem = Namespace.prototype.definePipelineItem
+Namespace.prototype.defineValidatorPipelineItem = function(name, creator) {
+  this._defineValidatorPipelineItem(name, function(e, args) {
+    if (e != null) {
+      throw e
+    }
+    const item = creator(args)
+    return function (e, ctx) {
+      if (e != null) {
+        throw e
+      }
+      return item(ctx)
+    }
+  })
+}
+Namespace.prototype.defineCallbackPipelineItem = function(name, creator) {
+  this._defineCallbackPipelineItem(name, function(e, args) {
+    if (e != null) {
+      throw e
+    }
+    const item = creator(args)
+    return function (e, ctx) {
+      if (e != null) {
+        throw e
+      }
+      return item(ctx)
+    }
+  })
+}
+Namespace.prototype.defineComparePipelineItem = function(name, creator) {
+  this._defineComparePipelineItem(name, function(e, args) {
+    if (e != null) {
+      throw e
+    }
+    const item = creator(args)
+    return function (e, oldValue, newValue, ctx) {
+      if (e != null) {
+        throw e
+      }
+      return item(oldValue, newValue, ctx)
+    }
+  })
 }
 Namespace.prototype.defineHandler = function(name, callback) {
   this._defineHandler(name, function(e, arg) {

@@ -49,6 +49,7 @@ export declare class Namespace {
   defineEnumDecorator(name: string, body: (args: {[key: string]: any}, e: Enum) => void): void
   defineEnumMemberDecorator(name: string, body: (args: {[key: string]: any}, member: EnumMember) => void): void
   _define_pipeline_item(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>): void
+  _define_transform_pipeline_item(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>): void
   _define_validator_pipeline_item(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>): void
   _define_callback_pipeline_item(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>): void
   _define_compare_pipeline_item(name: string, creator: (args: {[key: string]: any}) => (oldValue: any, newValue: any, ctx: PipelineCtx) => void | Promise<void>): void

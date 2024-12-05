@@ -173,7 +173,7 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>")]
+    #[napi(js_name = "_define_pipeline_item", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>")]
     pub fn _define_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
         let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
@@ -198,6 +198,7 @@ impl Namespace {
         Ok(())
     }
 
+    #[napi(js_name = "_define_validator_pipeline_item", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>")]
     pub fn _define_validator_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
         let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
@@ -230,6 +231,7 @@ impl Namespace {
         Ok(())
     }
 
+    #[napi(js_name = "_define_callback_pipeline_item", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>")]
     pub fn _define_callback_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
         let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
@@ -254,6 +256,7 @@ impl Namespace {
         Ok(())
     }
 
+    #[napi(js_name = "_define_compare_pipeline_item", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (oldValue: any, newValue: any, ctx: PipelineCtx) => void | Promise<void>")]
     pub fn _define_compare_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
         let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
         let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {

@@ -50,6 +50,7 @@ impl Cookies {
         self.original.len() as i64
     }
 
+    #[napi(js_name="map", ts_args_type="callback: (cookie: Cookie) => T", ts_return_type="T[]")]
     pub fn map(&self, callback: JsFunction, env: Env) -> Result<Vec<JsUnknown>> {
         let entries = self.original.entries();
         let mut result = Vec::with_capacity(entries.len());

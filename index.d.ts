@@ -140,6 +140,7 @@ export declare class Cookies {
   push(cookie: Cookie): void
   clear(): void
   get length(): number
+  map<T>(callback: (cookie: Cookie) => T): T[]
 }
 export declare class Headers {
   append(key: string, value: string): void

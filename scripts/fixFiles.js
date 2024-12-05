@@ -187,6 +187,7 @@ function fixIndexDTs(filename) {
   content = content.replace("_run(): Promise<void>", `_run(): Promise<void>
   /** Run this app. */
   run(): Promise<void>`)
+  .replace("map(callback: (cookie: Cookie) => T): T[]", "map<T>(callback: (cookie: Cookie) => T): T[]")
   .replaceAll("_defineHandler", "defineHandler")
   .replaceAll("_definePipelineItem", "definePipelineItem")
   .replaceAll("_defineTransformPipelineItem", "defineTransformPipelineItem")

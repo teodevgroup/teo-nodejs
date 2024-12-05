@@ -1,3 +1,4 @@
+use napi::{Env, JsFunction, JsUnknown, Result};
 use teo::prelude::cookies::Cookies as OriginalCookies;
 use super::cookie::Cookie;
 
@@ -47,5 +48,17 @@ impl Cookies {
     #[napi(getter)]
     pub fn length(&self) -> i64 {
         self.original.len() as i64
+    }
+
+    pub fn map(&self, callback: JsFunction, env: Env) -> Result<Vec<JsUnknown>> {
+        let entries = self.original.entries();
+        let mut result = Vec::with_capacity(entries.len());
+        for entry in entries {
+            let cookie = Cookie::from(entry);
+            let cookie_instance = cookie.into_instance(env)?;
+            let js_result = callback.call(None, &[cookie_instance])?;
+            result.push(js_result);
+        }
+        Ok(result)
     }
 }

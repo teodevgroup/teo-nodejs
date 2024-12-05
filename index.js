@@ -312,7 +312,7 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { HandlerGroup, Model, Field, Property, Relation, Namespace, DateOnly, ObjectId, File, Range, OptionVariant, Pipeline, InterfaceEnumVariant, App, HandlerMatch, Request, Expiration, Cookie, LocalObjects, LocalValues, ReadWriteHeaderMap, Response, EnumMember, Enum, TestServer, TestRequest, TestResponse } = nativeBinding
+const { HandlerGroup, Model, Field, Property, Relation, Namespace, DateOnly, ObjectId, File, Range, OptionVariant, InterfaceEnumVariant, App, Expiration, Cookie, Cookies, Headers, HandlerMatch, Request, LocalObjects, LocalValues, Response, EnumMember, Enum, Pipeline, PipelineCtx, TestServer, TestRequest, TestResponse } = nativeBinding
 
 module.exports.HandlerGroup = HandlerGroup
 module.exports.Model = Model
@@ -325,19 +325,21 @@ module.exports.ObjectId = ObjectId
 module.exports.File = File
 module.exports.Range = Range
 module.exports.OptionVariant = OptionVariant
-module.exports.Pipeline = Pipeline
 module.exports.InterfaceEnumVariant = InterfaceEnumVariant
 module.exports.App = App
-module.exports.HandlerMatch = HandlerMatch
-module.exports.Request = Request
 module.exports.Expiration = Expiration
 module.exports.Cookie = Cookie
+module.exports.Cookies = Cookies
+module.exports.Headers = Headers
+module.exports.HandlerMatch = HandlerMatch
+module.exports.Request = Request
 module.exports.LocalObjects = LocalObjects
 module.exports.LocalValues = LocalValues
-module.exports.ReadWriteHeaderMap = ReadWriteHeaderMap
 module.exports.Response = Response
 module.exports.EnumMember = EnumMember
 module.exports.Enum = Enum
+module.exports.Pipeline = Pipeline
+module.exports.PipelineCtx = PipelineCtx
 module.exports.TestServer = TestServer
 module.exports.TestRequest = TestRequest
 module.exports.TestResponse = TestResponse

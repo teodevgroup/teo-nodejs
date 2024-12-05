@@ -1,6 +1,5 @@
 use napi::{threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext}, bindgen_prelude::FromNapiValue, JsFunction, Env};
 use teo::prelude::{Next, NextImp, Response as TeoResponse};
-
 use crate::{request::Request, response::Response};
 
 #[derive(Clone)]

@@ -26,9 +26,7 @@ impl Cookies {
 
     #[napi]
     pub fn get(&self, key: String) -> Option<Cookie> {
-        self.original.get(&key).map(|cookie| Cookie {
-            original: cookie.clone(),
-        })
+        self.original.get(&key).map(|cookie| Cookie::from(cookie))
     }
 
     #[napi]

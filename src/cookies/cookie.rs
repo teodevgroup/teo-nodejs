@@ -187,7 +187,7 @@ impl Cookie {
 }
 
 #[napi(object)]
-struct CookieCreateArgs {
+pub struct CookieCreateArgs {
     pub name: String,
     pub value: String,
     pub http_only: Option<bool>,

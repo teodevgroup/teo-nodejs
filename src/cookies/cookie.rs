@@ -84,7 +84,7 @@ impl Cookie {
         self.original.http_only()
     }
 
-    #[napi(setter)]
+    #[napi(setter, ts_args_type = "httpOnly: boolean | null | undefined")]
     pub fn set_http_only(&self, http_only: Option<bool>) {
         self.original.set_http_only(http_only)
     }
@@ -94,7 +94,7 @@ impl Cookie {
         self.original.secure()
     }
 
-    #[napi(setter)]
+    #[napi(setter, ts_args_type = "secure: boolean | null | undefined")]
     pub fn set_secure(&self, secure: Option<bool>) {
         self.original.set_secure(secure)
     }
@@ -128,7 +128,7 @@ impl Cookie {
         self.original.partitioned()
     }
 
-    #[napi(setter)]
+    #[napi(setter, ts_args_type = "partitioned: boolean | null | undefined")]
     pub fn set_partitioned(&self, partitioned: Option<bool>) {
         self.original.set_partitioned(partitioned)
     }
@@ -138,7 +138,7 @@ impl Cookie {
         self.original.max_age().map(|ma| ma.as_seconds_f64())
     }
 
-    #[napi(setter)]
+    #[napi(setter, ts_args_type = "maxAge: number | null | undefined")]
     pub fn set_max_age(&self, max_age: Option<f64>) {
         self.original.set_max_age(max_age.map(|d| Duration::seconds(d as i64)));
     }
@@ -148,7 +148,7 @@ impl Cookie {
         self.original.path()
     }
 
-    #[napi(setter)]
+    #[napi(setter, ts_args_type = "path: string | null | undefined")]
     pub fn set_path(&self, path: Option<String>) {
         self.original.set_path(path)
     }
@@ -158,7 +158,7 @@ impl Cookie {
         self.original.domain()
     }
 
-    #[napi(setter)]
+    #[napi(setter, ts_args_type = "domain: string | null | undefined")]
     pub fn set_domain(&self, domain: Option<String>) {
         self.original.set_domain(domain)
     }
@@ -168,7 +168,7 @@ impl Cookie {
         self.original.expires().map(|e| e.into())
     }
 
-    #[napi(setter)]
+    #[napi(setter, ts_args_type = "expires: Expiration | null | undefined")]
     pub fn set_expires(&self, expires: Option<&Expiration>) {
         self.original.set_expires(expires.map(|e| e.clone().original().clone()));
     }

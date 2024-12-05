@@ -113,21 +113,21 @@ export declare class Cookie {
   set value(value: string)
   get valueTrimmed(): string
   get httpOnly(): boolean | null
-  set httpOnly(httpOnly?: boolean | undefined | null)
+  set httpOnly(httpOnly: boolean | null | undefined)
   get secure(): boolean | null
-  set secure(secure?: boolean | undefined | null)
+  set secure(secure: boolean | null | undefined)
   get sameSite(): "strict" | "lax" | "none"
   set sameSite(sameSite: "strict" | "lax" | "none")
   get partitioned(): boolean | null
-  set partitioned(partitioned?: boolean | undefined | null)
+  set partitioned(partitioned: boolean | null | undefined)
   get maxAge(): number | null
-  set maxAge(maxAge?: number | undefined | null)
+  set maxAge(maxAge: number | null | undefined)
   get path(): string | null
-  set path(path?: string | undefined | null)
+  set path(path: string | null | undefined)
   get domain(): string | null
-  set domain(domain?: string | undefined | null)
+  set domain(domain: string | null | undefined)
   get expires(): Expiration | null
-  set expires(expires?: Expiration | undefined | null)
+  set expires(expires: Expiration | null | undefined)
 }
 export declare class Cookies {
   constructor(cookies?: Array<Cookie> | undefined | null)

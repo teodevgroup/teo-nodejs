@@ -103,7 +103,7 @@ Namespace.prototype.defineComparePipelineItem = function(name, creator) {
     }
   })
 }
-Namespace.protytpe.definePipelineItemFunction = function(name, item) {
+Namespace.prototype.definePipelineItemFunction = function(name, item) {
   this.definePipelineItem(name, () => item)
 }
 Namespace.prototype.defineTransformPipelineItemFunction = Namespace.prototype.definePipelineItemFunction

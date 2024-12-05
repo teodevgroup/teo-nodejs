@@ -7,7 +7,7 @@ export default function loadApp() {
     app.mainNamespace().defineModelHandlerGroup("Support", (group) => {
         group.defineHandler("myCreateObject", async (req: Request) => {
             console.log("here 1")
-            const teo: Teo = req.teo()
+            const teo: Teo = req.teo
             console.log("here 2")
             const input: SupportCreateInput = req.bodyObject
             console.log("here 3")
@@ -19,7 +19,7 @@ export default function loadApp() {
         })
         group.defineHandler("myFindManyObjects", async (req: Request) => {
             console.log("there 1")
-            const teo: Teo = req.teo()
+            const teo: Teo = req.teo
             console.log("there 2")
             const input: SupportFindManyArgs = req.bodyObject
             console.log("there 3")

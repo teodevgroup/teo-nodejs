@@ -48,11 +48,17 @@ export declare class Namespace {
   defineModelPropertyDecorator(name: string, body: (args: {[key: string]: any}, property: Property) => void): void
   defineEnumDecorator(name: string, body: (args: {[key: string]: any}, e: Enum) => void): void
   defineEnumMemberDecorator(name: string, body: (args: {[key: string]: any}, member: EnumMember) => void): void
-  _define_pipeline_item(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>): void
-  _define_transform_pipeline_item(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>): void
-  _define_validator_pipeline_item(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>): void
-  _define_callback_pipeline_item(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>): void
-  _define_compare_pipeline_item(name: string, creator: (args: {[key: string]: any}) => (oldValue: any, newValue: any, ctx: PipelineCtx) => void | Promise<void>): void
+  definePipelineItem(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>): void
+  defineTransformPipelineItem(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>): void
+  defineValidatorPipelineItem(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>): void
+  defineCallbackPipelineItem(name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>): void
+  defineComparePipelineItem(name: string, creator: (args: {[key: string]: any}) => (oldValue: any, newValue: any, ctx: PipelineCtx) => void | Promise<void>): void
+  definePipelineItemFunction(name: string, item: (ctx: PipelineCtx) => any | Promise<any>): void
+  defineTransformPipelineItemFunction(name: string, item: (ctx: PipelineCtx) => any | Promise<any>): void
+  defineValidatorPipelineItemFunction(name: string, item: (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>): void
+  defineCallbackPipelineItemFunction(name: string, item: (ctx: PipelineCtx) => void | Promise<void>): void
+  defineComparePipelineItemFunction(name: string, item: (oldValue: any, newValue: any, ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>): void
+
   defineHandler(name: string, callback: (request: Request) => Response | Promise<Response>): void
   defineHandlerGroup(name: string, callback: (group: HandlerGroup) => void): void
   defineModelHandlerGroup(name: string, callback: (group: HandlerGroup) => void): void

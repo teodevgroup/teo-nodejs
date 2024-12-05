@@ -443,6 +443,19 @@ Namespace.prototype.defineComparePipelineItem = function(name, creator) {
     }
   })
 }
+Namespace.protytpe.definePipelineItemFunction = function(name, item) {
+  this.definePipelineItem(name, () => item)
+}
+Namespace.prototype.defineTransformPipelineItemFunction = Namespace.prototype.definePipelineItemFunction
+Namespace.prototype.defineValidatorPipelineItemFunction = function(name, item) {
+  this.defineValidatorPipelineItem(name, () => item)
+}
+Namespace.prototype.defineCallbackPipelineItemFunction = function(name, item) {
+  this.defineCallbackPipelineItem(name, () => item)
+}
+Namespace.prototype.defineComparePipelineItemFunction = function(name, item) {
+  this.defineComparePipelineItem(name, () => item)
+}
 Namespace.prototype.defineHandler = function(name, callback) {
   this._defineHandler(name, function(e, arg) {
     if (e != null) {

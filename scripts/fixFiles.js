@@ -103,6 +103,19 @@ Namespace.prototype.defineComparePipelineItem = function(name, creator) {
     }
   })
 }
+Namespace.protytpe.definePipelineItemFunction = function(name, item) {
+  this.definePipelineItem(name, () => item)
+}
+Namespace.prototype.defineTransformPipelineItemFunction = Namespace.prototype.definePipelineItemFunction
+Namespace.prototype.defineValidatorPipelineItemFunction = function(name, item) {
+  this.defineValidatorPipelineItem(name, () => item)
+}
+Namespace.prototype.defineCallbackPipelineItemFunction = function(name, item) {
+  this.defineCallbackPipelineItem(name, () => item)
+}
+Namespace.prototype.defineComparePipelineItemFunction = function(name, item) {
+  this.defineComparePipelineItem(name, () => item)
+}
 Namespace.prototype.defineHandler = function(name, callback) {
   this._defineHandler(name, function(e, arg) {
     if (e != null) {
@@ -194,6 +207,13 @@ function fixIndexDTs(filename) {
   .replaceAll("_defineValidatorPipelineItem", "defineValidatorPipelineItem")
   .replaceAll("_defineCallbackPipelineItem", "defineCallbackPipelineItem")
   .replaceAll("_defineComparePipelineItem", "defineComparePipelineItem")
+  .replace("  defineComparePipelineItem(name: string, creator: (args: {[key: string]: any}) => (oldValue: any, newValue: any, ctx: PipelineCtx) => void | Promise<void>): void", `  defineComparePipelineItem(name: string, creator: (args: {[key: string]: any}) => (oldValue: any, newValue: any, ctx: PipelineCtx) => void | Promise<void>): void
+  definePipelineItemFunction(name: string, item: (ctx: PipelineCtx) => any | Promise<any>): void
+  defineTransformPipelineItemFunction(name: string, item: (ctx: PipelineCtx) => any | Promise<any>): void
+  defineValidatorPipelineItemFunction(name: string, item: (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>): void
+  defineCallbackPipelineItemFunction(name: string, item: (ctx: PipelineCtx) => void | Promise<void>): void
+  defineComparePipelineItemFunction(name: string, item: (oldValue: any, newValue: any, ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>): void
+`)
   .replace("_setup_1(): void", `_setup_1(): void
     /** Setup the server. */
     setup(): Promise<void>`)

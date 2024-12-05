@@ -359,7 +359,7 @@ Request.prototype[customInspectSymbol] = function(_, inspectOptions) {
   return "Request " + inspect({
     "method": this.method,
     "path": this.path,
-    "query": this.query,
+    "queryString": this.queryString,
     "contentType": this.contentType,
     "headers": this.headers,
     "bodyObject": this.bodyObject,

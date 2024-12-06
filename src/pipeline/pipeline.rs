@@ -14,4 +14,8 @@ impl From<OriginalPipeline> for Pipeline {
 #[napi]
 impl Pipeline {
 
+    #[napi(getter)]
+    pub fn length(&self) -> u32 {
+        self.original.len() as u32
+    }
 }

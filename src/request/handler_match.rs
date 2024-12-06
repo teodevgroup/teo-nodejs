@@ -16,17 +16,17 @@ impl From<OriginalHandlerMatch> for HandlerMatch {
 #[napi]
 impl HandlerMatch {
 
-    #[napi]
+    #[napi(getter)]
     pub fn path(&self) -> &Vec<String> {
         self.original.path()
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn handler_name(&self) -> &str {
         self.original.handler_name()
     }
 
-    #[napi(ts_return_type = "{[key: string]: string} | any")]
+    #[napi(getter, ts_return_type = "{[key: string]: string} | any")]
     pub fn captures(&self, env: Env) -> Result<JsObject> {
         let captures_map = self.original.captures();
         let mut js_object = env.create_object()?;

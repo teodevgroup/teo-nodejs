@@ -61,7 +61,7 @@ pub fn teo_value_to_js_any_no_map(value: &Value, env: &Env) -> Result<JsUnknown>
         }
         Value::Range(range) => {
             let instance = Range { 
-                value: range.clone(),
+                original: range.clone(),
             }.into_instance(*env)?;
             instance.as_object(*env).into_unknown()
         }

@@ -84,10 +84,10 @@ export declare class File {
   filenameExt?: string
 }
 export declare class Range {
-  upperbond(): number
-  lowerbond(): number
-  isClosed(): boolean
-  isOpen(): boolean
+  get upperbond(): number
+  get lowerbond(): number
+  get isClosed(): boolean
+  get isOpen(): boolean
 }
 export declare class OptionVariant { }
 export declare class InterfaceEnumVariant { }
@@ -161,9 +161,9 @@ export declare class Headers {
   has(key: string): boolean
 }
 export declare class HandlerMatch {
-  path(): Array<string>
-  handlerName(): string
-  captures(): {[key: string]: string} | any
+  get path(): Array<string>
+  get handlerName(): string
+  get captures(): {[key: string]: string} | any
 }
 export declare class Request {
   get version(): string
@@ -211,17 +211,17 @@ export declare class Response {
   static file(path: string): Response
   static sendFile(base: string, path: string): Response
   static redirect(path: string): Response
-  setCode(code: number): void
-  code(): number
-  headers(): Headers
-  isFile(): boolean
-  isText(): boolean
-  isEmpty(): boolean
-  isTeon(): boolean
-  getText(): string | null
+  set code(code: number)
+  get code(): number
+  get headers(): Headers
+  get isFile(): boolean
+  get isText(): boolean
+  get isEmpty(): boolean
+  get isTeon(): boolean
+  text(): string | null
   getTeon(): any
   getFile(): string | null
-  cookies(): Cookies
+  get cookies(): Cookies
 }
 export declare class EnumMember {
   setData(key: string, value: any): void
@@ -231,7 +231,9 @@ export declare class Enum {
   setData(key: string, value: any): void
   data(key: string): any
 }
-export declare class Pipeline { }
+export declare class Pipeline {
+  get length(): number
+}
 export declare class PipelineCtx {
   get value(): any
   get object(): any

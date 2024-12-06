@@ -81,42 +81,42 @@ impl Response {
         })
     }
 
-    #[napi(js_name = "setCode")]
+    #[napi(setter)]
     pub fn set_code(&self, code: u16) {
         self.original.set_code(code)
     }
 
-    #[napi(js_name = "code")]
+    #[napi(getter)]
     pub fn code(&self) -> u16 {
         self.original.code()
     }
 
-    #[napi(js_name = "headers")]
+    #[napi(getter)]
     pub fn headers(&self) -> Headers {
         self.original.headers().into()
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn is_file(&self) -> bool {
         self.original.body().is_file()
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn is_text(&self) -> bool {
         self.original.body().is_text()
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn is_empty(&self) -> bool {
         self.original.body().is_empty()
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn is_teon(&self) -> bool {
         self.original.body().is_teon()
     }
 
-    #[napi]
+    #[napi(js_name = "text")]
     pub fn get_text(&self) -> Option<String> {
         self.original.body().as_text().cloned()
     }
@@ -137,7 +137,7 @@ impl Response {
         }
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn cookies(&self) -> Cookies {
         self.original.cookies().into()
     }

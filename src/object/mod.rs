@@ -104,7 +104,7 @@ pub fn js_any_to_teo_value(any: JsUnknown, env: Env) -> Result<Value> {
                 // test for range
                 if Range::instance_of(env, &object)? {
                     let range: &Range = unsafe { Range::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoValue::Range(range.value.clone()));
+                    return Ok(TeoValue::Range(range.original.clone()));
                 }
                 // test for file
                 if File::instance_of(env, &object)? {

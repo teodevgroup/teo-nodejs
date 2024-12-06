@@ -10,7 +10,7 @@ pub use range::Range;
 
 use napi::{Env, Error, JsFunction, JsUnknown, Result};
 use teo::prelude::{model, OptionVariant as OriginalOptionVariant, Value};
-use crate::dynamic::JSClassLookupMap;
+use crate::dynamic::{DynamicClasses, QueryDynamicClasses};
 use super::{interface_enum_variant::teo_interface_enum_variant_to_js_any, pipeline::teo_pipeline_to_js_any, r#struct::teo_struct_object_to_js_any};
 
 #[napi]
@@ -95,7 +95,7 @@ pub fn teo_value_to_js_any_no_map(value: &Value, env: &Env) -> Result<JsUnknown>
     })
 }
 
-pub fn teo_value_to_js_any(map: &JSClassLookupMap, value: &Value, env: &Env) -> Result<JsUnknown> {
+pub fn teo_value_to_js_any(map: &DynamicClasses, value: &Value, env: &Env) -> Result<JsUnknown> {
     Ok(match value {
         Value::Tuple(tuple) => {
             let mut js_array = env.create_array_with_length(tuple.len())?;
@@ -126,7 +126,7 @@ pub fn teo_value_to_js_any(map: &JSClassLookupMap, value: &Value, env: &Env) -> 
     })
 }
 
-pub fn teo_model_object_to_js_any(map: &JSClassLookupMap, model_object: &model::Object, env: &Env) -> Result<JsUnknown> {
+pub fn teo_model_object_to_js_any(map: &DynamicClasses, model_object: &model::Object, env: &Env) -> Result<JsUnknown> {
     let js_object = map.teo_model_object_to_js_model_object_object(*env, model_object.clone())?;
     Ok(js_object.into_unknown())
 }

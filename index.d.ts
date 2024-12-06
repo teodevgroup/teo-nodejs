@@ -107,6 +107,7 @@ export declare class App {
   /** Define a custom program. */
   program(name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>): void
   mainNamespace(): Namespace
+  get main(): Namespace
 }
 export declare class Expiration {
   static sessionExpiration(): Expiration

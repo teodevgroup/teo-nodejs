@@ -1,7 +1,7 @@
 use teo::prelude::{App as OriginalApp, Entrance, RuntimeVersion, transaction};
 use napi::threadsafe_function::{ThreadsafeFunction, ErrorStrategy, ThreadSafeCallContext};
 use napi::{Env, JsObject, JsString, JsFunction, Result, JsUnknown};
-use crate::dynamic::{synthesize_dynamic_nodejs_classes, JSClassLookupMap};
+use crate::dynamic::{DynamicClasses, synthesize_dynamic_nodejs_classes, QueryDynamicClasses};
 use crate::namespace::Namespace;
 use crate::object::promise_or_ignore::PromiseOrIgnore;
 
@@ -89,9 +89,10 @@ impl App {
     /// Run before server is started.
     #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
     pub fn setup(&self, callback: JsFunction) -> Result<()> {
-        let map = JSClassLookupMap::from_app_data(self.original.app_data());
-        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
-            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
+        let dynamic_classes = DynamicClasses::retrieve(self.original.app_data())?;
+        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+            let dynamic_classes = dynamic_classes.clone();
+            let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
         })?;
         self.original.setup(move |ctx: transaction::Ctx| {
@@ -107,9 +108,10 @@ impl App {
     /// Define a custom program.
     #[napi(ts_args_type = "name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>")]
     pub fn program(&self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
-        let map = JSClassLookupMap::from_app_data(self.original.app_data());
-        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<transaction::Ctx>| {
-            let js_ctx = map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
+        let dynamic_classes = DynamicClasses::retrieve(self.original.app_data())?;
+        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+            let dynamic_classes = dynamic_classes.clone();
+            let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
         })?;
         self.original.program(name.as_str(), desc, move |ctx: transaction::Ctx| {
@@ -122,10 +124,15 @@ impl App {
         Ok(())
     }
 
-    #[napi(js_name = "mainNamespace", writable = false)]
+    #[napi]
     pub fn main_namespace(&self) -> Namespace {
         Namespace { 
             builder: self.original.main_namespace().clone(),
         }
+    }
+
+    #[napi(getter)]
+    pub fn main(&self) -> Namespace {
+        self.main_namespace()
     }
 }

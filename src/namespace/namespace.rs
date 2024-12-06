@@ -1,18 +1,16 @@
-use napi::bindgen_prelude::{block_on, execute_tokio_future};
-use napi::{Env, Error, JsFunction, JsObject, Result};
+use napi::bindgen_prelude::block_on;
+use napi::{Error, JsFunction, Result};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
-use teo::prelude::pipeline::item::templates::validator::Validity;
 use teo::prelude::{Middleware, Next};
 use teo::prelude::Request as TeoRequest;
-use crate::dynamic::JSClassLookupMap;
+use crate::dynamic::DynamicClasses;
 use crate::middleware::SendMiddlewareCallback;
-use crate::pipeline::ctx::PipelineCtx;
 use crate::pipeline::item::compare_item_imp::PipelineCompareItemImp;
 use crate::pipeline::item::item_imp::PipelineItemImp;
 use teo::prelude::namespace;
 use teo::prelude::model::field;
 use teo::prelude::handler;
-use teo::prelude::{r#enum, Value as TeoValue, Arguments, Arguments as TeoArgs, pipeline, model, transaction, response::Response as TeoResponse};
+use teo::prelude::{r#enum, Value as TeoValue, Arguments, pipeline, model, response::Response as TeoResponse};
 use crate::handler::group::HandlerGroup;
 use crate::model::model::Model;
 use crate::model::relation::relation::Relation;
@@ -20,7 +18,6 @@ use crate::model::field::field::Field;
 use crate::model::property::property::Property;
 use crate::object::promise::TeoValueOrPromise;
 use crate::object::arguments::teo_args_to_js_args;
-use crate::object::value::teo_value_to_js_any;
 use crate::r#enum::member::member::EnumMember;
 use crate::r#enum::r#enum::Enum;
 use crate::request::Request;
@@ -79,9 +76,11 @@ impl Namespace {
 
     #[napi(js_name = "defineModelDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, model: Model) => void")]
     pub fn define_model_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
+        let app_data = self.builder.app_data().clone();
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::Builder)>| {
-            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
+            let app_data = app_data.clone();
+            let lookup_map = DynamicClasses::retrieve(&app_data)?;
+            let arguments = teo_args_to_js_args(&lookup_map, &ctx.value.0, &ctx.env)?;
             let js_model = Model { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -95,9 +94,11 @@ impl Namespace {
 
     #[napi(js_name = "defineModelFieldDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, field: Field) => void")]
     pub fn define_model_field_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::field::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, field::Builder)>| {
-            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::field::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, field::Builder)>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let arguments = teo_args_to_js_args(&dynamic_classes, &ctx.value.0, &ctx.env)?;
             let js_model = Field { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -111,9 +112,11 @@ impl Namespace {
 
     #[napi(js_name = "defineModelRelationDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, relation: Relation) => void")]
     pub fn define_model_relation_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::relation::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, model::relation::Builder)>| {
-            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::relation::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::relation::Builder)>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let arguments = teo_args_to_js_args(&dynamic_classes, &ctx.value.0, &ctx.env)?;
             let js_model = Relation { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -127,9 +130,11 @@ impl Namespace {
 
     #[napi(js_name = "defineModelPropertyDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, property: Property) => void")]
     pub fn define_model_property_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::property::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, model::property::Builder)>| {
-            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::property::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::property::Builder)>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let arguments = teo_args_to_js_args(&dynamic_classes, &ctx.value.0, &ctx.env)?;
             let js_model = Property { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -143,9 +148,11 @@ impl Namespace {
 
     #[napi(js_name = "defineEnumDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, e: Enum) => void")]
     pub fn define_enum_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, r#enum::Builder)>| {
-            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, r#enum::Builder)>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let arguments = teo_args_to_js_args(&dynamic_classes, &ctx.value.0, &ctx.env)?;
             let js_model = Enum { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -159,9 +166,11 @@ impl Namespace {
 
     #[napi(js_name = "defineEnumMemberDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, member: EnumMember) => void")]
     pub fn define_enum_member_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::member::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<(Arguments, r#enum::member::Builder)>| {
-            let arguments = teo_args_to_js_args(lookup_map, &ctx.value.0, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::member::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, r#enum::member::Builder)>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let arguments = teo_args_to_js_args(&dynamic_classes, &ctx.value.0, &ctx.env)?;
             let js_model = EnumMember { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -175,9 +184,11 @@ impl Namespace {
 
     #[napi(js_name = "_definePipelineItem", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>")]
     pub fn _define_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
-            let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
@@ -205,9 +216,11 @@ impl Namespace {
 
     #[napi(js_name = "_defineValidatorPipelineItem", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>")]
     pub fn _define_validator_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
-            let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
@@ -238,9 +251,11 @@ impl Namespace {
 
     #[napi(js_name = "_defineCallbackPipelineItem", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>")]
     pub fn _define_callback_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
-            let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
@@ -263,9 +278,11 @@ impl Namespace {
 
     #[napi(js_name = "_defineComparePipelineItem", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (oldValue: any, newValue: any, ctx: PipelineCtx) => void | Promise<void>")]
     pub fn _define_compare_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
-            let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
@@ -345,9 +362,11 @@ impl Namespace {
 
     #[napi(js_name = "defineRequestMiddleware", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
     pub fn define_request_middleware(&self, name: String, creator: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
-            let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_request_middleware(name.as_str(), move |arguments| {
@@ -370,9 +389,11 @@ impl Namespace {
 
     #[napi(js_name = "defineHandlerMiddleware", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
     pub fn define_handler_middleware(&self, name: String, creator: JsFunction) -> Result<()> {
-        let lookup_map = JSClassLookupMap::from_app_data(self.builder.app_data());
-        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = creator.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<Arguments>| {
-            let js_args = teo_args_to_js_args(lookup_map, &ctx.value, &ctx.env)?;
+        let app_data = self.builder.app_data().clone();
+        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_handler_middleware(name.as_str(), move |arguments| {

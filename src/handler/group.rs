@@ -1,6 +1,5 @@
-use napi::{threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction}, JsFunction, JsString, JsUnknown, Result};
+use napi::{threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction}, JsFunction,  Result};
 use teo::prelude::{handler, Response as OriginalResponse, Request as OriginalRequest};
-
 use crate::{request::Request, response::response_or_promise::ResponseOrPromise};
 
 #[napi(js_name = "HandlerGroup")]

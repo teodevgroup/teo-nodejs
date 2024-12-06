@@ -1,6 +1,6 @@
 use teo::prelude::{request::{Version, Method, Request as OriginalRequest}, Error};
 use napi::{Env, JsObject, JsUnknown, Result};
-use crate::{cookies::Cookies, dynamic::JSClassLookupMap, headers::headers::Headers, object::{js_any_to_teo_value, value::teo_value_to_js_any}};
+use crate::{cookies::Cookies, dynamic::{DynamicClasses, QueryDynamicClasses}, headers::headers::Headers, object::{js_any_to_teo_value, value::teo_value_to_js_any}};
 use super::{local::{objects::LocalObjects, values::LocalValues}, HandlerMatch};
 
 #[napi(js_name = "Request")]
@@ -106,8 +106,8 @@ impl Request {
 
     #[napi(getter, ts_return_type = "any")]
     pub fn body_object(&self, env: Env) -> Result<JsUnknown> {
-        let map = JSClassLookupMap::from_app_data(self.original.transaction_ctx().connection_ctx().namespace().app_data());
-        teo_value_to_js_any(map, self.original.body_value()?, &env)
+        let dynamic_classes = DynamicClasses::retrieve(self.original.transaction_ctx().connection_ctx().namespace().app_data())?;
+        teo_value_to_js_any(&dynamic_classes, self.original.body_value()?, &env)
     }
 
     #[napi(setter)]
@@ -119,8 +119,8 @@ impl Request {
 
     #[napi(getter, ts_return_type = "any")]
     pub fn teo(&self, env: Env) -> Result<JsUnknown> {
-        let map = JSClassLookupMap::from_app_data(self.original.transaction_ctx().connection_ctx().namespace().app_data());
-        Ok(map.teo_transaction_ctx_to_js_ctx_object(env, self.original.transaction_ctx(), "")?.into_unknown())
+        let dynamic_classes = DynamicClasses::retrieve(self.original.transaction_ctx().connection_ctx().namespace().app_data())?;
+        Ok(dynamic_classes.teo_transaction_ctx_to_js_ctx_object(env, self.original.transaction_ctx(), "")?.into_unknown())
     }
 
     #[napi(getter)]

@@ -7,10 +7,10 @@ use inflector::Inflector;
 use crate::object::{js_any_to_teo_value, unknown::{SendJsUnknown, SendJsUnknownOrPromise}, value::teo_value_to_js_any};
 use super::{builder::DynamicClassesBuilder, create::CreateDynamicClasses, dynamic::DynamicClasses, query::QueryDynamicClasses};
 
-pub(crate) fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<()> {
+pub fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<()> {
     let mut dynamic_classes_builder = DynamicClassesBuilder::new();
     synthesize_dynamic_nodejs_classes_for_namespace(&mut dynamic_classes_builder, app, app.compiled_main_namespace(), env)?;
-    app.app_data().set_dynamic_classes(Arc::new(dynamic_classes_builder.build()));
+    app.app_data().set_dynamic_classes(Arc::new(dynamic_classes_builder.build()))?;
     Ok(())
 }
 
@@ -77,154 +77,189 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
         })?;
         class_prototype.set_named_property("findUniqueObject", find_unique)?;
         // find first
-        let find_unique = env.create_function_from_closure("findFirstObject", move |ctx| {
-            let teo_value = if ctx.length == 0 {
-                TeoValue::Dictionary(IndexMap::new())
-            } else {
-                let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_value(unknown, ctx.env.clone())?
-            };
-            let this: JsObject = ctx.this()?;
-            let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
-            let model_ctx_cloned = model_ctx.clone();
-            let promise = ctx.env.execute_tokio_future((|| async move {
-                match model_ctx_cloned.find_first(&teo_value).await {
-                    Ok(obj) => Ok(obj),
-                    Err(err) => Err(Error::from_reason(err.message())),
-                }
-            })(), move |env, object: Option<model::Object>| {
-                lookup_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)
-            })?;
-            Ok(promise)
-        })?;
-        class_prototype.set_named_property("findFirstObject", find_unique)?;
-        // find many
-        let find_many = env.create_function_from_closure("findManyObjects", move |ctx| {
-            let teo_value = if ctx.length == 0 {
-                TeoValue::Dictionary(IndexMap::new())
-            } else {
-                let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_value(unknown, ctx.env.clone())?
-            };
-            let this: JsObject = ctx.this()?;
-            let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
-            let model_ctx_cloned = model_ctx.clone();
-            let promise = ctx.env.execute_tokio_future((|| async move {
-                match model_ctx_cloned.find_many(&teo_value).await {
-                    Ok(objects) => Ok(objects),
-                    Err(err) => Err(Error::from_reason(err.message())),
-                }
-            })(), move |env, objects: Vec<model::Object>| {
-                let mut array = env.create_array_with_length(objects.len())?;
-                for (index, object) in objects.iter().enumerate() {
-                    array.set_element(index as u32, lookup_map.teo_model_object_to_js_model_object_object(env.clone(), object.clone())?)?;
-                }
-                Ok(array)
-            })?;
-            Ok(promise)
-        })?;
-        class_prototype.set_named_property("findManyObjects", find_many)?;
-        // create
-        let create = env.create_function_from_closure("createObject", move |ctx| {
-            let teo_value = if ctx.length == 0 {
-                TeoValue::Dictionary(IndexMap::new())
-            } else {
-                let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_value(unknown, ctx.env.clone())?
-            };
-            let this: JsObject = ctx.this()?;
-            let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
-            let model_ctx_cloned = model_ctx.clone();
-            let promise = ctx.env.execute_tokio_future((|| async move {
-                Ok(model_ctx_cloned.create_object(&teo_value).await.unwrap())
-            })(), move |env, object: model::Object| {
-                lookup_map.teo_model_object_to_js_model_object_object(env.clone(), object)
-            })?;
-            Ok(promise)
-        })?;
-        class_prototype.set_named_property("createObject", create)?;
-        // count
-        let count = env.create_function_from_closure("count", move |ctx| {
-            let teo_value = if ctx.length == 0 {
-                TeoValue::Dictionary(IndexMap::new())
-            } else {
-                let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_value(unknown, ctx.env.clone())?
-            };
-            let this: JsObject = ctx.this()?;
-            let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
-            let model_ctx_cloned = model_ctx.clone();
-            let promise = ctx.env.execute_tokio_future((|| async move {
-                Ok(model_ctx_cloned.count(&teo_value).await.unwrap())
-            })(), move |env, object: TeoValue| {
-                teo_value_to_js_any(
-                    lookup_map,
-                    &object,
-                    env
-                )
-            })?;
-            Ok(promise)
-        })?;
-        class_prototype.set_named_property("count", count)?;
-        // aggregate
-        let aggregate = env.create_function_from_closure("aggregate", move |ctx| {
-            let teo_value = if ctx.length == 0 {
-                TeoValue::Dictionary(IndexMap::new())
-            } else {
-                let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_value(unknown, ctx.env.clone())?
-            };
-            let this: JsObject = ctx.this()?;
-            let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
-            let model_ctx_cloned = model_ctx.clone();
-            let promise = ctx.env.execute_tokio_future((|| async move {
-                Ok(model_ctx_cloned.aggregate(&teo_value).await.unwrap())
-            })(), |env, object: TeoValue| {
-                teo_value_to_js_any(lookup_map, &object, env)
-            })?;
-            Ok(promise)
-        })?;
-        class_prototype.set_named_property("aggregate", aggregate)?;
-        // groupBy
-        let group_by = env.create_function_from_closure("groupBy", move |ctx| {
-            let teo_value = if ctx.length == 0 {
-                TeoValue::Dictionary(IndexMap::new())
-            } else {
-                let unknown: JsUnknown = ctx.get(0)?;
-                js_any_to_teo_value(unknown, ctx.env.clone())?
-            };
-            let this: JsObject = ctx.this()?;
-            let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
-            let model_ctx_cloned = model_ctx.clone();
-            let promise = ctx.env.execute_tokio_future((|| async move {
-                Ok(model_ctx_cloned.group_by(&teo_value).await.unwrap())
-            })(), |env, values: Vec<TeoValue>| {
-                let mut array = env.create_array(values.len() as u32)?;
-                for value in values {
-                    array.insert(teo_value_to_js_any(lookup_map, &value, env)?)?;
-                }
-                Ok(array)
-            })?;
-            Ok(promise)
-        })?;
-        class_prototype.set_named_property("groupBy", group_by)?;
-        if namespace.database().is_some() && namespace.database().unwrap().is_sql() {
-            // sql
-            let sql = env.create_function_from_closure("sql", move |ctx| {
-                let sql_string: &str = ctx.get(0)?;
+        let find_unique = env.create_function_from_closure("findFirstObject", {
+            let app_data = app_data.clone();
+            move |ctx| {
+                let app_data = app_data.clone();
+                let teo_value = if ctx.length == 0 {
+                    TeoValue::Dictionary(IndexMap::new())
+                } else {
+                    let unknown: JsUnknown = ctx.get(0)?;
+                    js_any_to_teo_value(unknown, ctx.env.clone())?
+                };
                 let this: JsObject = ctx.this()?;
                 let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
                 let model_ctx_cloned = model_ctx.clone();
                 let promise = ctx.env.execute_tokio_future((|| async move {
-                    Ok(model_ctx_cloned.sql(sql_string).await.unwrap())
-                })(), |env, values: Vec<TeoValue>| {
-                    let mut array = env.create_array(values.len() as u32)?;
-                    for value in values {
-                        array.insert(teo_value_to_js_any(lookup_map, &value, env)?)?;
+                    match model_ctx_cloned.find_first(&teo_value).await {
+                        Ok(obj) => Ok(obj),
+                        Err(err) => Err(Error::from_reason(err.message())),
+                    }
+                })(), move |env, object: Option<model::Object>| {
+                    let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                    dynamic_classes.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)
+                })?;
+                Ok(promise)
+            }
+        })?;
+        class_prototype.set_named_property("findFirstObject", find_unique)?;
+        // find many
+        let find_many = env.create_function_from_closure("findManyObjects", {
+            let app_data = app_data.clone();
+            move |ctx| {
+                let app_data = app_data.clone();
+                let teo_value = if ctx.length == 0 {
+                    TeoValue::Dictionary(IndexMap::new())
+                } else {
+                    let unknown: JsUnknown = ctx.get(0)?;
+                    js_any_to_teo_value(unknown, ctx.env.clone())?
+                };
+                let this: JsObject = ctx.this()?;
+                let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
+                let model_ctx_cloned = model_ctx.clone();
+                let promise = ctx.env.execute_tokio_future((|| async move {
+                    match model_ctx_cloned.find_many(&teo_value).await {
+                        Ok(objects) => Ok(objects),
+                        Err(err) => Err(Error::from_reason(err.message())),
+                    }
+                })(), move |env, objects: Vec<model::Object>| {
+                    let mut array = env.create_array_with_length(objects.len())?;
+                    let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                    for (index, object) in objects.iter().enumerate() {
+                        array.set_element(index as u32, dynamic_classes.teo_model_object_to_js_model_object_object(env.clone(), object.clone())?)?;
                     }
                     Ok(array)
                 })?;
                 Ok(promise)
+            }
+        })?;
+        class_prototype.set_named_property("findManyObjects", find_many)?;
+        // create
+        let create = env.create_function_from_closure("createObject", {
+            let app_data = app_data.clone();
+            move |ctx| {
+                let app_data = app_data.clone();
+                let teo_value = if ctx.length == 0 {
+                    TeoValue::Dictionary(IndexMap::new())
+                } else {
+                    let unknown: JsUnknown = ctx.get(0)?;
+                    js_any_to_teo_value(unknown, ctx.env.clone())?
+                };
+                let this: JsObject = ctx.this()?;
+                let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
+                let model_ctx_cloned = model_ctx.clone();
+                let promise = ctx.env.execute_tokio_future((|| async move {
+                    Ok(model_ctx_cloned.create_object(&teo_value).await.unwrap())
+                })(), move |env, object: model::Object| {
+                    let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                    dynamic_classes.teo_model_object_to_js_model_object_object(env.clone(), object)
+                })?;
+                Ok(promise)
+            }
+        })?;
+        class_prototype.set_named_property("createObject", create)?;
+        // count
+        let count = env.create_function_from_closure("count", {
+            let app_data = app_data.clone();
+            move |ctx| {
+                let app_data = app_data.clone();
+                let teo_value = if ctx.length == 0 {
+                    TeoValue::Dictionary(IndexMap::new())
+                } else {
+                    let unknown: JsUnknown = ctx.get(0)?;
+                    js_any_to_teo_value(unknown, ctx.env.clone())?
+                };
+                let this: JsObject = ctx.this()?;
+                let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
+                let model_ctx_cloned = model_ctx.clone();
+                let promise = ctx.env.execute_tokio_future((|| async move {
+                    Ok(model_ctx_cloned.count(&teo_value).await.unwrap())
+                })(), move |env, object: TeoValue| {
+                    let app_data = app_data.clone();
+                    let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                    teo_value_to_js_any(&dynamic_classes,&object, env)
+                })?;
+                Ok(promise)
+            }
+        })?;
+        class_prototype.set_named_property("count", count)?;
+        // aggregate
+        let aggregate = env.create_function_from_closure("aggregate", {
+            let app_data = app_data.clone();
+            move |ctx| {
+                let app_data = app_data.clone();
+                let teo_value = if ctx.length == 0 {
+                    TeoValue::Dictionary(IndexMap::new())
+                } else {
+                    let unknown: JsUnknown = ctx.get(0)?;
+                    js_any_to_teo_value(unknown, ctx.env.clone())?
+                };
+                let this: JsObject = ctx.this()?;
+                let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
+                let model_ctx_cloned = model_ctx.clone();
+                let promise = ctx.env.execute_tokio_future((|| async move {
+                    Ok(model_ctx_cloned.aggregate(&teo_value).await.unwrap())
+                })(), move |env, object: TeoValue| {
+                    let app_data = app_data.clone();
+                    let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                    teo_value_to_js_any(&dynamic_classes, &object, env)
+                })?;
+                Ok(promise)
+            }
+        })?;
+        class_prototype.set_named_property("aggregate", aggregate)?;
+        // groupBy
+        let group_by = env.create_function_from_closure("groupBy", {
+            let app_data = app_data.clone();
+            move |ctx| {
+                let app_data = app_data.clone();
+                let teo_value = if ctx.length == 0 {
+                    TeoValue::Dictionary(IndexMap::new())
+                } else {
+                    let unknown: JsUnknown = ctx.get(0)?;
+                    js_any_to_teo_value(unknown, ctx.env.clone())?
+                };
+                let this: JsObject = ctx.this()?;
+                let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
+                let model_ctx_cloned = model_ctx.clone();
+                let promise = ctx.env.execute_tokio_future((|| async move {
+                    Ok(model_ctx_cloned.group_by(&teo_value).await.unwrap())
+                })(), move |env, values: Vec<TeoValue>| {
+                    let app_data = app_data.clone();
+                    let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                    let mut array = env.create_array(values.len() as u32)?;
+                    for value in values {
+                        array.insert(teo_value_to_js_any(&dynamic_classes, &value, env)?)?;
+                    }
+                    Ok(array)
+                })?;
+                Ok(promise)
+            }
+        })?;
+        class_prototype.set_named_property("groupBy", group_by)?;
+        if namespace.database().is_some() && namespace.database().unwrap().is_sql() {
+            // sql
+            let sql = env.create_function_from_closure("sql", {
+                let app_data = app_data.clone();
+                move |ctx| {
+                    let app_data = app_data.clone();
+                    let sql_string: &str = ctx.get(0)?;
+                    let this: JsObject = ctx.this()?;
+                    let model_ctx: &mut model::Ctx = ctx.env.unwrap(&this)?;
+                    let model_ctx_cloned = model_ctx.clone();
+                    let promise = ctx.env.execute_tokio_future((|| async move {
+                        Ok(model_ctx_cloned.sql(sql_string).await.unwrap())
+                    })(), move |env, values: Vec<TeoValue>| {
+                        let app_data = app_data.clone();
+                        let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                        let mut array = env.create_array(values.len() as u32)?;
+                        for value in values {
+                            array.insert(teo_value_to_js_any(&dynamic_classes, &value, env)?)?;
+                        }
+                        Ok(array)
+                    })?;
+                    Ok(promise)
+                }
             })?;
             class_prototype.set_named_property("sql", sql)?;
         }
@@ -310,38 +345,48 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
         })?;
         object_prototype.set_named_property("delete", delete)?;
         // toTeon
-        let to_teon = env.create_function_from_closure("toTeon", move |ctx| {
-            let this: JsObject = ctx.this()?;
-            let object: &mut model::Object = ctx.env.unwrap(&this)?;
-            let object = object.clone();
-            let promise = ctx.env.execute_tokio_future((|| async move {
-                match object.to_teon().await {
-                    Ok(value) => Ok(value),
-                    Err(err) => Err(Error::from_reason(err.message())),
-                }
-            })(), move |env: &mut Env, value: TeoValue| {
-                Ok(teo_value_to_js_any(lookup_map, &value, env)?)
-            })?;
-            Ok(promise)
+        let to_teon = env.create_function_from_closure("toTeon", {
+            let app_data = app_data.clone();
+            move |ctx| {
+                let app_data = app_data.clone();
+                let this: JsObject = ctx.this()?;
+                let object: &mut model::Object = ctx.env.unwrap(&this)?;
+                let object = object.clone();
+                let promise = ctx.env.execute_tokio_future((|| async move {
+                    match object.to_teon().await {
+                        Ok(value) => Ok(value),
+                        Err(err) => Err(Error::from_reason(err.message())),
+                    }
+                })(), move |env: &mut Env, value: TeoValue| {
+                    let app_data = app_data.clone();
+                    let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                    Ok(teo_value_to_js_any(&dynamic_classes, &value, env)?)
+                })?;
+                Ok(promise)
+            }
         })?;
         object_prototype.set_named_property("toTeon", to_teon)?;
         // inspect
-        let inspect_func = env.create_function_from_closure("inspect", |ctx| {
-            let require: JsFunction = ctx.env.get_global()?.get_named_property("require")?;
-            let util = require.call(None, &[ctx.env.create_string("node:util").unwrap().into_unknown()])?.coerce_to_object()?;
-            let inspect: JsFunction = util.get_named_property("inspect")?;    
-            let this: JsObject = ctx.this()?;
-            let model_object: &mut model::Object = ctx.env.unwrap(&this)?;
-            let value_map = model_object.inner.value_map.lock().unwrap();
-            let mut object = ctx.env.create_object()?;
-            let lookup_map = JSClassLookupMap::from_app_data(model_object.namespace().app_data());
-            for (k, v) in value_map.iter() {
-                object.set_named_property(k.as_str(), teo_value_to_js_any(lookup_map, v, &ctx.env)?)?;
+        let inspect_func = env.create_function_from_closure("inspect", {
+            let app_data = app_data.clone();
+            move |ctx| {
+                let app_data = app_data.clone();
+                let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                let require: JsFunction = ctx.env.get_global()?.get_named_property("require")?;
+                let util = require.call(None, &[ctx.env.create_string("node:util").unwrap().into_unknown()])?.coerce_to_object()?;
+                let inspect: JsFunction = util.get_named_property("inspect")?;    
+                let this: JsObject = ctx.this()?;
+                let model_object: &mut model::Object = ctx.env.unwrap(&this)?;
+                let value_map = model_object.inner.value_map.lock().unwrap();
+                let mut object = ctx.env.create_object()?;
+                for (k, v) in value_map.iter() {
+                    object.set_named_property(k.as_str(), teo_value_to_js_any(&dynamic_classes, v, &ctx.env)?)?;
+                }
+                let inspect_options: JsObject = ctx.get(1)?;
+                let object_inspect: JsString = inspect.call(Some(&this), &[object, inspect_options])?.coerce_to_string()?;
+                let class_name = model_object.model().path().join(".") + " " + object_inspect.into_utf8()?.as_str()?;
+                Ok(ctx.env.create_string(&class_name)?)
             }
-            let inspect_options: JsObject = ctx.get(1)?;
-            let object_inspect: JsString = inspect.call(Some(&this), &[object, inspect_options])?.coerce_to_string()?;
-            let class_name = model_object.model().path().join(".") + " " + object_inspect.into_utf8()?.as_str()?;
-            Ok(ctx.env.create_string(&class_name)?)
         })?;
         let require: JsFunction = env.get_global()?.get_named_property("require")?;
         let util = require.call(None, &[env.create_string("node:util").unwrap().into_unknown()])?.coerce_to_object()?;
@@ -361,12 +406,15 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
         for field in model.fields().values() {
             let field_name = field.name().to_string();
             let property = Property::new(field_name.as_str())?.with_getter_closure({
+                let app_data = app_data.clone();
                 let field_name = field_name.clone();
                 move |env: Env, this: JsObject| {
                     let field_name = field_name.clone();
+                    let app_data = app_data.clone();
+                    let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
                     let object: &mut model::Object = env.unwrap(&this)?;
                     let value: TeoValue = object.get_value(field_name.as_str()).unwrap();
-                    Ok(teo_value_to_js_any(lookup_map, &value, &env)?)
+                    Ok(teo_value_to_js_any(&dynamic_classes, &value, &env)?)
                 }
             }).with_setter_closure({
                 let field_name = field_name.clone();
@@ -386,7 +434,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
                 // get
                 let get_relation = env.create_function_from_closure(&relation_name, {
                     let relation_name = relation_name.clone();
+                    let app_data = app_data.clone();
                     move |ctx: CallContext<'_>| {
+                        let app_data = app_data.clone();
                         let relation_name = relation_name.clone();
                         let teo_value = if ctx.length == 0 {
                             TeoValue::Dictionary(IndexMap::new())
@@ -403,9 +453,11 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
                                 Err(err) => Err(Error::from_reason(err.message())),
                             }
                         })(), move |env, objects| {
+                            let app_data = app_data.clone();
+                            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
                             let mut array = env.create_array_with_length(objects.len())?;
                             for (index, object) in objects.iter().enumerate() {
-                                array.set_element(index as u32, lookup_map.teo_model_object_to_js_model_object_object(env.clone(), object.clone())?)?;
+                                array.set_element(index as u32, &dynamic_classes.teo_model_object_to_js_model_object_object(env.clone(), object.clone())?)?;
                             }
                             Ok(array)
                         })?;
@@ -499,7 +551,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
                 let mut property = Property::new(&relation_name)?;
                 property = property.with_getter_closure({
                     let relation_name = relation_name.clone();
+                    let app_data = app_data.clone();
                     move |env: Env, this: JsObject| {
+                        let app_data = app_data.clone();
                         let relation_name = relation_name.clone();
                         let object: &mut model::Object = env.unwrap(&this)?;
                         let object = object.clone();
@@ -512,7 +566,9 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
                                 }    
                             }
                         })(), move |env, object: Option<model::Object>| {
-                            Ok(lookup_map.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)?.into_unknown())
+                            let app_data = app_data.clone();
+                            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                            Ok(dynamic_classes.teo_optional_model_object_to_js_optional_model_object_object(env.clone(), object)?.into_unknown())
                         })?;
                         Ok(promise)
                     }
@@ -580,21 +636,27 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
             }
             if model_property.getter().is_some() {
                 let mut property = Property::new(&property_name)?;
-                property = property.with_getter_closure(move |env: Env, this: JsObject| {
-                    let property_name = property_name.clone();
-                    let object: &mut model::Object = env.unwrap(&this)?;
-                    let object = object.clone();
-                    let promise = env.execute_tokio_future((move || {
-                        async move {
-                            match object.get_property_value(&property_name).await {
-                                Ok(v) => Ok(v),
-                                Err(err) => Err(Error::from_reason(err.message())),
-                            }    
-                        }
-                    })(), |env, v: TeoValue| {
-                        Ok(teo_value_to_js_any(lookup_map, &v, env))
-                    })?;
-                    Ok(promise)
+                property = property.with_getter_closure({
+                    let app_data = app_data.clone();
+                    move |env: Env, this: JsObject| {
+                        let app_data = app_data.clone();
+                        let property_name = property_name.clone();
+                        let object: &mut model::Object = env.unwrap(&this)?;
+                        let object = object.clone();
+                        let promise = env.execute_tokio_future((move || {
+                            async move {
+                                match object.get_property_value(&property_name).await {
+                                    Ok(v) => Ok(v),
+                                    Err(err) => Err(Error::from_reason(err.message())),
+                                }    
+                            }
+                        })(), move |env, v: TeoValue| {
+                            let app_data = app_data.clone();
+                            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                            Ok(teo_value_to_js_any(&dynamic_classes, &v, env))
+                        })?;
+                        Ok(promise)
+                    }
                 });
                 object_prototype.define_properties(&[property])?;
             }
@@ -603,37 +665,46 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
     for namespace in namespace.namespaces().values() {
         let namespace = namespace.clone();
         let namespace_name = namespace.path().join(".");
-        let _ = map.ctx_constructor_or_create(&namespace.path().join("."), env)?;
-        let ctx_property = Property::new(&namespace_name)?.with_getter_closure(move |env: Env, this: JsObject| {
-            let namespace_name = namespace.path().join(".");
-            let transaction_ctx: &mut transaction::Ctx = env.unwrap(&this)?;
-            lookup_map.teo_transaction_ctx_to_js_ctx_object(env, transaction_ctx.clone(), namespace_name.as_str())
+        let _ = dynamic_classes_builder.ctx_constructor_function_or_create(&namespace.path().join("."), env)?;
+        let ctx_property = Property::new(&namespace_name)?.with_getter_closure({
+            let app_data = app_data.clone();
+            move |env: Env, this: JsObject| {
+                let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                let namespace_name = namespace.path().join(".");
+                let transaction_ctx: &mut transaction::Ctx = env.unwrap(&this)?;
+                dynamic_classes.teo_transaction_ctx_to_js_ctx_object(env, transaction_ctx.clone(), namespace_name.as_str())
+            }
         });
         ctx_prototype.define_properties(&[ctx_property])?;
     }
-    let transaction = env.create_function_from_closure("transaction", move |ctx| {
-        let callback: JsFunction = ctx.get(0)?;
-        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
-            let js_ctx = lookup_map.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value, "")?;
-            Ok(vec![js_ctx])
-        })?;
-        let this: JsObject = ctx.this()?;
-        let teo_ctx: &mut transaction::Ctx = ctx.env.unwrap(&this)?;
-        let teo_ctx = teo_ctx.clone();
-        let promise = ctx.env.execute_tokio_future((move || {
-            let threadsafe_callback = threadsafe_callback.clone();
+    let transaction = env.create_function_from_closure("transaction", {
+        let app_data = app_data.clone();
+        move |ctx| {
+            let app_data = app_data.clone();
+            let callback: JsFunction = ctx.get(0)?;
+            let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+                let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
+                let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value, "")?;
+                Ok(vec![js_ctx])
+            })?;
+            let this: JsObject = ctx.this()?;
+            let teo_ctx: &mut transaction::Ctx = ctx.env.unwrap(&this)?;
             let teo_ctx = teo_ctx.clone();
-            async move {
-                let result = teo_ctx.run_transaction(|teo: transaction::Ctx| async {
-                    let retval: SendJsUnknownOrPromise = threadsafe_callback.call_async(teo).await?;
-                    Ok(retval.to_send_js_unknown().await)
-                }).await?;
-                result    
-            }
-        })(), |_: &mut Env, unknown: SendJsUnknown| {
-            Ok(unknown.inner)
-        })?;
-        Ok(promise)
+            let promise = ctx.env.execute_tokio_future((move || {
+                let threadsafe_callback = threadsafe_callback.clone();
+                let teo_ctx = teo_ctx.clone();
+                async move {
+                    let result = teo_ctx.run_transaction(|teo: transaction::Ctx| async {
+                        let retval: SendJsUnknownOrPromise = threadsafe_callback.call_async(teo).await?;
+                        Ok(retval.to_send_js_unknown().await)
+                    }).await?;
+                    result    
+                }
+            })(), |_: &mut Env, unknown: SendJsUnknown| {
+                Ok(unknown.inner)
+            })?;
+            Ok(promise)
+        }
     })?;
     ctx_prototype.set_named_property("transaction", transaction)?;
     Ok(())

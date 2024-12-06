@@ -1,3 +1,5 @@
+use std::thread;
+
 use napi::bindgen_prelude::block_on;
 use napi::{Error, JsFunction, Result};
 use napi::threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, ThreadsafeFunction};
@@ -172,10 +174,12 @@ impl Namespace {
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
             let threadsafe_creator = threadsafe_creator.clone();
-            let item = block_on(async move {
-                let item: PipelineItemImp = threadsafe_creator.call_async(Ok(arguments)).await?;
-                Ok::<PipelineItemImp, Error>(item)
-            })?;
+            let item = thread::spawn(|| {
+                block_on(async move {
+                    let item: PipelineItemImp = threadsafe_creator.call_async(Ok(arguments)).await?;
+                    Ok::<PipelineItemImp, Error>(item)
+                })
+            }).join().expect("Thread panicked")?;
             Ok(move |ctx: pipeline::Ctx| {
                 let item = item.clone();
                 async move {
@@ -201,10 +205,12 @@ impl Namespace {
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
             let threadsafe_creator = threadsafe_creator.clone();
-            let item = block_on(async move {
-                let item: PipelineItemImp = threadsafe_creator.call_async(Ok(arguments)).await?;
-                Ok::<PipelineItemImp, Error>(item)
-            })?;
+            let item = thread::spawn(|| {
+                block_on(async move {
+                    let item: PipelineItemImp = threadsafe_creator.call_async(Ok(arguments)).await?;
+                    Ok::<PipelineItemImp, Error>(item)
+                })
+            }).join().expect("Thread panicked")?;
             Ok(move |ctx: pipeline::Ctx| {
                 let item = item.clone();
                 async move {
@@ -233,10 +239,12 @@ impl Namespace {
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
             let threadsafe_creator = threadsafe_creator.clone();
-            let item = block_on(async move {
-                let item: PipelineItemImp = threadsafe_creator.call_async(Ok(arguments)).await?;
-                Ok::<PipelineItemImp, Error>(item)
-            })?;
+            let item = thread::spawn(|| {
+                block_on(async move {
+                    let item: PipelineItemImp = threadsafe_creator.call_async(Ok(arguments)).await?;
+                    Ok::<PipelineItemImp, Error>(item)
+                })
+            }).join().expect("Thread panicked")?;
             Ok(move |ctx: pipeline::Ctx| {
                 let item = item.clone();
                 async move {
@@ -257,10 +265,12 @@ impl Namespace {
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
             let threadsafe_creator = threadsafe_creator.clone();
-            let item = block_on(async move {
-                let item: PipelineCompareItemImp = threadsafe_creator.call_async(Ok(arguments)).await?;
-                Ok::<PipelineCompareItemImp, Error>(item)
-            })?;
+            let item = thread::spawn(|| {
+                block_on(async move {
+                    let item: PipelineCompareItemImp = threadsafe_creator.call_async(Ok(arguments)).await?;
+                    Ok::<PipelineCompareItemImp, Error>(item)
+                })
+            }).join().expect("Thread panicked")?;
             Ok(move |ctx: pipeline::Ctx| {
                 let item = item.clone();
                 async move {

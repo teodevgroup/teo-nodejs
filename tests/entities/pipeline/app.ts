@@ -15,7 +15,7 @@ export default function loadApp() {
         const dateOnly: DateOnly = ctx.value
         const date = new Date(dateOnly.toString())
         date.setDate(date.getDate() + 1)
-        return date.toISOString().slice(0, 10)
+        return new DateOnly(date.toISOString().slice(0, 10))
     })
     app.mainNamespace().defineTransformPipelineItemFunction("transformDateTime", (ctx) => {
         const date: Date = ctx.value
@@ -43,7 +43,7 @@ export default function loadApp() {
     app.mainNamespace().defineTransformPipelineItemFunction("transformDateArray", (ctx) => ctx.value.map((dateOnly: DateOnly) => {
         const date = new Date(dateOnly.toString())
         date.setDate(date.getDate() + 1)
-        return date.toISOString().slice(0, 10)
+        return new DateOnly(date.toISOString().slice(0, 10))
     }))
     app.mainNamespace().defineTransformPipelineItemFunction("transformDateTimeArray", (ctx) => ctx.value.map((date: Date) => {
         date.setDate(date.getDate() + 1)
@@ -110,7 +110,7 @@ export default function loadApp() {
     app.main.defineCallbackPipelineItemFunction("boolCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
     app.main.defineCallbackPipelineItemFunction("stringCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
     app.main.defineCallbackPipelineItemFunction("dateCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
-    app.main.defineCallbackPipelineItemFunction("dateTimeCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
+    app.main.defineCallbackPipelineItemFunction("dateTimeCallback", (ctx) => { ctx.object.message = `${ctx.value.toISOString()}` })
     app.main.defineCallbackPipelineItemFunction("decimalCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
     app.main.defineCallbackPipelineItemFunction("statusCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
     app.main.defineCallbackPipelineItemFunction("int32ArrayCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
@@ -120,7 +120,7 @@ export default function loadApp() {
     app.main.defineCallbackPipelineItemFunction("boolArrayCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
     app.main.defineCallbackPipelineItemFunction("stringArrayCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
     app.main.defineCallbackPipelineItemFunction("dateArrayCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
-    app.main.defineCallbackPipelineItemFunction("dateTimeArrayCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
+    app.main.defineCallbackPipelineItemFunction("dateTimeArrayCallback", (ctx) => { ctx.object.message = `${ctx.value.map((d: Date) => d.toISOString())}` })
     app.main.defineCallbackPipelineItemFunction("decimalArrayCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
     app.main.defineCallbackPipelineItemFunction("statusArrayCallback", (ctx) => { ctx.object.message = `${ctx.value}` })
     app.main.defineComparePipelineItemFunction("compareInt32", (oldValue: number, newValue: number) => oldValue !== newValue)

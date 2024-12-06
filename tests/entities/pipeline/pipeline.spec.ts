@@ -597,7 +597,7 @@ test('alter int32 array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "int32Array": [5, 5, 5, 5]
+            "int32Array": [5, 5, 5, 5, 5]
         }),
     }))
 })
@@ -616,7 +616,7 @@ test('alter int64 array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "int64Array": [5, 5, 5, 5]
+            "int64Array": [5, 5, 5, 5, 5]
         }),
     }))
 })
@@ -635,7 +635,7 @@ test('alter float32 array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "float32Array": [5.5, 5.5, 5.5, 5.5]
+            "float32Array": [5.5, 5.5, 5.5, 5.5, 5.5]
         }),
     }))
 })
@@ -654,7 +654,7 @@ test('alter float64 array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "float64Array": [5.5, 5.5, 5.5, 5.5]
+            "float64Array": [5.5, 5.5, 5.5, 5.5, 5.5]
         }),
     }))
 })
@@ -673,7 +673,7 @@ test('alter bool array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "boolArray": [true, true, true, true]
+            "boolArray": [true, false, true, false, true]
         }),
     }))
 })
@@ -692,7 +692,7 @@ test('alter string array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "stringArray": ['Flower', 'Flower', 'Flower', 'Flower']
+            "stringArray": ["Sing", "Dance", "Gift"]
         }),
     }))
 })
@@ -749,7 +749,7 @@ test('alter decimal array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "decimalArray": [decimalValue('5'), decimalValue('5'), decimalValue('5'), decimalValue('5')]
+            "decimalArray": [decimalValue('5'), decimalValue('5'), decimalValue('5'), decimalValue('5'), decimalValue('5')]
         }),
     }))
 })
@@ -768,7 +768,7 @@ test('alter status array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "statusArray": ['done', 'done', 'done', 'done']
+            "statusArray": ["open", "inProgress", "pending", "waitingForReview", "done"]
         }),
     }))
 })
@@ -825,7 +825,7 @@ test('callback float32', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "1.0"
+            "message": "1"
         }),
     }))
 })
@@ -844,7 +844,7 @@ test('callback float64', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "1.0"
+            "message": "1"
         }),
     }))
 })
@@ -863,7 +863,7 @@ test('callback bool', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "False"
+            "message": "false"
         }),
     }))
 })
@@ -920,7 +920,7 @@ test('callback date time', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "2024-11-29 14:49:13.498000+00:00"
+            "message": "2024-11-29T14:49:13.498Z"
         }),
     }))
 })
@@ -977,7 +977,7 @@ test('callback int32 array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "[1, 1]"
+            "message": "1,1"
         }),
     }))
 })
@@ -996,7 +996,7 @@ test('callback int64 array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "[1, 1]"
+            "message": "1,1"
         }),
     }))
 })
@@ -1015,7 +1015,7 @@ test('callback float32 array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "[1.0, 1.0]"
+            "message": "1,1"
         }),
     }))
 })
@@ -1034,7 +1034,7 @@ test('callback float64 array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "[1.0, 1.0]"
+            "message": "1,1"
         }),
     }))
 })
@@ -1053,7 +1053,7 @@ test('callback bool array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "[False, False]"
+            "message": "false,false"
         }),
     }))
 })
@@ -1072,7 +1072,7 @@ test('callback string array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "[Love, Love]"
+            "message": 'Love,Love'
         }),
     }))
 })
@@ -1091,7 +1091,7 @@ test('callback date array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "[2005-06-01, 2005-06-01]"
+            "message": "2005-06-01,2005-06-01"
         }),
     }))
 })
@@ -1110,7 +1110,7 @@ test('callback date time array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "[2024-11-29 14:49:13.498000+00:00, 2024-11-29 14:49:13.498000+00:00]"
+            "message": "2024-11-29T14:49:13.498Z,2024-11-29T14:49:13.498Z"
         }),
     }))
 })
@@ -1129,7 +1129,7 @@ test('callback decimal array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "[1, 1]"
+            "message": "1,1"
         }),
     }))
 })
@@ -1148,7 +1148,7 @@ test('callback status array', async (t) => {
     t.notThrows(() => matchJsonValue(response.bodyAsJson(), {
         "data": partial({
             "id": ignore,
-            "message": "[open, open]"
+            "message": "open,open"
         }),
     }))
 })

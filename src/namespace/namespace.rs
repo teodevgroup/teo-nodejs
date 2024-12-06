@@ -310,31 +310,31 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineHandlerGroup", ts_args_type = "name: string, callback: (group: HandlerGroup) => void")]
-    pub fn define_handler_group(&self, name: String, callback: JsFunction) -> Result<()> {
-        let threadsafe_callback: ThreadsafeFunction<HandlerGroup, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<HandlerGroup>| {
+    #[napi(js_name = "_defineHandlerGroup", ts_args_type = "name: string, callback: (group: HandlerGroup) => void")]
+    pub fn _define_handler_group(&self, name: String, callback: JsFunction) -> Result<()> {
+        let threadsafe_callback: ThreadsafeFunction<HandlerGroup, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<HandlerGroup>| {
             let handler_group = ctx.value;
             Ok(vec![handler_group])
         })?;
         self.builder.define_handler_group(name.as_str(), move |teo_handler_group: &handler::group::Builder| {
             let threadsafe_callback = threadsafe_callback.clone();
             let handler_group = HandlerGroup { builder: teo_handler_group.clone() };
-            let _ = threadsafe_callback.call(handler_group, napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+            let _ = threadsafe_callback.call(Ok(handler_group), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         })?;
         Ok(())
     }
 
-    #[napi(js_name = "defineModelHandlerGroup", ts_args_type = "name: string, callback: (group: HandlerGroup) => void")]
-    pub fn define_model_handler_group(&self, name: String, callback: JsFunction) -> Result<()> {
-        let threadsafe_callback: ThreadsafeFunction<HandlerGroup, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<HandlerGroup>| {
+    #[napi(js_name = "_defineModelHandlerGroup", ts_args_type = "name: string, callback: (group: HandlerGroup) => void")]
+    pub fn _define_model_handler_group(&self, name: String, callback: JsFunction) -> Result<()> {
+        let threadsafe_callback: ThreadsafeFunction<HandlerGroup, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, |ctx: ThreadSafeCallContext<HandlerGroup>| {
             let handler_group = ctx.value;
             Ok(vec![handler_group])
         })?;
         self.builder.define_model_handler_group(name.as_str(), move |teo_handler_group: &handler::group::Builder| {
             let threadsafe_callback = threadsafe_callback.clone();
             let handler_group = HandlerGroup { builder: teo_handler_group.clone() };
-            let _ = threadsafe_callback.call(handler_group, napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+            let _ = threadsafe_callback.call(Ok(handler_group), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         })?;
         Ok(())

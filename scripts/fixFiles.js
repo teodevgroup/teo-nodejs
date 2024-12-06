@@ -215,7 +215,22 @@ Namespace.prototype.defineEnumMemberDecorator = function(name, callback) {
     return callback(arg)
   })
 }
-
+Namespace.prototype.defineHandlerGroup = function(name, callback) {
+  this._defineHandlerGroup(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineModelHandlerGroup = function(name, callback) {
+  this._defineModelHandlerGroup(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")

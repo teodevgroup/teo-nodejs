@@ -476,6 +476,21 @@ TestServer.prototype.setup = async function() {
   await this._setup_0()
   this._setup_1()
 }
+Object.defineProperty(Response.prototype, 'text', {
+  get() {
+      return this.getText()
+  }
+})
+Object.defineProperty(Response.prototype, 'teon', {
+  get() {
+      return this.getTeon()
+  }
+})
+Object.defineProperty(Response.prototype, 'file', {
+  get() {
+      return this.getFile()
+  }
+})
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")

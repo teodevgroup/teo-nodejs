@@ -218,9 +218,9 @@ export declare class Response {
   get isText(): boolean
   get isEmpty(): boolean
   get isTeon(): boolean
-  getText(): string | null
-  getTeon(): any | null
-  getFile(): string | null
+  get text(): string | null
+  get teon(): any | null
+  get file(): string | null
   get cookies(): Cookies
 }
 export declare class EnumMember {

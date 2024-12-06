@@ -136,6 +136,21 @@ TestServer.prototype.setup = async function() {
   await this._setup_0()
   this._setup_1()
 }
+Object.defineProperty(Response.prototype, 'text', {
+  get() {
+      return this.getText()
+  }
+})
+Object.defineProperty(Response.prototype, 'teon', {
+  get() {
+      return this.getTeon()
+  }
+})
+Object.defineProperty(Response.prototype, 'file', {
+  get() {
+      return this.getFile()
+  }
+})
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")
@@ -200,6 +215,11 @@ function fixIndexDTs(filename) {
   content = content.replace("_run(): Promise<void>", `_run(): Promise<void>
   /** Run this app. */
   run(): Promise<void>`)
+  .replace(`  getText(): string | null
+  getTeon(): any | null
+  getFile(): string | null`, `  get text(): string | null
+  get teon(): any | null
+  get file(): string | null`)
   .replace("map(callback: (cookie: Cookie) => T): T[]", "map<T>(callback: (cookie: Cookie) => T): T[]")
   .replaceAll("_defineHandler", "defineHandler")
   .replaceAll("_definePipelineItem", "definePipelineItem")

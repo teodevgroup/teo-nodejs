@@ -11,8 +11,17 @@ export default function loadApp() {
     app.mainNamespace().defineTransformPipelineItemFunction("transformFloat64", (ctx) => ctx.value * 10.0)
     app.mainNamespace().defineTransformPipelineItemFunction("transformBool", (ctx) => !ctx.value)
     app.mainNamespace().defineTransformPipelineItemFunction("transformString", (ctx) => `*${ctx.value}*`)
-    app.mainNamespace().defineTransformPipelineItemFunction("transformDate", (ctx) => ctx.value.addDays(1))
-    app.mainNamespace().defineTransformPipelineItemFunction("transformDateTime", (ctx) => ctx.value.addDays(1))
+    app.mainNamespace().defineTransformPipelineItemFunction("transformDate", (ctx) => {
+        const dateOnly: DateOnly = ctx.value
+        const date = new Date(dateOnly.toString())
+        date.setDate(date.getDate() + 1)
+        return date.toISOString().slice(0, 10)
+    })
+    app.mainNamespace().defineTransformPipelineItemFunction("transformDateTime", (ctx) => {
+        const date: Date = ctx.value
+        date.setDate(date.getDate() + 1)
+        return date
+    })
     app.mainNamespace().defineTransformPipelineItemFunction("transformDecimal", (ctx) => new Decimal(ctx.value).times(10))
     app.mainNamespace().defineTransformPipelineItemFunction("transformStatus", (ctx) => {
         const status: Status = ctx.value
@@ -31,8 +40,15 @@ export default function loadApp() {
     app.mainNamespace().defineTransformPipelineItemFunction("transformFloat64Array", (ctx) => ctx.value.map((v: number) => v * 10.0))
     app.mainNamespace().defineTransformPipelineItemFunction("transformBoolArray", (ctx) => ctx.value.map((v: boolean) => !v))
     app.mainNamespace().defineTransformPipelineItemFunction("transformStringArray", (ctx) => ctx.value.map((v: string) => `*${v}*`))
-    app.mainNamespace().defineTransformPipelineItemFunction("transformDateArray", (ctx) => ctx.value.map((v: DateOnly) => v.addDays(1)))
-    app.mainNamespace().defineTransformPipelineItemFunction("transformDateTimeArray", (ctx) => ctx.value.map((v: Date) => v.addDays(1)))
+    app.mainNamespace().defineTransformPipelineItemFunction("transformDateArray", (ctx) => ctx.value.map((dateOnly: DateOnly) => {
+        const date = new Date(dateOnly.toString())
+        date.setDate(date.getDate() + 1)
+        return date.toISOString().slice(0, 10)
+    }))
+    app.mainNamespace().defineTransformPipelineItemFunction("transformDateTimeArray", (ctx) => ctx.value.map((date: Date) => {
+        date.setDate(date.getDate() + 1)
+        return date
+    }))
     app.mainNamespace().defineTransformPipelineItemFunction("transformDecimalArray", (ctx) => ctx.value.map((v: Decimal) => v.times(10)))
     app.mainNamespace().defineTransformPipelineItemFunction("transformStatusArray", (ctx) => {
         const mapper = (value: Status): Status => {

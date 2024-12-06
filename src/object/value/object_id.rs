@@ -1,28 +1,24 @@
-use napi::{Env, JsUnknown, Result};
+use napi::{Error, Result};
 use bson::oid::ObjectId as BsonObjectId;
 
 #[napi(js_name = "ObjectId")]
 pub struct ObjectId {
-    pub(crate) value: BsonObjectId,
+    pub(crate) original: BsonObjectId,
 }
-
 
 #[napi]
 impl ObjectId {
 
-    #[napi]
-    pub fn to_string(&self) -> String {
-        self.value.to_hex()
+    #[napi(constructor)]
+    pub fn new(value: String) -> Result<Self> {
+        match BsonObjectId::parse_str(&value) {
+            Ok(value) => Ok(Self { original: value }),
+            Err(_) => Err(Error::from_reason("string doesn't represent valid ObjectId")),
+        }
     }
 
     #[napi]
-    pub fn from_string(string: String, env: Env) -> Result<JsUnknown> {
-        match BsonObjectId::parse_str(&string) {
-            Ok(value) => Ok(Self { value }.into_instance(env)?.as_object(env).into_unknown()),
-            Err(_) => {
-                env.throw_type_error("string doesn't represent valid ObjectId", None)?;
-                Ok(env.get_undefined()?.into_unknown())
-            }
-        }
+    pub fn to_string(&self) -> String {
+        self.original.to_hex()
     }
 }

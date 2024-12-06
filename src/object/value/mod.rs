@@ -34,7 +34,7 @@ pub fn teo_value_to_js_any_no_map(value: &Value, env: &Env) -> Result<JsUnknown>
             decimal_js.call(None, &[env.create_string(&decimal_string)?])?
         },
         Value::ObjectId(object_id) => {
-            let instance = ObjectId { value: object_id.clone() }.into_instance(*env)?;
+            let instance = ObjectId { original: object_id.clone() }.into_instance(*env)?;
             instance.as_object(*env).into_unknown()
         }
         Value::String(string) => env.create_string(string)?.into_unknown(),

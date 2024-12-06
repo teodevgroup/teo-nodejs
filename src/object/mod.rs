@@ -75,7 +75,7 @@ pub fn js_any_to_teo_value(any: JsUnknown, env: Env) -> Result<Value> {
                 // test for object id
                 if ObjectId::instance_of(env, &object)? {
                     let object_id: &ObjectId = unsafe { ObjectId::from_napi_ref(env.raw(), object.raw())? };
-                    return Ok(TeoValue::ObjectId(object_id.value.clone()));
+                    return Ok(TeoValue::ObjectId(object_id.original.clone()));
                 }
                 // test for date only
                 if DateOnly::instance_of(env, &object)? {

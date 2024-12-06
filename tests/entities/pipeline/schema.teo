@@ -8,7 +8,7 @@ server {
 }
 
 entity {
-  provider: .python,
+  provider: .node,
   dest: DIR + "entities"
 }
 

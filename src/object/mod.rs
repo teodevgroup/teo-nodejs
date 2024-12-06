@@ -29,12 +29,12 @@ pub fn js_any_to_teo_value(any: JsUnknown, env: Env) -> Result<Value> {
         ValueType::Boolean => TeoValue::Bool(any.coerce_to_bool()?.get_value().unwrap()),
         ValueType::Number => {
             let js_number = any.coerce_to_number()?;
-            if let Ok(n) = js_number.get_int32() {
+            if let Ok(n) = js_number.get_double() {
+                TeoValue::Float(n)
+            } else if let Ok(n) = js_number.get_int32() {
                 TeoValue::Int(n)
-            } else if let Ok(n) = js_number.get_int64() {
-                TeoValue::Int64(n)
-            } else if let Ok(f) = js_number.get_double() {
-                TeoValue::Float(f)
+            } else if let Ok(f) = js_number.get_int64() {
+                TeoValue::Int64(f)
             } else {
                 Err(Error::new(Status::Unknown, "cannot convert number value to teon number"))?
             }

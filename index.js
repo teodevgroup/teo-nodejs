@@ -491,6 +491,71 @@ Object.defineProperty(Response.prototype, 'file', {
       return this.getFile()
   }
 })
+App.prototype.setup = function(callback) {
+  this._setup(function(e, teo) {
+    if (e != null) {
+      throw e
+    }
+    return callback(teo)
+  })
+}
+App.prototype.program = function(callback) {
+  this._program(function(e, teo) {
+    if (e != null) {
+      throw e
+    }
+    return callback(teo)
+  })
+}
+Namespace.prototype.defineModelDecorator = function(name, callback) {
+  this._defineModelDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineModelFieldDecorator = function(name, callback) {
+  this._defineModelFieldDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineModelRelationDecorator = function(name, callback) {
+  this._defineModelRelationDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineModelPropertyDecorator = function(name, callback) {
+  this._defineModelPropertyDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineEnumDecorator = function(name, callback) {
+  this._defineEnumDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineEnumMemberDecorator = function(name, callback) {
+  this._defineEnumMemberDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")

@@ -76,91 +76,91 @@ impl Namespace {
         }
     }
 
-    #[napi(js_name = "defineModelDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, model: Model) => void")]
-    pub fn define_model_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::Builder)>| {
+    #[napi(js_name = "_defineModelDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, model: Model) => void")]
+    pub fn _define_model_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::Builder), ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::Builder)>| {
             let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = Model { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         self.builder.define_model_decorator(name.as_str(), move |arguments, model| {
             let threadsafe_callback = threadsafe_callback.clone();
-            let _ = threadsafe_callback.call((arguments, model.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+            let _ = threadsafe_callback.call(Ok((arguments, model.clone())), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
     }
 
-    #[napi(js_name = "defineModelFieldDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, field: Field) => void")]
-    pub fn define_model_field_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::field::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, field::Builder)>| {
+    #[napi(js_name = "_defineModelFieldDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, field: Field) => void")]
+    pub fn _define_model_field_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::field::Builder), ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, field::Builder)>| {
             let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = Field { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         self.builder.define_model_field_decorator(name.as_str(), move |arguments, field| {
             let threadsafe_callback = threadsafe_callback.clone();
-            let _ = threadsafe_callback.call((arguments, field.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+            let _ = threadsafe_callback.call(Ok((arguments, field.clone())), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
     }
 
-    #[napi(js_name = "defineModelRelationDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, relation: Relation) => void")]
-    pub fn define_model_relation_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::relation::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::relation::Builder)>| {
+    #[napi(js_name = "_defineModelRelationDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, relation: Relation) => void")]
+    pub fn _define_model_relation_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::relation::Builder), ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::relation::Builder)>| {
             let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = Relation { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         self.builder.define_model_relation_decorator(name.as_str(), move |arguments, relation_builder| {
             let threadsafe_callback = threadsafe_callback.clone();
-            let _ = threadsafe_callback.call((arguments, relation_builder.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+            let _ = threadsafe_callback.call(Ok((arguments, relation_builder.clone())), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
     }
 
-    #[napi(js_name = "defineModelPropertyDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, property: Property) => void")]
-    pub fn define_model_property_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::property::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::property::Builder)>| {
+    #[napi(js_name = "_defineModelPropertyDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, property: Property) => void")]
+    pub fn _define_model_property_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::property::Builder), ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::property::Builder)>| {
             let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = Property { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         self.builder.define_model_property_decorator(name.as_str(), move |arguments, property_builder| {
             let threadsafe_callback = threadsafe_callback.clone();
-            let _ = threadsafe_callback.call((arguments, property_builder.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+            let _ = threadsafe_callback.call(Ok((arguments, property_builder.clone())), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
     }
 
-    #[napi(js_name = "defineEnumDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, e: Enum) => void")]
-    pub fn define_enum_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, r#enum::Builder)>| {
+    #[napi(js_name = "_defineEnumDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, e: Enum) => void")]
+    pub fn _define_enum_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::Builder), ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, r#enum::Builder)>| {
             let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = Enum { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         self.builder.define_enum_decorator(name.as_str(), move |arguments, enum_builder| {
             let threadsafe_callback = threadsafe_callback.clone();
-            let _ = threadsafe_callback.call((arguments, enum_builder.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+            let _ = threadsafe_callback.call(Ok((arguments, enum_builder.clone())), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())
     }
 
-    #[napi(js_name = "defineEnumMemberDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, member: EnumMember) => void")]
-    pub fn define_enum_member_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::member::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, r#enum::member::Builder)>| {
+    #[napi(js_name = "_defineEnumMemberDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, member: EnumMember) => void")]
+    pub fn _define_enum_member_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
+        let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::member::Builder), ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, r#enum::member::Builder)>| {
             let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = EnumMember { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
         self.builder.define_enum_member_decorator(name.as_str(), move |arguments, enum_member_builder| {
             let threadsafe_callback = threadsafe_callback.clone();
-            let _ = threadsafe_callback.call((arguments, enum_member_builder.clone()), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
+            let _ = threadsafe_callback.call(Ok((arguments, enum_member_builder.clone())), napi::threadsafe_function::ThreadsafeFunctionCallMode::Blocking);
             Ok(())
         });
         Ok(())

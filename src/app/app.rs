@@ -87,10 +87,10 @@ impl App {
     }
 
     /// Run before server is started.
-    #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
-    pub fn setup(&self, callback: JsFunction) -> Result<()> {
+    #[napi(js_name = "_setup", ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
+    pub fn _setup(&self, callback: JsFunction) -> Result<()> {
         let app_data = self.original.app_data().clone();
-        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let app_data = app_data.clone();
             let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
             let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
@@ -99,7 +99,7 @@ impl App {
         self.original.setup(move |ctx: transaction::Ctx| {
             let threadsafe_callback = threadsafe_callback.clone();
             async move {
-                let promise_or_ignore: PromiseOrIgnore = threadsafe_callback.call_async(ctx).await?;
+                let promise_or_ignore: PromiseOrIgnore = threadsafe_callback.call_async(Ok(ctx)).await?;
                 Ok(promise_or_ignore.to_ignore().await?)    
             }
         });
@@ -107,10 +107,10 @@ impl App {
     }
 
     /// Define a custom program.
-    #[napi(ts_args_type = "name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>")]
-    pub fn program(&self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
+    #[napi(js_name = "_program", ts_args_type = "name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>")]
+    pub fn _program(&self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
         let app_data = self.original.app_data().clone();
-        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+        let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
             let app_data = app_data.clone();
             let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
             let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
@@ -119,7 +119,7 @@ impl App {
         self.original.program(name.as_str(), desc, move |ctx: transaction::Ctx| {
             let threadsafe_callback = threadsafe_callback.clone();
             async move {
-                let promise_or_ignore: PromiseOrIgnore = threadsafe_callback.call_async(ctx).await?;
+                let promise_or_ignore: PromiseOrIgnore = threadsafe_callback.call_async(Ok(ctx)).await?;
                 Ok(promise_or_ignore.to_ignore().await?)    
             }
         });

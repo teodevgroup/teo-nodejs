@@ -151,6 +151,71 @@ Object.defineProperty(Response.prototype, 'file', {
       return this.getFile()
   }
 })
+App.prototype.setup = function(callback) {
+  this._setup(function(e, teo) {
+    if (e != null) {
+      throw e
+    }
+    return callback(teo)
+  })
+}
+App.prototype.program = function(callback) {
+  this._program(function(e, teo) {
+    if (e != null) {
+      throw e
+    }
+    return callback(teo)
+  })
+}
+Namespace.prototype.defineModelDecorator = function(name, callback) {
+  this._defineModelDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineModelFieldDecorator = function(name, callback) {
+  this._defineModelFieldDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineModelRelationDecorator = function(name, callback) {
+  this._defineModelRelationDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineModelPropertyDecorator = function(name, callback) {
+  this._defineModelPropertyDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineEnumDecorator = function(name, callback) {
+  this._defineEnumDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineEnumMemberDecorator = function(name, callback) {
+  this._defineEnumMemberDecorator(function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")
@@ -221,6 +286,14 @@ function fixIndexDTs(filename) {
   get teon(): any | null
   get file(): string | null`)
   .replace("map(callback: (cookie: Cookie) => T): T[]", "map<T>(callback: (cookie: Cookie) => T): T[]")
+  .replace("_setup", "setup")
+  .replace("_program", "program")
+  .replace("_defineModelDecorator", "defineModelDecorator")
+  .replace("_defineModelFieldDecorator", "defineModelFieldDecorator")
+  .replace("_defineModelRelationDecorator", "defineModelRelationDecorator")
+  .replace("_defineModelPropertyDecorator", "defineModelPropertyDecorator")
+  .replace("_defineEnumDecorator", "defineEnumDecorator")
+  .replace("_defineEnumMemberDecorator", "defineEnumMemberDecorator")
   .replaceAll("_defineHandler", "defineHandler")
   .replaceAll("_definePipelineItem", "definePipelineItem")
   .replaceAll("_defineTransformPipelineItem", "defineTransformPipelineItem")

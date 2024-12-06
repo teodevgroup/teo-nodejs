@@ -33,8 +33,8 @@ pub fn js_any_to_teo_value(any: JsUnknown, env: Env) -> Result<Value> {
                 TeoValue::Float(n)
             } else if let Ok(n) = js_number.get_int32() {
                 TeoValue::Int(n)
-            } else if let Ok(f) = js_number.get_int64() {
-                TeoValue::Int64(f)
+            } else if let Ok(n) = js_number.get_int64() {
+                TeoValue::Int64(n)
             } else {
                 Err(Error::new(Status::Unknown, "cannot convert number value to teon number"))?
             }

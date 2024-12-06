@@ -218,8 +218,8 @@ export declare class Response {
   get isText(): boolean
   get isEmpty(): boolean
   get isTeon(): boolean
-  text(): string | null
-  getTeon(): any
+  getText(): string | null
+  getTeon(): any | null
   getFile(): string | null
   get cookies(): Cookies
 }

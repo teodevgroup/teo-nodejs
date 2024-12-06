@@ -116,12 +116,12 @@ impl Response {
         self.original.body().is_teon()
     }
 
-    #[napi(js_name = "text")]
+    #[napi]
     pub fn get_text(&self) -> Option<String> {
         self.original.body().as_text().cloned()
     }
 
-    #[napi(ts_return_type = "any")]
+    #[napi(ts_return_type = "any | null")]
     pub fn get_teon(&self, env: Env) -> Result<JsUnknown> {
         Ok(match self.original.body().as_teon() {
             None => env.get_undefined()?.into_unknown(),

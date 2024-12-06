@@ -89,9 +89,10 @@ impl App {
     /// Run before server is started.
     #[napi(ts_args_type = "callback: (ctx: any) => void | Promise<void>")]
     pub fn setup(&self, callback: JsFunction) -> Result<()> {
-        let dynamic_classes = DynamicClasses::retrieve(self.original.app_data())?;
+        let app_data = self.original.app_data().clone();
         let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
-            let dynamic_classes = dynamic_classes.clone();
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
             let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
         })?;
@@ -108,9 +109,10 @@ impl App {
     /// Define a custom program.
     #[napi(ts_args_type = "name: string, desc: string | undefined, callback: (ctx: any) => void | Promise<void>")]
     pub fn program(&self, name: String, desc: Option<String>, callback: JsFunction) -> Result<()> {
-        let dynamic_classes = DynamicClasses::retrieve(self.original.app_data())?;
+        let app_data = self.original.app_data().clone();
         let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
-            let dynamic_classes = dynamic_classes.clone();
+            let app_data = app_data.clone();
+            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
             let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value.clone(), "")?;
             Ok(vec![js_ctx])
         })?;

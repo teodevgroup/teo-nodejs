@@ -17,7 +17,7 @@ use crate::model::relation::relation::Relation;
 use crate::model::field::field::Field;
 use crate::model::property::property::Property;
 use crate::object::promise::TeoValueOrPromise;
-use crate::object::arguments::teo_args_to_js_args;
+use crate::object::arguments::{teo_args_to_js_args, teo_args_to_js_args_no_map};
 use crate::r#enum::member::member::EnumMember;
 use crate::r#enum::r#enum::Enum;
 use crate::request::Request;
@@ -184,11 +184,8 @@ impl Namespace {
 
     #[napi(js_name = "_definePipelineItem", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => any | Promise<any>")]
     pub fn _define_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
+            let js_args = teo_args_to_js_args_no_map(&ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
@@ -216,11 +213,8 @@ impl Namespace {
 
     #[napi(js_name = "_defineValidatorPipelineItem", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>")]
     pub fn _define_validator_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
+            let js_args = teo_args_to_js_args_no_map(&ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
@@ -251,11 +245,8 @@ impl Namespace {
 
     #[napi(js_name = "_defineCallbackPipelineItem", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (ctx: PipelineCtx) => string | boolean | undefined | null | Promise<string | boolean | undefined | null>")]
     pub fn _define_callback_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
+            let js_args = teo_args_to_js_args_no_map(&ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
@@ -278,11 +269,8 @@ impl Namespace {
 
     #[napi(js_name = "_defineComparePipelineItem", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (oldValue: any, newValue: any, ctx: PipelineCtx) => void | Promise<void>")]
     pub fn _define_compare_pipeline_item(&self, name: String, creator: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
+            let js_args = teo_args_to_js_args_no_map(&ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_pipeline_item(&name, move |arguments: Arguments| {
@@ -362,11 +350,8 @@ impl Namespace {
 
     #[napi(js_name = "defineRequestMiddleware", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
     pub fn define_request_middleware(&self, name: String, creator: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
+            let js_args = teo_args_to_js_args_no_map(&ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_request_middleware(name.as_str(), move |arguments| {
@@ -389,11 +374,8 @@ impl Namespace {
 
     #[napi(js_name = "defineHandlerMiddleware", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
     pub fn define_handler_middleware(&self, name: String, creator: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let js_args = teo_args_to_js_args(&dynamic_classes, &ctx.value, &ctx.env)?;
+            let js_args = teo_args_to_js_args_no_map(&ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_handler_middleware(name.as_str(), move |arguments| {

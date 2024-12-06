@@ -76,11 +76,8 @@ impl Namespace {
 
     #[napi(js_name = "defineModelDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, model: Model) => void")]
     pub fn define_model_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::Builder)>| {
-            let app_data = app_data.clone();
-            let lookup_map = DynamicClasses::retrieve(&app_data)?;
-            let arguments = teo_args_to_js_args(&lookup_map, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = Model { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -94,11 +91,8 @@ impl Namespace {
 
     #[napi(js_name = "defineModelFieldDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, field: Field) => void")]
     pub fn define_model_field_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::field::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, field::Builder)>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let arguments = teo_args_to_js_args(&dynamic_classes, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = Field { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -112,11 +106,8 @@ impl Namespace {
 
     #[napi(js_name = "defineModelRelationDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, relation: Relation) => void")]
     pub fn define_model_relation_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::relation::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::relation::Builder)>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let arguments = teo_args_to_js_args(&dynamic_classes, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = Relation { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -130,11 +121,8 @@ impl Namespace {
 
     #[napi(js_name = "defineModelPropertyDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, property: Property) => void")]
     pub fn define_model_property_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, model::property::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, model::property::Builder)>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let arguments = teo_args_to_js_args(&dynamic_classes, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = Property { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -148,11 +136,8 @@ impl Namespace {
 
     #[napi(js_name = "defineEnumDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, e: Enum) => void")]
     pub fn define_enum_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, r#enum::Builder)>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let arguments = teo_args_to_js_args(&dynamic_classes, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = Enum { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;
@@ -166,11 +151,8 @@ impl Namespace {
 
     #[napi(js_name = "defineEnumMemberDecorator", ts_args_type = "name: string, body: (args: {[key: string]: any}, member: EnumMember) => void")]
     pub fn define_enum_member_decorator(&self, name: String, callback: JsFunction) -> Result<()> {
-        let app_data = self.builder.app_data().clone();
         let threadsafe_callback: ThreadsafeFunction<(teo::prelude::Arguments, r#enum::member::Builder), ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<(Arguments, r#enum::member::Builder)>| {
-            let app_data = app_data.clone();
-            let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
-            let arguments = teo_args_to_js_args(&dynamic_classes, &ctx.value.0, &ctx.env)?;
+            let arguments = teo_args_to_js_args_no_map(&ctx.value.0, &ctx.env)?;
             let js_model = EnumMember { builder: ctx.value.1 };
             Ok(vec![arguments, js_model.into_instance(ctx.env)?.as_object(ctx.env)])
         })?;

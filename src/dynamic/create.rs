@@ -1,6 +1,5 @@
 use std::collections::BTreeMap;
 use napi::{Env, JsFunction, JsObject, Result};
-
 use super::fetch::FetchDynamicClasses;
 
 pub trait CreateDynamicClasses: FetchDynamicClasses {

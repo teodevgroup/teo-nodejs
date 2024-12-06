@@ -78,12 +78,12 @@ impl TestRequest {
         })
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn method(&self) -> &str {
         self.method.as_str()
     }
 
-    #[napi]
+    #[napi(setter)]
     pub fn set_method(&mut self, method: String) -> Result<()> {
         match Method::from_str(&method) {
             Ok(method) => {
@@ -94,12 +94,12 @@ impl TestRequest {
         }
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn uri(&self) -> &str {
         self.uri.as_str()
     }
 
-    #[napi]
+    #[napi(setter)]
     pub fn set_uri(&mut self, uri: String) {
         self.uri = uri;
     }
@@ -128,12 +128,12 @@ impl TestRequest {
         Ok(())
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn body(&self) -> Buffer {
         Buffer::from(Vec::<u8>::from(self.body.clone()))
     }
 
-    #[napi]
+    #[napi(setter)]
     pub fn set_body(&mut self, body: Buffer) {
         let body_vec: Vec<u8> = Vec::<u8>::from(body);
         self.body = Bytes::copy_from_slice(&body_vec);

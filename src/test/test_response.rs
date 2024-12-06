@@ -13,12 +13,12 @@ impl TestResponse {
         }
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn status(&self) -> u16 {
         self.teo_test_response.status().as_u16()
     }
 
-    #[napi]
+    #[napi(getter)]
     pub fn version(&self) -> String {
         format!("{:?}", self.teo_test_response.version())
     }

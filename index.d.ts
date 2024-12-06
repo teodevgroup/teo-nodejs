@@ -254,18 +254,18 @@ export declare class TestServer {
 }
 export declare class TestRequest {
   constructor(props: { method?: string, uri: string, headers?: { [key: string]: string }, body?: any })
-  method(): string
-  setMethod(method: string): void
-  uri(): string
-  setUri(uri: string): void
+  get method(): string
+  set method(method: string)
+  get uri(): string
+  set uri(uri: string)
   insertHeader(key: string, value: string): void
   appendHeader(key: string, value: string): void
-  body(): Buffer
-  setBody(body: Buffer): void
+  get body(): Buffer
+  set body(body: Buffer)
 }
 export declare class TestResponse {
-  status(): number
-  version(): string
+  get status(): number
+  get version(): string
   body(): Buffer
   bodyAsString(): string
   bodyAsJson(): any

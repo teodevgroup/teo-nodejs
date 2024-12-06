@@ -23,13 +23,13 @@ impl PipelineCtx {
 #[napi]
 impl PipelineCtx {
 
-    #[napi(getter)]
+    #[napi(getter, ts_return_type = "any")]
     pub fn value(&self, env: Env) -> Result<JsUnknown> {
         let dynamic_classes = DynamicClasses::retrieve(self.original.object().namespace().app_data())?;
         Ok(teo_value_to_js_any(&dynamic_classes, self.original.value(), &env)?)
     }
 
-    #[napi(getter)]
+    #[napi(getter, ts_return_type = "any")]
     pub fn object(&self, env: Env) -> Result<JsUnknown> {
         let dynamic_classes = DynamicClasses::retrieve(self.original.object().namespace().app_data())?;
         Ok(teo_model_object_to_js_any(&dynamic_classes, self.original.object(), &env)?)

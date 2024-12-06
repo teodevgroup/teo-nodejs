@@ -19,20 +19,20 @@ export declare class HandlerGroup {
   defineHandler(name: string, callback: (request: Request) => Response | Promise<Response>): void
 }
 export declare class Model {
-  setData(key: string, value: unknown): void
-  data(key: string): unknown
+  setData(key: string, value: any): void
+  data(key: string): any
 }
 export declare class Field {
-  setData(key: string, value: unknown): void
-  data(key: string): unknown
+  setData(key: string, value: any): void
+  data(key: string): any
 }
 export declare class Property {
-  setData(key: string, value: unknown): void
-  data(key: string): unknown
+  setData(key: string, value: any): void
+  data(key: string): any
 }
 export declare class Relation {
-  setData(key: string, value: unknown): void
-  data(key: string): unknown
+  setData(key: string, value: any): void
+  data(key: string): any
 }
 export declare class Namespace {
   isMain(): boolean
@@ -70,8 +70,8 @@ export declare class DateOnly {
   toString(): string
 }
 export declare class ObjectId {
+  constructor(value: string)
   toString(): string
-  static fromString(string: string): unknown
 }
 /**
  * File
@@ -182,7 +182,7 @@ export declare class Request {
   get handlerMatch(): HandlerMatch
   get captures(): {[key: string]: string} | any
   get bodyObject(): any
-  set bodyObject(value: unknown)
+  set bodyObject(value: any)
   get teo(): any
   get localValues(): LocalValues
   get localObjects(): LocalObjects
@@ -204,10 +204,10 @@ export declare class LocalValues {
 export declare class Response {
   static empty(): Response
   static string(content: string, contentType: string): Response
-  static teon(value: unknown): Response
+  static teon(value: any): Response
   static html(content: string): Response
-  static data(value: unknown): Response
-  static dataMeta(data: unknown, meta: unknown): Response
+  static data(value: any): Response
+  static dataMeta(data: any, meta: any): Response
   static file(path: string): Response
   static sendFile(base: string, path: string): Response
   static redirect(path: string): Response
@@ -219,22 +219,22 @@ export declare class Response {
   isEmpty(): boolean
   isTeon(): boolean
   getText(): string | null
-  getTeon(): unknown
+  getTeon(): any
   getFile(): string | null
   cookies(): Cookies
 }
 export declare class EnumMember {
-  setData(key: string, value: unknown): void
-  data(key: string): unknown
+  setData(key: string, value: any): void
+  data(key: string): any
 }
 export declare class Enum {
-  setData(key: string, value: unknown): void
-  data(key: string): unknown
+  setData(key: string, value: any): void
+  data(key: string): any
 }
 export declare class Pipeline { }
 export declare class PipelineCtx {
-  get value(): unknown
-  get object(): unknown
+  get value(): any
+  get object(): any
   get path(): object
   get teo(): object
   get request(): Request | null

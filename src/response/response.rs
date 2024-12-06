@@ -26,7 +26,7 @@ impl Response {
         })
     }
 
-    #[napi(ts_return_type = "Response")]
+    #[napi(ts_args_type = "value: any", ts_return_type = "Response")]
     pub fn teon(value: JsUnknown, env: Env) -> Result<Self> {
         let teo_value = js_any_to_teo_value(value, env)?;
         let response = OriginalResponse::teon(teo_value);
@@ -40,7 +40,7 @@ impl Response {
         Ok(Self::string(content, "text/html".to_owned())?)
     }
 
-    #[napi(ts_return_type = "Response")]
+    #[napi(ts_args_type = "value: any", ts_return_type = "Response")]
     pub fn data(value: JsUnknown, env: Env) -> Result<Self> {
         let teo_value = js_any_to_teo_value(value, env)?;
         let response = OriginalResponse::data(teo_value);
@@ -49,7 +49,7 @@ impl Response {
         })
     }
     
-    #[napi(js_name = "dataMeta", ts_return_type = "Response")]
+    #[napi(ts_args_type = "data: any, meta: any", ts_return_type = "Response")]
     pub fn data_meta(data: JsUnknown, meta: JsUnknown, env: Env) -> Result<Self> {
         let teo_data = js_any_to_teo_value(data, env)?;
         let teo_meta = js_any_to_teo_value(meta, env)?;
@@ -121,7 +121,7 @@ impl Response {
         self.original.body().as_text().cloned()
     }
 
-    #[napi]
+    #[napi(ts_return_type = "any")]
     pub fn get_teon(&self, env: Env) -> Result<JsUnknown> {
         Ok(match self.original.body().as_teon() {
             None => env.get_undefined()?.into_unknown(),

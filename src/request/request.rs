@@ -110,7 +110,7 @@ impl Request {
         teo_value_to_js_any(&dynamic_classes, self.original.body_value()?, &env)
     }
 
-    #[napi(setter)]
+    #[napi(setter, ts_args_type = "value: any")]
     pub fn set_body_object(&self, value: JsUnknown, env: Env) -> Result<()> {
         let teo_value = js_any_to_teo_value(value, env)?;
         self.original.set_body_value(teo_value);

@@ -508,7 +508,7 @@ App.prototype.program = function(callback) {
   })
 }
 Namespace.prototype.defineModelDecorator = function(name, callback) {
-  this._defineModelDecorator(function(e, arg) {
+  this._defineModelDecorator(name, function(e, arg) {
     if (e != null) {
       throw e
     }
@@ -516,7 +516,7 @@ Namespace.prototype.defineModelDecorator = function(name, callback) {
   })
 }
 Namespace.prototype.defineModelFieldDecorator = function(name, callback) {
-  this._defineModelFieldDecorator(function(e, arg) {
+  this._defineModelFieldDecorator(name, function(e, arg) {
     if (e != null) {
       throw e
     }
@@ -524,7 +524,7 @@ Namespace.prototype.defineModelFieldDecorator = function(name, callback) {
   })
 }
 Namespace.prototype.defineModelRelationDecorator = function(name, callback) {
-  this._defineModelRelationDecorator(function(e, arg) {
+  this._defineModelRelationDecorator(name, function(e, arg) {
     if (e != null) {
       throw e
     }
@@ -532,7 +532,7 @@ Namespace.prototype.defineModelRelationDecorator = function(name, callback) {
   })
 }
 Namespace.prototype.defineModelPropertyDecorator = function(name, callback) {
-  this._defineModelPropertyDecorator(function(e, arg) {
+  this._defineModelPropertyDecorator(name, function(e, arg) {
     if (e != null) {
       throw e
     }
@@ -540,7 +540,7 @@ Namespace.prototype.defineModelPropertyDecorator = function(name, callback) {
   })
 }
 Namespace.prototype.defineEnumDecorator = function(name, callback) {
-  this._defineEnumDecorator(function(e, arg) {
+  this._defineEnumDecorator(name, function(e, arg) {
     if (e != null) {
       throw e
     }
@@ -548,14 +548,29 @@ Namespace.prototype.defineEnumDecorator = function(name, callback) {
   })
 }
 Namespace.prototype.defineEnumMemberDecorator = function(name, callback) {
-  this._defineEnumMemberDecorator(function(e, arg) {
+  this._defineEnumMemberDecorator(name, function(e, arg) {
     if (e != null) {
       throw e
     }
     return callback(arg)
   })
 }
-
+Namespace.prototype.defineHandlerGroup = function(name, callback) {
+  this._defineHandlerGroup(name, function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
+Namespace.prototype.defineModelHandlerGroup = function(name, callback) {
+  this._defineModelHandlerGroup(name, function(e, arg) {
+    if (e != null) {
+      throw e
+    }
+    return callback(arg)
+  })
+}
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")

@@ -1,6 +1,6 @@
 import { App, Request, Response } from "../../../.."
 import schemaPathArgs from "../../../helpers/schemaPathArgs"
-import { SupportCreateInput, SupportFindManyArgs, Teo } from "./entities"
+import { Support, SupportCreateInput, SupportFindManyArgs, Teo } from "./entities"
 
 export default function loadApp() {
     const app = new App(schemaPathArgs(__filename, "schema.teo"))
@@ -15,6 +15,10 @@ export default function loadApp() {
         group.defineHandler("myFindManyObjects", async (req: Request) => {
             const teo: Teo = req.teo
             const input: SupportFindManyArgs = req.bodyObject
+            await (teo as any)._transaction(async (teo: Teo) => {
+                const objects = await teo.support.findManyObjects(input)
+                return objects
+            })
             const objects = await teo.support.findManyObjects(input)
             const values = await Promise.all(objects.map(async object => await object.toTeon()))
             return Response.data(values)

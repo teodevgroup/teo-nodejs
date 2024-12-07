@@ -1,60 +1,38 @@
-use napi::{JsUnknown, bindgen_prelude::{Promise, FromNapiValue}, Result, Error, Status};
+use napi::{JsUnknown, bindgen_prelude::{Promise, FromNapiValue}, Result};
 
-pub(crate) struct SendJsUnknown {
-    pub(crate) inner: JsUnknown
+pub enum JsUnknownOrPromise {
+    Promise(JsUnknown),
+    JsUnknown(JsUnknown),
 }
 
-impl SendJsUnknown {
-    pub(crate) fn new(inner: JsUnknown) -> Self {
-        Self { inner }
-    }
-}
-
-unsafe impl Send for SendJsUnknown { }
-unsafe impl Sync for SendJsUnknown { }
-
-pub enum SendJsUnknownOrPromise {
-    Promise(Promise<SendJsUnknownOrPromise>),
-    SendJsUnknown(SendJsUnknown),
-}
-
-impl FromNapiValue for SendJsUnknownOrPromise {
+impl FromNapiValue for JsUnknownOrPromise {
     unsafe fn from_napi_value(raw_env: napi::sys::napi_env, napi_val: napi::sys::napi_value) -> napi::Result<Self> {
         let unknown = JsUnknown::from_napi_value(raw_env, napi_val)?;
-        if unknown.is_promise().unwrap() {
-            let promise: Promise<SendJsUnknownOrPromise> = Promise::from_napi_value(raw_env, napi_val)?;
-            Ok(SendJsUnknownOrPromise::Promise(promise))
+        if unknown.is_promise()? {
+            //let promise: Promise<JsUnknown> = Promise::from_napi_value(raw_env, napi_val)?;
+            Ok(JsUnknownOrPromise::Promise(unknown))
         } else {
-            Ok(SendJsUnknownOrPromise::SendJsUnknown(SendJsUnknown::new(unknown)))
+            Ok(JsUnknownOrPromise::JsUnknown(unknown))
         }
     }
 }
 
-impl SendJsUnknownOrPromise {
+impl JsUnknownOrPromise {
 
-    pub async fn to_send_js_unknown(self) -> Result<SendJsUnknown> {
-        Ok(match self {
-            SendJsUnknownOrPromise::Promise(promise) => match promise.await {
-                Ok(p) => match p {
-                    SendJsUnknownOrPromise::Promise(promise) => Err(Error::new(Status::Unknown, "nested promise detected"))?,
-                    SendJsUnknownOrPromise::SendJsUnknown(v) => v,
-                },
-                Err(e) => Err(e)?,
-            },
-            SendJsUnknownOrPromise::SendJsUnknown(v) => v,
-        })
+    pub fn to_js_unknown(self) -> Result<JsUnknown> {
+        match self {
+            JsUnknownOrPromise::Promise(promise) => Ok(promise),
+            JsUnknownOrPromise::JsUnknown(v) => Ok(v),
+        }
     }
 
-    pub async fn to_js_unknown(self) -> Result<JsUnknown> {
-        Ok(match self {
-            SendJsUnknownOrPromise::Promise(promise) => match promise.await {
-                Ok(p) => match p {
-                    SendJsUnknownOrPromise::Promise(promise) => Err(Error::new(Status::Unknown, "nested promise detected"))?,
-                    SendJsUnknownOrPromise::SendJsUnknown(v) => v.inner,
-                },
-                Err(e) => Err(e)?,
-            },
-            SendJsUnknownOrPromise::SendJsUnknown(v) => v.inner,
-        })
-    }
+    // pub async fn resolve_promise_to_js_unknown(self) -> Result<JsUnknown> {
+    //     match self {
+    //         JsUnknownOrPromise::Promise(promise) => promise.await,
+    //         JsUnknownOrPromise::JsUnknown(v) => Ok(v),
+    //     }
+    // }
 }
+
+unsafe impl Send for JsUnknownOrPromise { }
+unsafe impl Sync for JsUnknownOrPromise { }

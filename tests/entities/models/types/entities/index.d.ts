@@ -6038,7 +6038,7 @@ export class Support {
 
 declare class Teo {
 
-    transaction(callback: (teo: Teo) => Promise<void>): Promise<void>
+    transaction<T>(callback: (teo: Teo) => Promise<T>): Promise<T>
 
     get support(): SupportModel
 }

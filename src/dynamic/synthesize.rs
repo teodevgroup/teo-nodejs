@@ -4,7 +4,7 @@ use napi::{threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, Threadsaf
 use teo::prelude::{model, traits::named::Named, transaction, App, Namespace, Value as TeoValue};
 use std::sync::Arc;
 use inflector::Inflector;
-use crate::object::{js_any_to_teo_value, unknown::{SendJsUnknown, SendJsUnknownOrPromise}, value::teo_value_to_js_any};
+use crate::object::{js_any_to_teo_value, unknown::JsUnknownOrPromise, value::teo_value_to_js_any};
 use super::{builder::DynamicClassesBuilder, create::CreateDynamicClasses, dynamic::DynamicClasses, query::QueryDynamicClasses};
 
 pub fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<()> {
@@ -677,16 +677,12 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
         });
         ctx_prototype.define_properties(&[ctx_property])?;
     }
-    let transaction = env.create_function_from_closure("transaction", {
+    let _transaction = env.create_function_from_closure("_transaction", {
         let app_data = app_data.clone();
         move |ctx| {
             let app_data = app_data.clone();
-            let error: JsUnknown = ctx.get(0)?;
-            if error.is_error()? {
-                return Err(error.into());
-            }
-            let callback: JsFunction = ctx.get(1)?;
-            let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+            let callback: JsFunction = ctx.get(0)?;
+            let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
                 let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
                 let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value, "")?;
                 Ok(vec![js_ctx])
@@ -699,17 +695,36 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
                 let teo_ctx = teo_ctx.clone();
                 async move {
                     let result = teo_ctx.run_transaction(|teo: transaction::Ctx| async {
-                        let retval: SendJsUnknownOrPromise = threadsafe_callback.call_async(Ok(teo)).await?;
-                        Ok(retval.to_send_js_unknown().await)
+                        let retval: JsUnknownOrPromise = threadsafe_callback.call_async(teo).await?;
+                        Ok(retval)
                     }).await?;
-                    result    
+                    Ok(result)
                 }
-            })(), |_: &mut Env, unknown: SendJsUnknown| {
-                Ok(unknown.inner)
+            })(), |_: &mut Env, unknown: JsUnknownOrPromise| {
+                Ok(unknown.to_js_unknown())
             })?;
             Ok(promise)
         }
     })?;
+    ctx_prototype.set_named_property("_transaction", _transaction)?;
+    let transaction = env.create_function_from_closure("transaction", {
+        |ctx| {
+            let original_callback: JsFunction = ctx.get(0)?;
+            let error_wrapper = ctx.env.create_function_from_closure("callback", move |ctx| {
+                let error: JsUnknown = ctx.get(0)?;
+                if error.is_error()? {
+                    return Err(error.into());
+                }
+                let callback: JsFunction = ctx.get(1)?;
+                let result: JsObject = original_callback.call1(callback)?;
+                Ok(result)
+            })?;
+            let this: JsObject = ctx.this()?;
+            let transaction: JsFunction = this.get_named_property("_transaction")?;
+            let result: JsUnknown = transaction.call1(error_wrapper)?;
+            Ok(result)
+        }
+    });
     ctx_prototype.set_named_property("transaction", transaction)?;
     Ok(())
 }

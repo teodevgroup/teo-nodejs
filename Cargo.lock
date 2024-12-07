@@ -2215,7 +2215,7 @@ dependencies = [
 [[package]]
 name = "napi"
 version = "2.16.13"
-source = "git+https://github.com/victorteokw/napi-rs?branch=release#abd2eb7a6bc5691d30db350acf7e1595b0b86583"
+source = "git+https://github.com/victorteokw/napi-rs?branch=release#5515e92ee4ea1af6b2a2cde16a1d77e6de7c7248"
 dependencies = [
  "bitflags 2.4.2",
  "chrono",
@@ -2249,7 +2249,7 @@ dependencies = [
 [[package]]
 name = "napi-derive"
 version = "2.16.12"
-source = "git+https://github.com/victorteokw/napi-rs?branch=release#abd2eb7a6bc5691d30db350acf7e1595b0b86583"
+source = "git+https://github.com/victorteokw/napi-rs?branch=release#5515e92ee4ea1af6b2a2cde16a1d77e6de7c7248"
 dependencies = [
  "cfg-if",
  "convert_case 0.6.0",
@@ -2277,7 +2277,7 @@ dependencies = [
 [[package]]
 name = "napi-derive-backend"
 version = "1.0.74"
-source = "git+https://github.com/victorteokw/napi-rs?branch=release#abd2eb7a6bc5691d30db350acf7e1595b0b86583"
+source = "git+https://github.com/victorteokw/napi-rs?branch=release#5515e92ee4ea1af6b2a2cde16a1d77e6de7c7248"
 dependencies = [
  "convert_case 0.6.0",
  "once_cell",
@@ -2289,7 +2289,7 @@ dependencies = [
 [[package]]
 name = "napi-sys"
 version = "2.4.0"
-source = "git+https://github.com/victorteokw/napi-rs?branch=release#abd2eb7a6bc5691d30db350acf7e1595b0b86583"
+source = "git+https://github.com/victorteokw/napi-rs?branch=release#5515e92ee4ea1af6b2a2cde16a1d77e6de7c7248"
 dependencies = [
  "libloading",
 ]

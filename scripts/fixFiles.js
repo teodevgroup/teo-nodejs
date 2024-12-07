@@ -231,16 +231,13 @@ Namespace.prototype.defineModelHandlerGroup = function(name, callback) {
     return callback(arg)
   })
 }
-Namespace.prototype.defineRequestMiddleware = async function(name, creator) {
+Namespace.prototype.defineRequestMiddleware = function(name, creator) {
   this._defineRequestMiddleware(name, async function(e, args) {
-    console.log("request creator coming")
     if (e != null) {
       throw e
     }    
     const middleware = await creator(args)
-    console.log("request middleware created")
     return async function(e, req, next) {
-      console.log("request middleware comes")
       if (e != null) {
         throw e
       }
@@ -248,16 +245,13 @@ Namespace.prototype.defineRequestMiddleware = async function(name, creator) {
     }
   })
 }
-Namespace.prototype.defineHandlerMiddleware = async function(name, creator) {
+Namespace.prototype.defineHandlerMiddleware = function(name, creator) {
   this._defineHandlerMiddleware(name, async function(e, args) {
-    console.log("handler creator coming")
     if (e != null) {
       throw e
     }
     const middleware = await creator(args)
-    console.log("handler middleware created")
     return async function(e, req, next) {
-      console.log("handler middleware comes")
       if (e != null) {
         throw e
       }

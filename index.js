@@ -571,9 +571,9 @@ Namespace.prototype.defineModelHandlerGroup = function(name, callback) {
     return callback(arg)
   })
 }
-Namespace.prototype.defineRequestMiddleware = async function(name, creator) {
+Namespace.prototype.defineRequestMiddleware = function(name, creator) {
   this._defineRequestMiddleware(name, async function(e, args) {
-    console.log("request creator coming")
+    console.log("request creator coming" + e + " " + args)
     if (e != null) {
       throw e
     }    
@@ -588,9 +588,9 @@ Namespace.prototype.defineRequestMiddleware = async function(name, creator) {
     }
   })
 }
-Namespace.prototype.defineHandlerMiddleware = async function(name, creator) {
+Namespace.prototype.defineHandlerMiddleware = function(name, creator) {
   this._defineHandlerMiddleware(name, async function(e, args) {
-    console.log("handler creator coming")
+    console.log("handler creator coming" + e + " " + args)
     if (e != null) {
       throw e
     }

@@ -353,7 +353,7 @@ impl Namespace {
                 let wrapped_result = move |request: TeoRequest, next: Next| {
                     let middleware_function = middleware_function.clone();
                     async move {
-                        let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async((request, next)).await?;
+                        let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async(Ok((request, next))).await?;
                         let res = res_or_promise.to_teo_response().await?;
                         return Ok(res);    
                     }
@@ -377,7 +377,7 @@ impl Namespace {
                 let wrapped_result = move |request: TeoRequest, next: Next| {
                     let middleware_function = middleware_function.clone();
                     async move {
-                        let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async((request, next)).await?;
+                        let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async(Ok((request, next))).await?;
                         let res = res_or_promise.to_teo_response().await?;
                         return Ok(res);    
                     }

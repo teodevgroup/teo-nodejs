@@ -681,7 +681,11 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
         let app_data = app_data.clone();
         move |ctx| {
             let app_data = app_data.clone();
-            let callback: JsFunction = ctx.get(0)?;
+            let error: JsUnknown = ctx.get(0)?;
+            if error.is_error()? {
+                return Err(error.into());
+            }
+            let callback: JsFunction = ctx.get(1)?;
             let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
                 let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
                 let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value, "")?;

@@ -348,18 +348,20 @@ impl Namespace {
         })?;
         self.builder.define_request_middleware(name.as_str(), move |arguments| {
             let threadsafe_creator = threadsafe_creator.clone();
-            async move {
-                let middleware_function: SendMiddlewareCallback = threadsafe_creator.call_async(Ok(arguments)).await?;
-                let wrapped_result = move |request: TeoRequest, next: Next| {
-                    let middleware_function = middleware_function.clone();
-                    async move {
-                        let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async(Ok((request, next))).await?;
-                        let res = res_or_promise.to_teo_response().await?;
-                        return Ok(res);    
-                    }
-                };
-                return Ok(Middleware::new(wrapped_result));
-            }
+            let middleware_function = thread::spawn(|| {
+                block_on(async move {
+                    let item: SendMiddlewareCallback = threadsafe_creator.call_async(Ok(arguments)).await?;
+                    Ok::<SendMiddlewareCallback, Error>(item)
+                })
+            }).join().expect("Thread panicked")?;
+            Ok(move |request: TeoRequest, next: Next| {
+                let middleware_function = middleware_function.clone();
+                async move {
+                    let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async(Ok((request, next))).await?;
+                    let res = res_or_promise.to_teo_response().await?;
+                    return Ok(res);    
+                }
+            })
         });
         Ok(())
     }
@@ -372,18 +374,20 @@ impl Namespace {
         })?;
         self.builder.define_handler_middleware(name.as_str(), move |arguments| {
             let threadsafe_creator = threadsafe_creator.clone();
-            async move {
-                let middleware_function: SendMiddlewareCallback = threadsafe_creator.call_async(Ok(arguments)).await?;
-                let wrapped_result = move |request: TeoRequest, next: Next| {
-                    let middleware_function = middleware_function.clone();
-                    async move {
-                        let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async(Ok((request, next))).await?;
-                        let res = res_or_promise.to_teo_response().await?;
-                        return Ok(res);    
-                    }
-                };
-                return Ok(Middleware::new(wrapped_result));    
-            }
+            let middleware_function = thread::spawn(|| {
+                block_on(async move {
+                    let item: SendMiddlewareCallback = threadsafe_creator.call_async(Ok(arguments)).await?;
+                    Ok::<SendMiddlewareCallback, Error>(item)
+                })
+            }).join().expect("Thread panicked")?;
+            Ok(move |request: TeoRequest, next: Next| {
+                let middleware_function = middleware_function.clone();
+                async move {
+                    let res_or_promise: ResponseOrPromise = middleware_function.inner.call_async(Ok((request, next))).await?;
+                    let res = res_or_promise.to_teo_response().await?;
+                    return Ok(res);    
+                }
+            })
         });
         Ok(())
     }

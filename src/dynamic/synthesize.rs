@@ -4,7 +4,7 @@ use napi::{threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, Threadsaf
 use teo::prelude::{model, traits::named::Named, transaction, App, Namespace, Value as TeoValue};
 use std::sync::Arc;
 use inflector::Inflector;
-use crate::object::{js_any_to_teo_value, promise_or_ignore::PromiseOrIgnore, unknown::JsUnknownOrPromise, value::teo_value_to_js_any};
+use crate::object::{js_any_to_teo_value, carry_over::CarryOverValue, value::teo_value_to_js_any};
 use super::{builder::DynamicClassesBuilder, create::CreateDynamicClasses, dynamic::DynamicClasses, query::QueryDynamicClasses};
 
 pub fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<()> {
@@ -695,15 +695,13 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
                 let teo_ctx = teo_ctx.clone();
                 async move {
                     let result = teo_ctx.run_transaction(|teo: transaction::Ctx| async {
-                        let retval: PromiseOrIgnore = threadsafe_callback.call_async(Ok(teo)).await?;
-                        let ignore = retval.to_ignore().await?;
-                        Ok(ignore)
+                        let retval: CarryOverValue = threadsafe_callback.call_async(Ok(teo)).await?;
+                        Ok(retval)
                     }).await?;
                     Ok(result)
                 }
-            })(), |env: &mut Env, unknown: ()| {
-                env.get_undefined()
-                // Ok(unknown.to_js_unknown())
+            })(), |_: &mut Env, reference: CarryOverValue| {
+                Ok(reference)
             })?;
             Ok(promise)
         }

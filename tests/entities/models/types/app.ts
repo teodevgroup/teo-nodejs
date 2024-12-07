@@ -15,13 +15,13 @@ export default function loadApp() {
         group.defineHandler("myFindManyObjects", async (req: Request) => {
             const teo: Teo = req.teo
             const input: SupportFindManyArgs = req.bodyObject;
-            await teo.transaction(async (teo: Teo) => {
+            const objects = await teo.transaction(async (teo: Teo) => {
                 const objects = await teo.support.findManyObjects(input)
-                console.log("see objects")
-                console.log(objects)
                 return objects
             })
-            const objects = await teo.support.findManyObjects(input)
+//            const objects = await teo.support.findManyObjects(input)
+            console.log("see objects")
+            console.log(objects)
             const values = await Promise.all(objects.map(async object => await object.toTeon()))
             return Response.data(values)
         })

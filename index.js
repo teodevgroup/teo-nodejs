@@ -571,6 +571,40 @@ Namespace.prototype.defineModelHandlerGroup = function(name, callback) {
     return callback(arg)
   })
 }
+Namespace.prototype.defineRequestMiddleware = async function(name, creator) {
+  this._defineRequestMiddleware(name, async function(e, args) {
+    console.log("request creator coming")
+    if (e != null) {
+      throw e
+    }    
+    const middleware = await creator(args)
+    console.log("request middleware created")
+    return async function(e, req, next) {
+      console.log("request middleware comes")
+      if (e != null) {
+        throw e
+      }
+      return await middleware(req, next)
+    }
+  })
+}
+Namespace.prototype.defineHandlerMiddleware = async function(name, creator) {
+  this._defineHandlerMiddleware(name, async function(e, args) {
+    console.log("handler creator coming")
+    if (e != null) {
+      throw e
+    }
+    const middleware = await creator(args)
+    console.log("handler middleware created")
+    return async function(e, req, next) {
+      console.log("handler middleware comes")
+      if (e != null) {
+        throw e
+      }
+      return await middleware(req, next)
+    }
+  })
+}
 class TeoError extends Error {
   constructor(message, code = 500, errors = null) {
     super("")

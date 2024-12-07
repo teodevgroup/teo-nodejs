@@ -340,16 +340,16 @@ impl Namespace {
         Ok(())
     }
 
-    #[napi(js_name = "defineRequestMiddleware", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
-    pub fn define_request_middleware(&self, name: String, creator: JsFunction) -> Result<()> {
-        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
+    #[napi(js_name = "_defineRequestMiddleware", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
+    pub fn _define_request_middleware(&self, name: String, creator: JsFunction) -> Result<()> {
+        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
             let js_args = teo_args_to_js_args_no_map(&ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_request_middleware(name.as_str(), move |arguments| {
             let threadsafe_creator = threadsafe_creator.clone();
             async move {
-                let middleware_function: SendMiddlewareCallback = threadsafe_creator.call_async(arguments).await?;
+                let middleware_function: SendMiddlewareCallback = threadsafe_creator.call_async(Ok(arguments)).await?;
                 let wrapped_result = move |request: TeoRequest, next: Next| {
                     let middleware_function = middleware_function.clone();
                     async move {
@@ -358,22 +358,22 @@ impl Namespace {
                         return Ok(res);    
                     }
                 };
-                return Ok(Middleware::new(wrapped_result));    
+                return Ok(Middleware::new(wrapped_result));
             }
         });
         Ok(())
     }
 
-    #[napi(js_name = "defineHandlerMiddleware", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
-    pub fn define_handler_middleware(&self, name: String, creator: JsFunction) -> Result<()> {
-        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::Fatal> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
+    #[napi(js_name = "_defineHandlerMiddleware", ts_args_type = "name: string, creator: (args: {[key: string]: any}) => (request: Request, next: (request: Request) => Promise<Response>) => Promise<Response> | Response")]
+    pub fn _define_handler_middleware(&self, name: String, creator: JsFunction) -> Result<()> {
+        let threadsafe_creator: ThreadsafeFunction<Arguments, ErrorStrategy::CalleeHandled> = creator.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<Arguments>| {
             let js_args = teo_args_to_js_args_no_map(&ctx.value, &ctx.env)?;
             Ok(vec![js_args])
         })?;
         self.builder.define_handler_middleware(name.as_str(), move |arguments| {
             let threadsafe_creator = threadsafe_creator.clone();
             async move {
-                let middleware_function: SendMiddlewareCallback = threadsafe_creator.call_async(arguments).await?;
+                let middleware_function: SendMiddlewareCallback = threadsafe_creator.call_async(Ok(arguments)).await?;
                 let wrapped_result = move |request: TeoRequest, next: Next| {
                     let middleware_function = middleware_function.clone();
                     async move {

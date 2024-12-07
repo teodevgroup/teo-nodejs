@@ -682,7 +682,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
         move |ctx| {
             let app_data = app_data.clone();
             let callback: JsFunction = ctx.get(0)?;
-            let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+            let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
                 let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
                 let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value, "")?;
                 Ok(vec![js_ctx])
@@ -695,7 +695,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
                 let teo_ctx = teo_ctx.clone();
                 async move {
                     let result = teo_ctx.run_transaction(|teo: transaction::Ctx| async {
-                        let retval: SendJsUnknownOrPromise = threadsafe_callback.call_async(teo).await?;
+                        let retval: SendJsUnknownOrPromise = threadsafe_callback.call_async(Ok(teo)).await?;
                         Ok(retval.to_send_js_unknown().await)
                     }).await?;
                     result    

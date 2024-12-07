@@ -648,5 +648,17 @@ TeoError.internalServerError = (message = "internal server error") => new TeoErr
 TeoError.unauthorized = (message = "unauthorized") => new TeoError(message, 401)
 module.exports.TeoError = TeoError
 
+// Function for fix transaction methods on transaction context
+module.exports._fixTransactionCallback = (prototype) => {
+  prototype.transaction = function(callback) {
+    return prototype._transaction(function(e, ctx) {
+      if (e != null) {
+        throw e
+      }
+      return callback(ctx)
+    })
+  }
+}
+
 globalThis.require = require
 process.on('SIGINT', function() { process.exit(0) })

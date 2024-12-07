@@ -29,6 +29,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@teodevgroup/teo-nodejs-helpers": "^0.3.5-alpha.1",
     "decimal.js": "^10.4.3"
   },
   "devDependencies": {

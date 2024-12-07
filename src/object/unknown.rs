@@ -1,4 +1,4 @@
-use napi::{JsUnknown, bindgen_prelude::{Promise, FromNapiValue}, Result};
+use napi::{JsUnknown, bindgen_prelude::FromNapiValue, Result};
 
 pub enum JsUnknownOrPromise {
     Promise(JsUnknown),

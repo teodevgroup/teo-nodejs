@@ -4,7 +4,7 @@ use napi::{threadsafe_function::{ErrorStrategy, ThreadSafeCallContext, Threadsaf
 use teo::prelude::{model, traits::named::Named, transaction, App, Namespace, Value as TeoValue};
 use std::sync::Arc;
 use inflector::Inflector;
-use crate::object::{js_any_to_teo_value, unknown::JsUnknownOrPromise, value::teo_value_to_js_any};
+use crate::object::{js_any_to_teo_value, promise_or_ignore::PromiseOrIgnore, unknown::JsUnknownOrPromise, value::teo_value_to_js_any};
 use super::{builder::DynamicClassesBuilder, create::CreateDynamicClasses, dynamic::DynamicClasses, query::QueryDynamicClasses};
 
 pub fn synthesize_dynamic_nodejs_classes(app: &App, env: Env) -> Result<()> {
@@ -682,7 +682,7 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
         move |ctx| {
             let app_data = app_data.clone();
             let callback: JsFunction = ctx.get(0)?;
-            let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::Fatal> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
+            let threadsafe_callback: ThreadsafeFunction<transaction::Ctx, ErrorStrategy::CalleeHandled> = callback.create_threadsafe_function(0, move |ctx: ThreadSafeCallContext<transaction::Ctx>| {
                 let dynamic_classes = DynamicClasses::retrieve(&app_data)?;
                 let js_ctx = dynamic_classes.teo_transaction_ctx_to_js_ctx_object(ctx.env, ctx.value, "")?;
                 Ok(vec![js_ctx])
@@ -695,36 +695,24 @@ pub(crate) fn synthesize_direct_dynamic_nodejs_classes_for_namespace(dynamic_cla
                 let teo_ctx = teo_ctx.clone();
                 async move {
                     let result = teo_ctx.run_transaction(|teo: transaction::Ctx| async {
-                        let retval: JsUnknownOrPromise = threadsafe_callback.call_async(teo).await?;
-                        Ok(retval)
+                        let retval: PromiseOrIgnore = threadsafe_callback.call_async(Ok(teo)).await?;
+                        let ignore = retval.to_ignore().await?;
+                        Ok(ignore)
                     }).await?;
                     Ok(result)
                 }
-            })(), |_: &mut Env, unknown: JsUnknownOrPromise| {
-                Ok(unknown.to_js_unknown())
+            })(), |env: &mut Env, unknown: ()| {
+                env.get_undefined()
+                // Ok(unknown.to_js_unknown())
             })?;
             Ok(promise)
         }
     })?;
     ctx_prototype.set_named_property("_transaction", _transaction)?;
-    let transaction = env.create_function_from_closure("transaction", {
-        |ctx| {
-            let original_callback: JsFunction = ctx.get(0)?;
-            let error_wrapper = ctx.env.create_function_from_closure("callback", move |ctx| {
-                let error: JsUnknown = ctx.get(0)?;
-                if error.is_error()? {
-                    return Err(error.into());
-                }
-                let callback: JsFunction = ctx.get(1)?;
-                let result: JsObject = original_callback.call1(callback)?;
-                Ok(result)
-            })?;
-            let this: JsObject = ctx.this()?;
-            let transaction: JsFunction = this.get_named_property("_transaction")?;
-            let result: JsUnknown = transaction.call1(error_wrapper)?;
-            Ok(result)
-        }
-    });
-    ctx_prototype.set_named_property("transaction", transaction)?;
+    let global = env.get_global()?;
+    let require: JsFunction = global.get_named_property("require")?;
+    let module = require.call(None, &[env.create_string("@teodevgroup/teo-nodejs-helpers")?])?.coerce_to_object()?;
+    let fixer: JsFunction = module.get_named_property("fixTransactionCallback")?;
+    fixer.call(None, &[&ctx_prototype])?;
     Ok(())
 }

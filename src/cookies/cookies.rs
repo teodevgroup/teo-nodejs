@@ -13,6 +13,12 @@ impl From<OriginalCookies> for Cookies {
     }
 }
 
+impl Cookies {
+    pub(crate) fn original(&self) -> &OriginalCookies {
+        &self.original
+    }
+}
+
 #[napi]
 impl Cookies {
 

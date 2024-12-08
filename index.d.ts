@@ -178,7 +178,9 @@ export declare class Request {
   get query(): string | null
   get contentType(): string | null
   get headers(): Headers
+  set headers(headers: Headers)
   get cookies(): Cookies
+  set cookies(cookies: Cookies)
   get handlerMatch(): HandlerMatch
   get captures(): {[key: string]: string} | any
   get bodyObject(): any

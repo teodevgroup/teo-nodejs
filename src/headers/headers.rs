@@ -12,6 +12,12 @@ impl From<OriginalHeaders> for Headers {
     }
 }
 
+impl Headers {
+    pub(crate) fn original(&self) -> &OriginalHeaders {
+        &self.original
+    }
+}
+
 #[napi]
 impl Headers {
 

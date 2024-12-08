@@ -45,7 +45,7 @@ test('cookie in text response', async (t) => {
         uri: '/textResponse',
     })
     const response = await server.process(test_request)
-    t.is(response.headerValue('set-cookie'), 'foo=bar')
+    t.is(response.headers.get('set-cookie'), 'foo=bar')
 })
 
 test('cookie in json response', async (t) => {
@@ -54,7 +54,7 @@ test('cookie in json response', async (t) => {
         uri: '/jsonResponse',
     })
     const response = await server.process(test_request)
-    t.is(response.headerValue('set-cookie'), 'foo=bar')
+    t.is(response.headers.get('set-cookie'), 'foo=bar')
 })
 
 test('cookie in file response', async (t) => {
@@ -63,5 +63,5 @@ test('cookie in file response', async (t) => {
         uri: '/fileResponse',
     })
     const response = await server.process(test_request)
-    t.is(response.headerValue('set-cookie'), 'foo=bar')
+    t.is(response.headers.get('set-cookie'), 'foo=bar')
 })

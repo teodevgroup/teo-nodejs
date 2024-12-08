@@ -216,6 +216,7 @@ export declare class Response {
   set code(code: number)
   get code(): number
   get headers(): Headers
+  set headers(headers: Headers)
   get isFile(): boolean
   get isText(): boolean
   get isEmpty(): boolean
@@ -224,6 +225,7 @@ export declare class Response {
   get teon(): any | null
   get file(): string | null
   get cookies(): Cookies
+  set cookies(cookies: Cookies)
 }
 export declare class EnumMember {
   setData(key: string, value: any): void

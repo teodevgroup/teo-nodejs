@@ -96,6 +96,11 @@ impl Response {
         self.original.headers().into()
     }
 
+    #[napi(setter)]
+    pub fn set_headers(&self, headers: &Headers) {
+        self.original.set_headers(headers.original().clone());
+    }
+
     #[napi(getter)]
     pub fn is_file(&self) -> bool {
         self.original.body().is_file()
@@ -140,6 +145,11 @@ impl Response {
     #[napi(getter)]
     pub fn cookies(&self) -> Cookies {
         self.original.cookies().into()
+    }
+
+    #[napi(setter)]
+    pub fn set_cookies(&self, cookies: &Cookies) {
+        self.original.set_cookies(cookies.original().clone());
     }
 }
 

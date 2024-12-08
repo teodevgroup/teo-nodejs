@@ -2,6 +2,7 @@ use napi::{Env, JsFunction, JsUnknown, Result};
 use teo::prelude::cookies::Cookies as OriginalCookies;
 use super::cookie::Cookie;
 
+#[derive(Clone)]
 #[napi]
 pub struct Cookies {
     original: OriginalCookies

@@ -1,6 +1,7 @@
 use teo::prelude::headers::Headers as OriginalHeaders;
 use napi::Result;
 
+#[derive(Clone)]
 #[napi]
 pub struct Headers {
     original: OriginalHeaders

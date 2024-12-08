@@ -50,7 +50,7 @@ pub fn js_any_to_teo_value(any: JsUnknown, env: Env) -> Result<Value> {
                 let len = object.get_array_length()?;
                 let mut result: Vec<Value> = vec![];
                 for n in 0..len {
-                    let item: JsUnknown = object.get_element(n).unwrap();
+                    let item: JsUnknown = object.get_element(n)?;
                     result.push(js_any_to_teo_value(item, env)?);
                 }
                 Value::Array(result)

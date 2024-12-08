@@ -257,15 +257,19 @@ export declare class TestServer {
   process(request: TestRequest): Promise<TestResponse>
 }
 export declare class TestRequest {
-  constructor(props: { method?: string, uri: string, headers?: { [key: string]: string }, body?: any })
+  constructor(props: { method?: string, uri: string, headers?: { [key: string]: string }, body?: any, cookies?: Cookie[] })
   get method(): string
   set method(method: string)
   get uri(): string
   set uri(uri: string)
-  insertHeader(key: string, value: string): void
-  appendHeader(key: string, value: string): void
+  get headers(): Headers
+  set headers(headers: Headers)
+  insertHeader(key: string, value: string): this
+  appendHeader(key: string, value: string): this
   get body(): Buffer
   set body(body: Buffer)
+  get cookies(): Cookies
+  set cookies(cookies: Cookies)
 }
 export declare class TestResponse {
   get status(): number
@@ -273,11 +277,8 @@ export declare class TestResponse {
   body(): Buffer
   bodyAsString(): string
   bodyAsJson(): any
-  containsHeader(name: string): boolean
-  headerValue(name: string): string | null
-  headerValues(name: string): Array<string>
-  headerKeys(): string[]
-  headersLength(): number
+  get headers(): Headers
+  get cookies(): Cookies
 }
 export class TeoError extends Error {
   constructor(message: string, code?: number, errors?: { [key: string]: string } | null)

@@ -37,6 +37,6 @@ impl TestServer {
     pub async fn process(&self, request: &TestRequest) -> Result<TestResponse> {
         let hyper_request = request.to_hyper_request();
         let response = self.server.process_test_request_with_hyper_request(hyper_request).await?;
-        Ok(TestResponse::new(response))
+        Ok(TestResponse::from(response))
     }
 }

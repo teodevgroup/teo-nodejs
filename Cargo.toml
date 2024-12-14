@@ -1,13 +1,13 @@
 [package]
 edition = "2021"
 name = "teodevgroup_teo"
-version = "0.3.7"
+version = "0.3.8"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
-teo = { version = "0.3.7" }
+teo = { version = "0.3.8" }
 teo-result = { version = "0.3.5", features = ["napi"] }
 napi = { version = "2.16.13", default-features = false, features = ["napi5", "async", "chrono_date", "compat-mode"] }
 napi-derive = "2.16.12"

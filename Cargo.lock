@@ -1504,9 +1504,9 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "1.5.1"
+version = "1.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97818827ef4f364230e16705d4706e2897df2bb60617d6ca15d598025a3c481f"
+checksum = "256fb8d4bd6413123cc9d91832d78325c48ff41677595be797d90f42969beae0"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -3755,9 +3755,9 @@ dependencies = [
 
 [[package]]
 name = "teo"
-version = "0.3.8"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d5275705b808eec064967f0b112bb39f88e71030554de8c845da50415dc95be"
+checksum = "e652393a51d1ed311ceed49da658e0cfa895e933dcc0ee992d80d3179c704dc1"
 dependencies = [
  "array_tool",
  "bigdecimal",
@@ -3797,9 +3797,9 @@ dependencies = [
 
 [[package]]
 name = "teo-generator"
-version = "0.3.8"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3baf1d89026b400e7bc3aa7d5544b7ca22965330bae55f0afef7e69a0695877e"
+checksum = "46ca11a21c455ad5e00c8b2483523d7e3c65dcc23187230affbb43344f565999"
 dependencies = [
  "askama",
  "async-recursion",
@@ -3974,7 +3974,7 @@ dependencies = [
 
 [[package]]
 name = "teodevgroup_teo"
-version = "0.3.8"
+version = "0.3.9"
 dependencies = [
  "bigdecimal",
  "bson",
